@@ -5,7 +5,7 @@ Jetbrain Pycharm plugin for [pydantic](https://github.com/samuelcolvin/pydantic)
  [Auto-completion when instantiating BaseModel objects #650](https://github.com/samuelcolvin/pydantic/issues/650)
 
 ## example:
-![type check1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/typecheck1.png | width=400)
+![type check1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/typecheck1.png)
 
 ## How to install:
 There is a plugin in this git repo as [pydantic-pychar-plugin.jar](https://github.com/koxudaxi/pydantic-pycharm-plugin/raw/master/pydantic-pycharm-plugin.jar) 
