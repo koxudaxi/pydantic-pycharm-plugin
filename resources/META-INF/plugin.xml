@@ -1,0 +1,23 @@
+<idea-plugin>
+  <id>org.pydantic</id>
+  <name>Pydantic</name>
+  <version>0.0.1</version>
+  <vendor email="koaxudai@gmail.com">koxudaxi</vendor>
+
+  <description>This plugin provide autocomplete for pydancit</description>
+
+  <idea-version since-build="173.0"/>
+
+  <depends>com.intellij.modules.lang</depends>
+  <depends optional="true" >com.intellij.modules.python</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <fileTypeFactory implementation="com.jetbrains.python.PythonFileTypeFactory"/>
+<!--    <completion.contributor language="Python"-->
+<!--                          implementationClass="org.pydantic.PydanticCompletionContributor"/>-->
+<!--    <localInspection language="Python" shortName="PydanticInspection" suppressId="PyDataclass" displayName="Dataclass definition and usages" groupKey="INSP.GROUP.python" enabledByDefault="true"  level="WARNING" implementationClass="org.pydantic.PydanticInspection"/>-->
+  </extensions>
+  <extensions defaultExtensionNs="Pythonid">
+    <typeProvider implementation="org.pydantic.PydanticTypeProvider"/>
+  </extensions>
+
+</idea-plugin>
