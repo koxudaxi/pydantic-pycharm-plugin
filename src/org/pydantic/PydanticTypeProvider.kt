@@ -79,7 +79,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             }
 
             val current = currentType.pyClass
-            if (! current.isSubclass("pydantic.main.BaseModel", context)) break
+            if (! current.isSubclass("pydantic.main.BaseModel", context)) return null
 
             current
                     .classAttributes
