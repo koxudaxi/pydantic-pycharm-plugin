@@ -6,10 +6,10 @@
 
   <description>This plugin provide autocomplete for pydancit</description>
 
-  <idea-version since-build="173.0"/>
+  <idea-version since-build="192.0"/>
 
   <depends>com.intellij.modules.lang</depends>
-  <depends optional="true" >com.intellij.modules.python</depends>
+  <depends optional="true" config-file="">com.intellij.modules.python</depends>
   <extensions defaultExtensionNs="com.intellij">
     <fileTypeFactory implementation="com.jetbrains.python.PythonFileTypeFactory"/>
 <!--    <completion.contributor language="Python"-->
