@@ -75,11 +75,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     !currentType.resolveMember(PyNames.INIT, null, AccessDirection.READ, resolveContext, false).isNullOrEmpty() ||
                     !currentType.resolveMember(PyNames.NEW, null, AccessDirection.READ, resolveContext, false).isNullOrEmpty() ||
                     currentType !is PyClassType) {
-                 continue
+                continue
             }
 
             val current = currentType.pyClass
-            if (! current.isSubclass("pydantic.main.BaseModel", context)) return null
+            if (!current.isSubclass("pydantic.main.BaseModel", context)) return null
 
             current
                     .classAttributes
@@ -89,10 +89,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     .mapNotNull { fieldToParameter(it, ellipsis, context) }
                     .forEach { parameter ->
                         parameter.name?.let {
+                            if (!collected.containsKey(it)) {
                                 collected[it] = parameter
                             }
                         }
                     }
+        }
 
         return PyCallableTypeImpl(collected.values.reversed(), clsType.toInstance())
     }
@@ -104,7 +106,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val fieldStub = if (stub == null) PydanticFieldStubImpl.create(field) else stub.getCustomStub(PydanticFieldStub::class.java)
         if (fieldStub != null && !fieldStub.initValue()) return null
         if (fieldStub == null && field.annotationValue == null) return null // skip fields that are not annotated
-
 
 
         return PyCallableParameterImpl.nonPsi(field.name,
@@ -129,10 +130,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 field.hasAssignedValue() -> ellipsis
                 else -> null
             }
-        }
-        else if (fieldStub.hasDefault() || fieldStub.hasDefaultFactory()) {
+        } else if (fieldStub.hasDefault() || fieldStub.hasDefaultFactory()) {
             ellipsis
-        }
-        else null
+        } else null
     }
 }
