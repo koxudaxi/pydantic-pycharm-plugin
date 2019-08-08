@@ -7,6 +7,7 @@ import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionNavigator
+import com.jetbrains.python.psi.impl.PySubscriptionExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.*
 import one.util.streamex.StreamEx
@@ -124,14 +125,26 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                             fieldStub: PydanticFieldStub?,
                                             ellipsis: PyNoneLiteralExpression,
                                             context: TypeEvalContext): PyExpression? {
-        return if (fieldStub == null) {
+        if (fieldStub == null) {
             when {
-                context.maySwitchToAST(field) -> field.findAssignedValue()
-                field.hasAssignedValue() -> ellipsis
-                else -> null
+                context.maySwitchToAST(field) -> {
+                    val value = field.findAssignedValue()
+                    when {
+                        value == null -> {
+                            val annotationName = (field.annotation?.value as? PySubscriptionExpressionImpl)?.qualifier?.text
+                            if (annotationName == "Optional") {
+                                return ellipsis
+                            }
+                            return value
+                        }
+                        field.hasAssignedValue() -> return ellipsis
+                        else -> return null
+                    }
+                }
             }
         } else if (fieldStub.hasDefault() || fieldStub.hasDefaultFactory()) {
-            ellipsis
-        } else null
+            return ellipsis
+        }
+        return null
     }
 }
