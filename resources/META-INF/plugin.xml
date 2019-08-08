@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>org.pydantic</id>
   <name>Pydantic</name>
-  <version>0.0.4</version>
+  <version>0.0.5</version>
   <vendor email="koaxudai@gmail.com">koxudaxi</vendor>
 
   <description>This plugin provide autocomplete for pydancit</description>
