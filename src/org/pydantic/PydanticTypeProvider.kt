@@ -131,9 +131,19 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     val value = field.findAssignedValue()
                     when {
                         value == null -> {
-                            val annotationName = (field.annotation?.value as? PySubscriptionExpressionImpl)?.qualifier?.text
-                            if (annotationName == "Optional") {
-                                return ellipsis
+                            val annotation = (field.annotation?.value as? PySubscriptionExpressionImpl) ?: return null
+
+                            when {
+                                annotation.qualifier?.text == "Optional" -> return ellipsis
+                                annotation.qualifier?.text == "Union" -> for (child in annotation.children){
+                                    if (child is PyTupleExpression) {
+                                        for (type in child.children) {
+                                            if (type is PyNoneLiteralExpression) {
+                                                return ellipsis
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             return value
                         }
