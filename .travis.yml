@@ -26,5 +26,4 @@ deploy:
     on:
         repo: koxudaxi/pydantic-pycharm-plugin
         tags: on
-    draft: true
 
