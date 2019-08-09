@@ -1,4 +1,4 @@
-package org.pydantic
+package com.koxudaxi.pydantic
 
 import com.jetbrains.python.psi.impl.stubs.CustomTargetExpressionStub
 

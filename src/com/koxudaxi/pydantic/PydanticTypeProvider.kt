@@ -1,4 +1,4 @@
-package org.pydantic
+package com.koxudaxi.pydantic
 
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.util.PsiTreeUtil

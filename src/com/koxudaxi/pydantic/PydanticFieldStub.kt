@@ -1,4 +1,4 @@
-package org.pydantic
+package com.koxudaxi.pydantic
 
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
@@ -21,7 +21,7 @@ class PydanticFieldStubImpl private constructor(private val calleeName: Qualifie
             val callee = value.callee as? PyReferenceExpression ?: return null
 
             val calleeName = calculateCalleeName(callee) ?: return null
-            return PydanticFieldStubImpl(calleeName, hasDefault =  true, hasDefaultFactory =  true, initValue =  true)
+            return PydanticFieldStubImpl(calleeName, hasDefault = true, hasDefaultFactory = true, initValue = true)
         }
 
         @Throws(IOException::class)

@@ -21,3 +21,20 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+.idea/workspace.xml
+.idea/modules.xml
+.idea/compiler.xml
+.idea/misc.xml
+.idea/gradle.xml
+.idea/shelf/
+.idea/libraries/
+.idea/dictionaries
+.idea/.name
+*.iml
+
+/build/
+/jps-plugin/build/
+.gradle
+/out/
+/pydantic-pycahrm-plugin/out/

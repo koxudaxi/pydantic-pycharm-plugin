@@ -1,4 +1,4 @@
-package org.pydantic
+package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemsHolder
