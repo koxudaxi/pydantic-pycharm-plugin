@@ -127,31 +127,27 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                             ellipsis: PyNoneLiteralExpression,
                                             context: TypeEvalContext): PyExpression? {
         if (fieldStub == null) {
+            val value = field.findAssignedValue()
             when {
-                context.maySwitchToAST(field) -> {
-                    val value = field.findAssignedValue()
-                    when {
-                        value == null -> {
-                            val annotation = (field.annotation?.value as? PySubscriptionExpressionImpl) ?: return null
+                value == null -> {
+                    val annotation = (field.annotation?.value as? PySubscriptionExpressionImpl) ?: return null
 
-                            when {
-                                annotation.qualifier?.text == "Optional" -> return ellipsis
-                                annotation.qualifier?.text == "Union" -> for (child in annotation.children){
-                                    if (child is PyTupleExpression) {
-                                        for (type in child.children) {
-                                            if (type is PyNoneLiteralExpression) {
-                                                return ellipsis
-                                            }
-                                        }
+                    when {
+                        annotation.qualifier?.text == "Optional" -> return ellipsis
+                        annotation.qualifier?.text == "Union" -> for (child in annotation.children){
+                            if (child is PyTupleExpression) {
+                                for (type in child.children) {
+                                    if (type is PyNoneLiteralExpression) {
+                                        return ellipsis
                                     }
                                 }
                             }
-                            return value
                         }
-                        field.hasAssignedValue() -> return ellipsis
-                        else -> return null
                     }
+                    return value
                 }
+                field.hasAssignedValue() -> return ellipsis
+                else -> return null
             }
         } else if (fieldStub.hasDefault() || fieldStub.hasDefaultFactory()) {
             return ellipsis
