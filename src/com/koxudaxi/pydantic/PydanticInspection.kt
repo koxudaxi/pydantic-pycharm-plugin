@@ -8,6 +8,7 @@ import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyKeywordArgument
+import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.impl.PyStarArgumentImpl
 import com.jetbrains.python.psi.types.PyClassTypeImpl
 
@@ -26,6 +27,7 @@ class PydanticInspection : PyInspection() {
             if (node != null) {
                 val pyClass: PyClass = (myTypeEvalContext.getType(node) as? PyClassTypeImpl)?.pyClass ?: return
                 if (!pyClass.isSubclass("pydantic.main.BaseModel", myTypeEvalContext)) return
+                if ((node.callee as PyReferenceExpressionImpl).isQualified) return
                 for (argument in node.arguments) {
                     if (argument is PyKeywordArgument) {
                         continue
