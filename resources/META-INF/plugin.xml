@@ -4,7 +4,7 @@
   <version>0.0.5</version>
   <vendor email="koaxudai@gmail.com">koxudaxi</vendor>
 
-  <description>This plugin provide autocomplete for pydancit</description>
+  <description>This plugin provides autocompletion support for pydantic</description>
 
   <idea-version since-build="192.0"/>
 
