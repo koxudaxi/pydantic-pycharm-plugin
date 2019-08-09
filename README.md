@@ -9,6 +9,7 @@ Jetbrains Pycharm plugin for [pydantic](https://github.com/samuelcolvin/pydantic
 
 ## How to install:
 There is a plugin in this git repo as [pydantic-pycharm-plugin.zip(latest)](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/latest/download/pydantic-pycharm-plugin.zip) 
+
 You can install this plugin from disk
 https://www.jetbrains.com/help/pycharm/plugins-settings.html
  
