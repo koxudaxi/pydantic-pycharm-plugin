@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>org.pydantic</id>
   <name>Pydantic</name>
-  <version>0.0.5</version>
+  <version>0.0.6</version>
   <vendor email="koaxudai@gmail.com">koxudaxi</vendor>
 
   <description>This plugin provides autocompletion support for pydantic</description>
@@ -14,10 +14,11 @@
     <fileTypeFactory implementation="com.jetbrains.python.PythonFileTypeFactory"/>
 <!--    <completion.contributor language="Python"-->
 <!--                          implementationClass="org.pydantic.PydanticCompletionContributor"/>-->
-<!--    <localInspection language="Python" shortName="PydanticInspection" suppressId="PyDataclass" displayName="Dataclass definition and usages" groupKey="INSP.GROUP.python" enabledByDefault="true"  level="WARNING" implementationClass="org.pydantic.PydanticInspection"/>-->
+    <localInspection language="Python" shortName="PydanticInspection" suppressId="Pydantic" displayName="Pydantic definition and usages" groupKey="INSP.GROUP.python" enabledByDefault="true"  level="WARNING" implementationClass="org.pydantic.PydanticInspection"/>
   </extensions>
   <extensions defaultExtensionNs="Pythonid">
     <typeProvider implementation="org.pydantic.PydanticTypeProvider"/>
   </extensions>
 
 </idea-plugin>
+

@@ -26,7 +26,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             if (cls != null && name != null) {
                 cls
                         .findClassAttribute(name, false, context)
-                        ?.let { return Ref.create(getTypeForParameter(it, context)) }
+                        ?.let {
+                            return Ref.create(getTypeForParameter(it, context)) }
 
                 for (ancestor in cls.getAncestorClasses(context)) {
                     ancestor
