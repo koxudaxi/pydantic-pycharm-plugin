@@ -1,5 +1,5 @@
 # pydantic-pycharm-plugin
-Jetbrain Pycharm plugin for [pydantic](https://github.com/samuelcolvin/pydantic)
+Jetbrains Pycharm plugin for [pydantic](https://github.com/samuelcolvin/pydantic)
 
 ## original issue
  [Auto-completion when instantiating BaseModel objects #650](https://github.com/samuelcolvin/pydantic/issues/650)
@@ -12,10 +12,33 @@ There is a plugin in this git repo as [pydantic-pychar-plugin.jar](https://githu
 You can install this plugin from disk
 https://www.jetbrains.com/help/pycharm/plugins-settings.html
  
+## Development
+### Build plugin
+You can build and run the plugin on your terminal or Intellij.
+#### Shell on Linux or MacOS 
+```bash
+$ ./gradlew buildPlugin
+```
+
+#### Command Prompt on Windows
+```
+$ gradlew.bat buildPlugin
+```
+
+#### JetBrains IDE on Any platform
+
+[official documents](https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/using_dev_kit.html])
+
+### Run IDE with build Plugin
+```bash
+$ ./gradlew runIde
+```
+
 ## Features
 ### Implemented
 #### pydantic.BaseModel
 - `__init__` (partial)
+
 
 
 ## This project is an experimental phase.
