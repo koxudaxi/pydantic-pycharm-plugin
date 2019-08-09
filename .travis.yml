@@ -1,0 +1,28 @@
+sudo: false
+language: python
+python:
+- '3.7'
+jdk: oraclejdk8
+cache:
+  directories:
+  - cache
+  - dependencies
+  - pip
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+install: skip
+script: travis_wait ./gradlew buildPlugin
+before_cache:
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+- rm -fr $HOME/.gradle/caches/*/fileHashes/
+deploy:
+  - provider: releases
+    api_key:
+        secure: wNvSOb8s+Ee/ja/RSuLLJqWWtOBUplquweC/YFeHwbMc3kSnrC0dFIeEE5rSwCtQGa/JDC7YiZgISVGv3H584zBfIt/zQdIcu7WyGsAUA1+WHSsQYKkKXC7DBMJ2hOHODYL+7B+bsm2U0mLxGg0sQVSnZKk4NrZJi622U2q9C4esoW7xFGSr9Q4zG70fPzirm46MpWEIa8tGFsEikiyx7k+Bgy3LYvIpHRN16INigrGG+ynRKZ9A3RXuCA6g9vQb6YrLyqD4S7cPXQzz3ySKmQPfcGtp2O+6bj+L/qb3JSCu/LZMHNjCa8kXh7iFIlrC8wEPOYIG/6uRQCWuIaPYJSroWSGtbj3RxRSgcuWyITVkVO+sa0jpkYYdBQErSoRRgvnkEVWJd8//CPVQfl5ghpWhiLkW7Ug45xPhZzu5FH/4evhL5WNjYDucQVMRmE1Ihgoa6KmvOXnu0lZ4LsMe3BDHwqaGZS42AmoQTw7Bm7bBkyymLFjXzl8YHojGcJ3v3GPUEBFfJ2pujzOW+6suvFIp6s8aq2h/NdDsSrvk7G2hBZ1eenbCBGH2UQwNgyQ0bgv6gdZMDO1rBjHbFt0rj1baIFG17zPzABS55H5dydzn1T9cCjmDfc6H1QgSyM8Y1T/+xL4iGwrPxKzRv2otOtoGPMujXN21L+viMmFTVaI=
+    file: build/distributions/pydantic-pycharm-plugin.zip
+    on:
+        repo: koxudaxi/pydantic-pycharm-plugin
+        tags: on
+    draft: true
+
