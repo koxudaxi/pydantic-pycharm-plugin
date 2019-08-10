@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.8</version>
+    <version>0.0.9</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
 
     <description>This plugin provides autocompletion support for pydantic</description>
