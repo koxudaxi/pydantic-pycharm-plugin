@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.9</version>
+    <version>0.0.10</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
 
     <description>This plugin provides autocompletion support for pydantic</description>
@@ -16,9 +16,12 @@
                          displayName="Pydantic definition and usages" groupKey="INSP.GROUP.python"
                          enabledByDefault="true" level="WARNING"
                          implementationClass="com.koxudaxi.pydantic.PydanticInspection"/>
+        <automaticRenamerFactory implementation="com.koxudaxi.pydantic.PydanticFieldRenameFactory"/>
+<!--        <renamePsiElementProcessor implementation="com.koxudaxi.pydantic.RenamePydanticFieldProcessor" order="before pyvar"/>-->
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
+
     </extensions>
 
 </idea-plugin>
