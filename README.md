@@ -1,21 +1,31 @@
 # pydantic-pycharm-plugin
-Jetbrains Pycharm plugin for [pydantic](https://github.com/samuelcolvin/pydantic)
+A JetBrains PyCharm plugin for [`pydantic`](https://github.com/samuelcolvin/pydantic).
 
-## original issue
- [Auto-completion when instantiating BaseModel objects #650](https://github.com/samuelcolvin/pydantic/issues/650)
+(See [Auto-completion when instantiating BaseModel objects #650](https://github.com/samuelcolvin/pydantic/issues/650) for motivation.)
 
-## example:
+## Example:
 ![type check1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/typecheck1.png)
 
-## How to install:
-There is a plugin in this git repo as [pydantic-pycharm-plugin.zip(latest)](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/latest/download/pydantic-pycharm-plugin.zip) 
+## Features
+### Implemented
+#### pydantic.BaseModel
+* Model-specific `__init__`-signature inspection and autocompletion for subclasses of `pydantic.BaseModel`
+* Model-specific `__init__`-arguments type-checking for subclasses of `pydantic.BaseModel` 
+* Refactor support for renaming fields for subclasses of `BaseModel`
+  * (If the field name is refactored from the model definition, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.
 
-You can install this plugin from disk
-https://www.jetbrains.com/help/pycharm/plugins-settings.html
+
+## How to install:
+The releases section of this repository contains a compiled version of the plugin: [pydantic-pycharm-plugin.zip(latest)](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/latest/download/pydantic-pycharm-plugin.zip)
+
+After downloading this file, you can install the plugin from disk by following [the JetBrains instructions here](https://www.jetbrains.com/help/pycharm/plugins-settings.html).
+
+Alternatively, you can clone this repository and follow the instructions under the "Building the plugin" heading below to build from source. The build process will create the file `build/distributions/pydantic-pycharm-plugin.zip`. This file can be installed as a PyCharm plugin from disk following the same instructions.
  
 ## Development
-### Build plugin
-You can build and run the plugin on your terminal or Intellij.
+### Building the plugin
+You can build and run the plugin either via the command line or through IntelliJ IDEA:
+
 #### Shell on Linux or MacOS 
 ```bash
 $ ./gradlew buildPlugin
@@ -26,20 +36,13 @@ $ ./gradlew buildPlugin
 $ gradlew.bat buildPlugin
 ```
 
-#### JetBrains IDE on Any platform
+#### JetBrains IDE on any platform
 
-[official documents](https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/using_dev_kit.html])
+[Official documentation](https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/using_dev_kit.html])
 
-### Run IDE with build Plugin
+### Running the IDE with the built Plugin
 ```bash
 $ ./gradlew runIde
 ```
 
-## Features
-### Implemented
-#### pydantic.BaseModel
-- `__init__` (partial)
-
-
-
-## This project is an experimental phase.
+## This project is currently in an experimental phase
