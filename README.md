@@ -40,7 +40,7 @@ $ gradlew.bat buildPlugin
 
 [Official documentation](https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/using_dev_kit.html])
 
-### Running the IDE with the built Plugin
+### Running the IDE with the built plugin
 ```bash
 $ ./gradlew runIde
 ```
