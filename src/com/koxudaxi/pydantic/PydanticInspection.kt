@@ -28,7 +28,7 @@ class PydanticInspection : PyInspection() {
             super.visitPyCallExpression(node)
 
             if (node != null) {
-                val pyClass: PyClass = (node.callee?.reference as PyReferenceImpl).resolve() as? PyClass ?: return
+                val pyClass: PyClass = (node.callee?.reference as? PyReferenceImpl)?.resolve() as? PyClass ?: return
                 if (!pyClass.isSubclass("pydantic.main.BaseModel", myTypeEvalContext)) return
                 if ((node.callee as PyReferenceExpressionImpl).isQualified) return
                 for (argument in node.arguments) {
