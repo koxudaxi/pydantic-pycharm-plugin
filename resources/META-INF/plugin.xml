@@ -1,10 +1,28 @@
-<idea-plugin>
+<idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
     <version>0.0.10</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
 
-    <description>This plugin provides autocompletion support for pydantic</description>
+    <description><![CDATA[
+    <p>This plugin provides autocompletion support for <a href="https://github.com/samuelcolvin/pydantic">pydantic</a></p>
+    <h2>Features</h2>
+    <ul>
+        <li>pydantic.BaseModel
+            <ul>
+               <li>Model-specific __init__-signature inspection and autocompletion for subclasses of pydantic.BaseModel</li>
+               <li>Model-specific __init__-arguments type-checking for subclasses of pydantic.BaseModel</li>
+               <li>Refactor support for renaming fields for subclasses of BaseModel</li>
+                <li>(If the field name is refactored from the model definition, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.</li>
+            </ul>
+         </li>
+        <li>pydantic.dataclasses.dataclass
+            <ul>
+                <li>The plugin has not supported dataclass yet.</li>
+            </ul>
+        </li>
+    </ul>
+    ]]></description>
 
     <idea-version since-build="192.0"/>
 
