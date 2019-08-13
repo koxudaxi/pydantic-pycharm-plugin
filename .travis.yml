@@ -28,7 +28,7 @@ deploy:
         tags: on
   - provider: script
     api_key:
-    script: curl --fail --header "Authorization: Bearer ${JETBRAINS_TOKEN}" -F pluginId=12861 -F file=@build/distributions/pydantic-pycharm-plugin.zip https://plugins.jetbrains.com/plugin/uploadPlugin
+    script: 'curl --fail --header "Authorization: Bearer ${JETBRAINS_TOKEN}" -F pluginId=12861 -F file=@build/distributions/pydantic-pycharm-plugin.zip https://plugins.jetbrains.com/plugin/uploadPlugin'
     skip_cleanup: true
     on:
         repo: koxudaxi/pydantic-pycharm-plugin
