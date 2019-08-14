@@ -12,7 +12,7 @@ A JetBrains PyCharm plugin for [`pydantic`](https://github.com/samuelcolvin/pyda
 * Model-specific `__init__`-signature inspection and autocompletion for subclasses of `pydantic.BaseModel`
 * Model-specific `__init__`-arguments type-checking for subclasses of `pydantic.BaseModel` 
 * Refactor support for renaming fields for subclasses of `BaseModel`
-  * (If the field name is refactored from the model definition, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.
+  * (If the field name is refactored from the model definition or `__init__` call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.
 
 
 ## How to install:

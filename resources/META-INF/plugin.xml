@@ -1,9 +1,18 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.11</version>
+    <version>0.0.12</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
-
+    <change-notes><![CDATA[
+    <h2>version 0.0.12</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support refactoring fields by a keyword argument [#34] </li>
+        <li>Support refactoring super-classes and inheritor-classes [#34] </li>
+        <li>Support ellipsis(...) in fields [#34] </li>
+        <li>Support Schema in fields [#31] </li>
+    </ul>
+    ]]></change-notes>
     <description><![CDATA[
     <p>This plugin provides autocompletion support for <a href="https://github.com/samuelcolvin/pydantic">pydantic</a></p>
     <h2>Features</h2>
@@ -13,7 +22,7 @@
                <li>Model-specific __init__-signature inspection and autocompletion for subclasses of pydantic.BaseModel</li>
                <li>Model-specific __init__-arguments type-checking for subclasses of pydantic.BaseModel</li>
                <li>Refactor support for renaming fields for subclasses of BaseModel</li>
-                <li>(If the field name is refactored from the model definition, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.</li>
+                <li>(If the field name is refactored from the model definition or __init__ call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.</li>
             </ul>
          </li>
         <li>pydantic.dataclasses.dataclass
