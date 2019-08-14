@@ -1,11 +1,13 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.openapi.util.Ref
+import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.containers.isNullOrEmpty
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyCallExpressionNavigator
 import com.jetbrains.python.psi.impl.PySubscriptionExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
@@ -44,8 +46,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getPydanticTypeForCallee(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyCallableType? {
         if (PyCallExpressionNavigator.getPyCallExpressionByCallee(referenceExpression) == null) return null
 
-        val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
-        val resolveResults = referenceExpression.getReference(resolveContext).multiResolve(false)
+        val resolveResults = getResolveElements(referenceExpression, context)
 
         return PyUtil.filterTopPriorityResults(resolveResults)
                 .asSequence()
@@ -147,16 +148,48 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     }
                     return value
                 }
-                field.hasAssignedValue() -> {
-                    return if (field.findAssignedValue()!!.text == "...") {
-                        null
-                    } else ellipsis
-                }
+                field.hasAssignedValue() -> return getDefaultValueByAssignedValue(field, ellipsis, context)
                 else -> return null
             }
         } else if (fieldStub.hasDefault() || fieldStub.hasDefaultFactory()) {
             return ellipsis
         }
         return null
+    }
+
+    private fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
+        val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
+        return referenceExpression.getReference(resolveContext).multiResolve(false)
+
+    }
+
+    private fun getDefaultValueByAssignedValue(field: PyTargetExpression,
+                                               ellipsis: PyNoneLiteralExpression,
+                                               context: TypeEvalContext): PyExpression? {
+        val assignedValue = field.findAssignedValue()!!
+
+        if (assignedValue.text == "...") {
+            return null
+        }
+        val callee = (assignedValue as PyCallExpressionImpl).callee ?: return ellipsis
+        val referenceExpression = callee.reference?.element as PyReferenceExpression ?: return ellipsis
+
+        val resolveResults = getResolveElements(referenceExpression, context)
+        PyUtil.filterTopPriorityResults(resolveResults)
+                .asSequence()
+                .forEach { it ->
+                    val pyClass = PsiTreeUtil.getContextOfType(it, PyClass::class.java)
+                    if (pyClass != null && pyClass.isSubclass("pydantic.schema.Schema", context)) {
+                        val defaultValue = assignedValue.getKeywordArgument("default")
+                                ?: assignedValue.getArgument(0, PyExpression::class.java)
+                        when {
+                            defaultValue == null -> return null
+                            defaultValue.text == "..." -> return null
+                            defaultValue.text == null -> return ellipsis
+                            defaultValue.text.isNotBlank() -> return ellipsis
+                        }
+                    }
+                }
+        return ellipsis
     }
 }
