@@ -22,7 +22,7 @@
                <li>Model-specific __init__-signature inspection and autocompletion for subclasses of pydantic.BaseModel</li>
                <li>Model-specific __init__-arguments type-checking for subclasses of pydantic.BaseModel</li>
                <li>Refactor support for renaming fields for subclasses of BaseModel</li>
-                <li>(If the field name is refactored from the model definition, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.</li>
+                <li>(If the field name is refactored from the model definition or __init__ call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.</li>
             </ul>
          </li>
         <li>pydantic.dataclasses.dataclass
