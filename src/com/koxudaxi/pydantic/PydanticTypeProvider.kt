@@ -171,8 +171,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (assignedValue.text == "...") {
             return null
         }
-        val callee = (assignedValue as PyCallExpressionImpl).callee ?: return ellipsis
-        val referenceExpression = callee.reference?.element as PyReferenceExpression ?: return ellipsis
+        val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return ellipsis
+        val referenceExpression = callee.reference?.element as? PyReferenceExpression ?: return ellipsis
 
         val resolveResults = getResolveElements(referenceExpression, context)
         PyUtil.filterTopPriorityResults(resolveResults)
