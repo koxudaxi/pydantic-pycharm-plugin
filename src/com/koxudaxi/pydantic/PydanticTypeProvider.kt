@@ -27,7 +27,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 cls
                         .findClassAttribute(name, false, context)
                         ?.let {
-                            return Ref.create(getTypeForParameter(it, context)) }
+                            return Ref.create(getTypeForParameter(it, context))
+                        }
 
                 for (ancestor in cls.getAncestorClasses(context)) {
                     ancestor
@@ -134,7 +135,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
                     when {
                         annotation.qualifier?.text == "Optional" -> return ellipsis
-                        annotation.qualifier?.text == "Union" -> for (child in annotation.children){
+                        annotation.qualifier?.text == "Union" -> for (child in annotation.children) {
                             if (child is PyTupleExpression) {
                                 for (type in child.children) {
                                     if (type is PyNoneLiteralExpression) {
@@ -146,7 +147,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     }
                     return value
                 }
-                field.hasAssignedValue() -> return ellipsis
+                field.hasAssignedValue() -> {
+                    return if (field.findAssignedValue()!!.text == "...") {
+                        null
+                    } else ellipsis
+                }
                 else -> return null
             }
         } else if (fieldStub.hasDefault() || fieldStub.hasDefaultFactory()) {
