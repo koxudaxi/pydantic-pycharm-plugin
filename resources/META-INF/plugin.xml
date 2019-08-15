@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.12</version>
+    <version>0.0.13</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.0.13</h2>
+    <p>Features</p>
+    <ul>
+        <li>No arguments required for BaseSettings [#] </li>
+    </ul>
     <h2>version 0.0.12</h2>
     <p>Features</p>
     <ul>
