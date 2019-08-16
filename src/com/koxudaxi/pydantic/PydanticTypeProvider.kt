@@ -90,7 +90,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     .asReversed()
                     .asSequence()
                     .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
-                    .mapNotNull { fieldToParameter(it, ellipsis, context) }
+                    .mapNotNull { fieldToParameter(it, ellipsis, context, current) }
                     .forEach { parameter ->
                         parameter.name?.let {
                             if (!collected.containsKey(it)) {
@@ -105,16 +105,21 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun fieldToParameter(field: PyTargetExpression,
                                  ellipsis: PyNoneLiteralExpression,
-                                 context: TypeEvalContext): PyCallableParameter? {
+                                 context: TypeEvalContext,
+                                 pyClass: PyClass): PyCallableParameter? {
         val stub = field.stub
         val fieldStub = if (stub == null) PydanticFieldStubImpl.create(field) else stub.getCustomStub(PydanticFieldStub::class.java)
         if (fieldStub != null && !fieldStub.initValue()) return null
         if (fieldStub == null && field.annotationValue == null) return null // skip fields that are not annotated
 
+        val defaultValue = when {
+            pyClass.isSubclass("pydantic.env_settings.BaseSettings", context) -> ellipsis
+            else ->  getDefaultValueForParameter(field, fieldStub, ellipsis, context)
+        }
 
         return PyCallableParameterImpl.nonPsi(field.name,
                 getTypeForParameter(field, context),
-                getDefaultValueForParameter(field, fieldStub, ellipsis, context))
+                defaultValue)
     }
 
     private fun getTypeForParameter(field: PyTargetExpression,
