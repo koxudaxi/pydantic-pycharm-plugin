@@ -5,9 +5,10 @@
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
     <h2>version 0.0.13</h2>
-    <p>Features</p>
+    <p>Features, BugFixes</p>
     <ul>
-        <li>No arguments required for BaseSettings [#] </li>
+        <li>Fix to check a type of fields without a type-hint [#39] </li>
+        <li>No arguments required for BaseSettings [#38] </li>
     </ul>
     <h2>version 0.0.12</h2>
     <p>Features</p>

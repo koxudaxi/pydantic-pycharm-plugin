@@ -110,11 +110,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val stub = field.stub
         val fieldStub = if (stub == null) PydanticFieldStubImpl.create(field) else stub.getCustomStub(PydanticFieldStub::class.java)
         if (fieldStub != null && !fieldStub.initValue()) return null
-        if (fieldStub == null && field.annotationValue == null) return null // skip fields that are not annotated
+        if (fieldStub == null && field.annotationValue == null && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
         val defaultValue = when {
             pyClass.isSubclass("pydantic.env_settings.BaseSettings", context) -> ellipsis
-            else ->  getDefaultValueForParameter(field, fieldStub, ellipsis, context)
+            else -> getDefaultValueForParameter(field, fieldStub, ellipsis, context)
         }
 
         return PyCallableParameterImpl.nonPsi(field.name,
