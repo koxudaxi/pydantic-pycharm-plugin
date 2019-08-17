@@ -6,14 +6,12 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.refactoring.rename.naming.AutomaticRenamer
 import com.intellij.refactoring.rename.naming.AutomaticRenamerFactory
 import com.intellij.usageView.UsageInfo
-import com.jetbrains.extensions.python.inherits
 import com.jetbrains.python.codeInsight.PyCodeInsightSettings
 import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyKeywordArgument
 import com.jetbrains.python.psi.PyTargetExpression
 import com.jetbrains.python.psi.search.PyClassInheritorsSearch
-import com.jetbrains.python.psi.types.TypeEvalContext
 
 
 class PydanticFieldRenameFactory : AutomaticRenamerFactory {
@@ -69,7 +67,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
             added.add(pyClass)
             addClassAttributes(pyClass, elementName)
             addKeywordArguments(pyClass, elementName)
-            pyClass.getAncestorClasses(null).forEach {  ancestorClass ->
+            pyClass.getAncestorClasses(null).forEach { ancestorClass ->
                 if (ancestorClass.qualifiedName != "pydantic.main.BaseModel") {
                     if (ancestorClass.isSubclass("pydantic.main.BaseModel", null) &&
                             !added.contains(ancestorClass)) {
@@ -78,18 +76,15 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                 }
             }
             PyClassInheritorsSearch.search(pyClass, true).forEach { inheritorsPyClass ->
-                if (inheritorsPyClass.qualifiedName != "pydantic.main.BaseModel" && ! added.contains(inheritorsPyClass)) {
+                if (inheritorsPyClass.qualifiedName != "pydantic.main.BaseModel" && !added.contains(inheritorsPyClass)) {
                     addAllElement(inheritorsPyClass, elementName, added)
                 }
             }
         }
 
         private fun addClassAttributes(pyClass: PyClass, elementName: String) {
-            pyClass.classAttributes.forEach { pyTargetExpression ->
-                if (pyTargetExpression.name == elementName) {
-                    myElements.add(pyTargetExpression)
-                }
-            }
+            val pyTargetExpression = pyClass.findClassAttribute(elementName, false, null) ?: return
+            myElements.add(pyTargetExpression)
         }
 
         private fun addKeywordArguments(pyClass: PyClass, elementName: String) {
@@ -97,12 +92,13 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                 val callee = PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
                 callee?.arguments?.forEach { argument ->
                     if (argument is PyKeywordArgument && argument.name == elementName) {
-                            myElements.add(argument)
+                        myElements.add(argument)
 
                     }
                 }
             }
         }
+
         override fun getDialogTitle(): String {
             return "Rename Fields"
         }
