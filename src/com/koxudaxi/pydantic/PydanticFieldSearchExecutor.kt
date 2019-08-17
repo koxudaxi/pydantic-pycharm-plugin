@@ -53,6 +53,11 @@ private fun searchAllElementReference(pyClass: PyClass?, elementName: String, ad
     added.add(pyClass)
     searchField(pyClass, elementName, consumer)
     searchKeywordArgument(pyClass, elementName, consumer)
+    pyClass.getAncestorClasses(null).forEach {  ancestorClass ->
+        if (ancestorClass.qualifiedName != "pydantic.main.BaseModel" &&  !added.contains(ancestorClass)){
+            searchField(pyClass, elementName, consumer)
+        }
+    }
     PyClassInheritorsSearch.search(pyClass, true).forEach { inheritorsPyClass ->
         if (inheritorsPyClass.qualifiedName != "pydantic.main.BaseModel" && !added.contains(inheritorsPyClass)) {
             searchAllElementReference(inheritorsPyClass, elementName, added, consumer)
