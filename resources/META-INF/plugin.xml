@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.13</version>
+    <version>0.0.14</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.0.14</h2>
+    <p>Features</p>
+    <ul>
+        <li>Search related-fields by class attributes and keyword arguments of __init__. with Ctrl+B and Cmd+B [#42] </li>
+    </ul>
     <h2>version 0.0.13</h2>
     <p>Features, BugFixes</p>
     <ul>
@@ -29,6 +34,7 @@
                <li>Model-specific __init__-arguments type-checking for subclasses of pydantic.BaseModel</li>
                <li>Refactor support for renaming fields for subclasses of BaseModel</li>
                 <li>(If the field name is refactored from the model definition or __init__ call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.</li>
+               <li>Search related-fields by class attributes and keyword arguments of __init__. with Ctrl+B and Cmd+B</li>
             </ul>
          </li>
         <li>pydantic.dataclasses.dataclass
@@ -50,6 +56,7 @@
                          enabledByDefault="true" level="WARNING"
                          implementationClass="com.koxudaxi.pydantic.PydanticInspection"/>
         <automaticRenamerFactory implementation="com.koxudaxi.pydantic.PydanticFieldRenameFactory"/>
+        <referencesSearch implementation="com.koxudaxi.pydantic.PydanticFieldSearchExecutor"/>
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
