@@ -50,6 +50,7 @@
                          enabledByDefault="true" level="WARNING"
                          implementationClass="com.koxudaxi.pydantic.PydanticInspection"/>
         <automaticRenamerFactory implementation="com.koxudaxi.pydantic.PydanticFieldRenameFactory"/>
+        <referencesSearch implementation="com.koxudaxi.pydantic.PydanticFieldSearchExecutor"/>
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>

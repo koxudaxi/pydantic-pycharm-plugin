@@ -121,8 +121,3 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
     }
 
 }
-
-private fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument) : PyClass? {
-    val pyCallExpression = pyKeywordArgument.parent?.parent as? PyCallExpression ?: return null
-    return pyCallExpression.callee?.reference?.resolve() as? PyClass ?: return null
-}
