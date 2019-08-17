@@ -83,7 +83,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             }
 
             val current = currentType.pyClass
-            if (!current.isSubclass("pydantic.main.BaseModel", context)) return null
+            if (!isPydanticModel(current, context)) return null
 
             current
                     .classAttributes
@@ -107,14 +107,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                  ellipsis: PyNoneLiteralExpression,
                                  context: TypeEvalContext,
                                  pyClass: PyClass): PyCallableParameter? {
-        val stub = field.stub
-        val fieldStub = if (stub == null) PydanticFieldStubImpl.create(field) else stub.getCustomStub(PydanticFieldStub::class.java)
-        if (fieldStub != null && !fieldStub.initValue()) return null
-        if (fieldStub == null && field.annotationValue == null && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
+
+        if (field.annotationValue == null && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
         val defaultValue = when {
             pyClass.isSubclass("pydantic.env_settings.BaseSettings", context) -> ellipsis
-            else -> getDefaultValueForParameter(field, fieldStub, ellipsis, context)
+            else -> getDefaultValueForParameter(field, ellipsis, context)
         }
 
         return PyCallableParameterImpl.nonPsi(field.name,
@@ -130,36 +128,31 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getDefaultValueForParameter(field: PyTargetExpression,
-                                            fieldStub: PydanticFieldStub?,
                                             ellipsis: PyNoneLiteralExpression,
                                             context: TypeEvalContext): PyExpression? {
-        if (fieldStub == null) {
-            val value = field.findAssignedValue()
-            when {
-                value == null -> {
-                    val annotation = (field.annotation?.value as? PySubscriptionExpressionImpl) ?: return null
 
-                    when {
-                        annotation.qualifier?.text == "Optional" -> return ellipsis
-                        annotation.qualifier?.text == "Union" -> for (child in annotation.children) {
-                            if (child is PyTupleExpression) {
-                                for (type in child.children) {
-                                    if (type is PyNoneLiteralExpression) {
-                                        return ellipsis
-                                    }
+        val value = field.findAssignedValue()
+        when {
+            value == null -> {
+                val annotation = (field.annotation?.value as? PySubscriptionExpressionImpl) ?: return null
+
+                when {
+                    annotation.qualifier?.text == "Optional" -> return ellipsis
+                    annotation.qualifier?.text == "Union" -> for (child in annotation.children) {
+                        if (child is PyTupleExpression) {
+                            for (type in child.children) {
+                                if (type is PyNoneLiteralExpression) {
+                                    return ellipsis
                                 }
                             }
                         }
                     }
-                    return value
                 }
-                field.hasAssignedValue() -> return getDefaultValueByAssignedValue(field, ellipsis, context)
-                else -> return null
+                return value
             }
-        } else if (fieldStub.hasDefault() || fieldStub.hasDefaultFactory()) {
-            return ellipsis
+            field.hasAssignedValue() -> return getDefaultValueByAssignedValue(field, ellipsis, context)
+            else -> return null
         }
-        return null
     }
 
     private fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
@@ -184,7 +177,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .asSequence()
                 .forEach { it ->
                     val pyClass = PsiTreeUtil.getContextOfType(it, PyClass::class.java)
-                    if (pyClass != null && pyClass.isSubclass("pydantic.schema.Schema", context)) {
+                    if (pyClass != null && isPydanticField(pyClass, context)) {
                         val defaultValue = assignedValue.getKeywordArgument("default")
                                 ?: assignedValue.getArgument(0, PyExpression::class.java)
                         when {

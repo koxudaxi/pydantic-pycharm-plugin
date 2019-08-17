@@ -19,11 +19,11 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
         when (element) {
             is PyTargetExpression -> {
                 val pyClass = element.containingClass ?: return false
-                if (pyClass.isSubclass("pydantic.main.BaseModel", null)) return true
+                if (isPydanticModel(pyClass)) return true
             }
             is PyKeywordArgument -> {
                 val pyClass = getPyClassByPyKeywordArgument(element) ?: return false
-                if (pyClass.isSubclass("pydantic.main.BaseModel", null)) return true
+                if (isPydanticModel(pyClass)) return true
             }
         }
         return false
@@ -68,15 +68,15 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
             addClassAttributes(pyClass, elementName)
             addKeywordArguments(pyClass, elementName)
             pyClass.getAncestorClasses(null).forEach { ancestorClass ->
-                if (ancestorClass.qualifiedName != "pydantic.main.BaseModel") {
-                    if (ancestorClass.isSubclass("pydantic.main.BaseModel", null) &&
+                if (!isPydanticBaseModel(ancestorClass)) {
+                    if (isPydanticModel(ancestorClass) &&
                             !added.contains(ancestorClass)) {
                         addAllElement(ancestorClass, elementName, added)
                     }
                 }
             }
             PyClassInheritorsSearch.search(pyClass, true).forEach { inheritorsPyClass ->
-                if (inheritorsPyClass.qualifiedName != "pydantic.main.BaseModel" && !added.contains(inheritorsPyClass)) {
+                if (!isPydanticBaseModel(inheritorsPyClass) && !added.contains(inheritorsPyClass)) {
                     addAllElement(inheritorsPyClass, elementName, added)
                 }
             }
@@ -93,7 +93,6 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                 callee?.arguments?.forEach { argument ->
                     if (argument is PyKeywordArgument && argument.name == elementName) {
                         myElements.add(argument)
-
                     }
                 }
             }
