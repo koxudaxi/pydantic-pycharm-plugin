@@ -19,7 +19,8 @@
 * Refactor support for renaming fields for subclasses of `BaseModel`
   * (If the field name is refactored from the model definition or `__init__` call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.
 * Search related-fields by class attributes and keyword arguments of `__init__` with `Ctrl+B` and `Cmd+B`
-
+#### pydantic.dataclasses.dataclass
+Support same features as `pydantic.BaseModel`
 
 ## How to install:
 ### MarketPlace 
