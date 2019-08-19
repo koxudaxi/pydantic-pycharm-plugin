@@ -1,11 +1,9 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.psi.util.QualifiedName
-import com.jetbrains.python.psi.PyCallExpression
-import com.jetbrains.python.psi.PyClass
-import com.jetbrains.python.psi.PyKeywordArgument
-import com.jetbrains.python.psi.PyReferenceExpression
+import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveUtil
+import com.jetbrains.python.psi.types.PyCallableTypeImpl
 import com.jetbrains.python.psi.types.TypeEvalContext
 
 
@@ -40,4 +38,10 @@ fun isPydanticDataclass(pyClass: PyClass): Boolean {
 
 fun isPydanticField(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
     return pyClass.isSubclass("pydantic.schema.Schema", context) || pyClass.isSubclass("pydantic.field.Field", context)
+}
+
+fun hasClassMethodDecorator(pyFunction: PyFunction, context: TypeEvalContext): Boolean {
+    return pyFunction.decoratorList?.decorators?.firstOrNull { pyDecorator ->
+        (context.getType(pyDecorator) as? PyCallableTypeImpl)?.getReturnType(context)?.name == "classmethod" && pyDecorator.name != "classmethod"
+    } != null
 }
