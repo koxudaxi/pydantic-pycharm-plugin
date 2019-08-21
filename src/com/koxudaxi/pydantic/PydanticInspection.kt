@@ -23,6 +23,8 @@ class PydanticInspection : PyInspection() {
     private class Visitor(holder: ProblemsHolder, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
 
         override fun visitPyFunction(node: PyFunction?) {
+            super.visitPyFunction(node)
+
             val pyClass = node?.parent?.parent as? PyClass ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext) || !hasClassMethodDecorator(node, myTypeEvalContext)) return
             val paramList = node.parameterList
@@ -43,10 +45,10 @@ class PydanticInspection : PyInspection() {
         override fun visitPyCallExpression(node: PyCallExpression?) {
             super.visitPyCallExpression(node)
 
-            if (node != null) {
-                val pyClass: PyClass = (node.callee?.reference as? PyReferenceImpl)?.resolve() as? PyClass ?: return
+            if (node != null) { // $COVERAGE-IGNORE$
+                val pyClass: PyClass = (node.callee?.reference as? PyReferenceImpl)?.resolve() as? PyClass ?: return // $COVERAGE-IGNORE$
                 if (!isPydanticModel(pyClass, myTypeEvalContext)) return
-                if ((node.callee as PyReferenceExpressionImpl).isQualified) return
+                if ((node.callee as PyReferenceExpressionImpl).isQualified) return // $COVERAGE-IGNORE$
                 for (argument in node.arguments) {
                     if (argument is PyKeywordArgument) {
                         continue

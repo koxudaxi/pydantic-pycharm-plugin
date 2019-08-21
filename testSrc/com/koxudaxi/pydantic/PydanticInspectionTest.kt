@@ -9,19 +9,29 @@ open class PydanticInspectionTest : PydanticTestCase() {
 
     }
 
-    private fun doTest(fileName: String) {
-        myFixture!!.configureByFile("testData/inspection/$fileName.py")
+    private fun doTest() {
+        myFixture!!.configureByFile("testData/inspection/" + getTestName(true) + ".py")
         configureInspection()
     }
 
-    fun testAcceptsOnlyKeywordArguments() {
-        doTest("accepts_only_keyword_arguments")
-    }
-    fun testAcceptsOnlyKeywordArgumentsDoubleStarArgument() {
-        doTest("accepts_only_keyword_arguments_double_star_argument")
+    fun testPythonClass() {
+        doTest()
     }
 
+    fun testAcceptsOnlyKeywordArguments() {
+        doTest()
+    }
+
+    fun testAcceptsOnlyKeywordArgumentsSingleStarArgument() {
+        doTest()
+    }
+
+    fun testAcceptsOnlyKeywordArgumentsDoubleStarArgument() {
+        doTest()
+    }
+
+
     fun testAcceptsOnlyKeywordArgumentsKeywordArgument() {
-        doTest("accepts_only_keyword_arguments_keyword_argument")
+        doTest()
     }
 }

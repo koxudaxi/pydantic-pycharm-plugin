@@ -3,9 +3,11 @@ package com.koxudaxi.pydantic
 import com.intellij.openapi.roots.impl.FilePropertyPusher
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightProjectDescriptor
-import com.intellij.testFramework.PsiTestUtil.*
+import com.intellij.testFramework.PsiTestUtil.addSourceRoot
+import com.intellij.testFramework.PsiTestUtil.removeSourceRoot
 import com.intellij.testFramework.UsefulTestCase
-import com.intellij.testFramework.fixtures.*
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.jetbrains.python.PythonDialectsTokenSetProvider
 import com.jetbrains.python.psi.LanguageLevel
@@ -35,7 +37,7 @@ abstract class PydanticTestCase : UsefulTestCase() {
         myFixture!!.setUp()
         myFixture!!.copyDirectoryToProject(pydanticMockPath, "package/pydantic")
 
-        packageDir =  myFixture!!.findFileInTempDir("package")
+        packageDir = myFixture!!.findFileInTempDir("package")
         addSourceRoot(myFixture!!.module, packageDir!!)
 
 
@@ -59,10 +61,11 @@ abstract class PydanticTestCase : UsefulTestCase() {
             clearFields(this)
         }
 
-    }    private fun setLanguageLevel(languageLevel: LanguageLevel?) {
-        PythonLanguageLevelPusher.setForcedLanguageLevel(myFixture!!.project, languageLevel)
     }
 
+    private fun setLanguageLevel(languageLevel: LanguageLevel?) {
+        PythonLanguageLevelPusher.setForcedLanguageLevel(myFixture!!.project, languageLevel)
+    }
 
 
 }
