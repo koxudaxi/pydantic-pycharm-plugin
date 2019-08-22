@@ -26,15 +26,16 @@ class PydanticInspection : PyInspection() {
             super.visitPyFunction(node)
 
             val pyClass = node?.parent?.parent as? PyClass ?: return
-            if (!isPydanticModel(pyClass, myTypeEvalContext) || !hasClassMethodDecorator(node, myTypeEvalContext)) return
+            if (!isPydanticModel(pyClass, myTypeEvalContext) || !validatorMethod(node)) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
-            if (firstParam == null && node.modifier != PyFunction.Modifier.STATICMETHOD) {
+            if (firstParam == null) {
                 registerProblem(paramList, PyBundle.message("INSP.must.have.first.parameter", PyNames.CANONICAL_CLS),
                         ProblemHighlightType.GENERIC_ERROR)
-            } else if (firstParam!!.asNamed?.name != PyNames.CANONICAL_CLS) {
-                registerProblem(PyUtil.sure(params[0]),
+            } else if (firstParam.asNamed?.isSelf == true && firstParam.asNamed?.name != PyNames.CANONICAL_CLS) {
+
+                registerProblem(PyUtil.sure(firstParam),
                         PyBundle.message("INSP.usually.named.\$0", PyNames.CANONICAL_CLS),
                         ProblemHighlightType.WEAK_WARNING, null,
                         RenameParameterQuickFix(PyNames.CANONICAL_CLS))

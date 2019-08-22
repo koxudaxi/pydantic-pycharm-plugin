@@ -34,4 +34,7 @@ open class PydanticInspectionTest : PydanticTestCase() {
     fun testAcceptsOnlyKeywordArgumentsKeywordArgument() {
         doTest()
     }
+    fun testValidatorSelf() {
+        doTest()
+    }
 }
