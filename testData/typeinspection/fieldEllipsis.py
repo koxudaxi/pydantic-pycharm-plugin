@@ -1,12 +1,10 @@
 from builtins import *
-from typing import Optional
 
 from pydantic import BaseModel
 
 
 class A(BaseModel):
-    a: Optional[str]
+    a: int = ...
 
 
-A(a=str(123))
-
+A(a=int(123))

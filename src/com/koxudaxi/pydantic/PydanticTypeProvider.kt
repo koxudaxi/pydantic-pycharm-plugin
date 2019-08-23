@@ -103,37 +103,45 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return PyCallableTypeImpl(collected.values.reversed(), clsType.toInstance())
     }
 
+    private fun hasAnnotationValue(field: PyTargetExpression): Boolean {
+        return field.annotationValue != null
+    }
     private fun fieldToParameter(field: PyTargetExpression,
                                  ellipsis: PyNoneLiteralExpression,
                                  context: TypeEvalContext,
                                  pyClass: PyClass): PyCallableParameter? {
 
-        if (field.annotationValue == null && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
+        if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
+        val defaultValueFromField = getDefaultValueForParameter(field, ellipsis, context)
         val defaultValue = when {
             pyClass.isSubclass("pydantic.env_settings.BaseSettings", context) -> ellipsis
-            else -> getDefaultValueForParameter(field, ellipsis, context)
+            else -> defaultValueFromField
         }
 
-        return PyCallableParameterImpl.nonPsi(field.name,
-                getTypeForParameter(field, context),
-                defaultValue)
+        val typeForParameter = if (!hasAnnotationValue(field) && defaultValueFromField is PyTypedElement) {
+            // get type from default value
+            context.getType(defaultValueFromField)
+        } else {
+            // get type from annotation
+            getTypeForParameter(field, context)
+        }
+
+        return PyCallableParameterImpl.nonPsi(field.name, typeForParameter, defaultValue)
     }
 
     private fun getTypeForParameter(field: PyTargetExpression,
                                     context: TypeEvalContext): PyType? {
 
         return context.getType(field)
-
     }
 
     private fun getDefaultValueForParameter(field: PyTargetExpression,
                                             ellipsis: PyNoneLiteralExpression,
                                             context: TypeEvalContext): PyExpression? {
 
-        val value = field.findAssignedValue()
-        when {
-            value == null -> {
+        when (val value = field.findAssignedValue()) {
+            null -> {
                 val annotation = (field.annotation?.value as? PySubscriptionExpressionImpl) ?: return null
 
                 when {
@@ -150,8 +158,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 }
                 return value
             }
-            field.hasAssignedValue() -> return getDefaultValueByAssignedValue(field, ellipsis, context)
-            else -> return null
+            else -> return getDefaultValueByAssignedValue(field, ellipsis, context)
         }
     }
 
@@ -185,9 +192,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                             defaultValue == null -> null
                             defaultValue.text == "..." -> null
                             else -> defaultValue
+                            }
                         }
                     }
-                }
         return assignedValue
     }
 }

@@ -10,27 +10,55 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
     @Suppress("UNCHECKED_CAST")
     override val inspectionClass: KClass<PyInspection> = PyTypeCheckerInspection::class as KClass<PyInspection>
 
-    fun testKeywordArgument() {
+    fun testField() {
         doTest()
     }
 
-    fun testKeywordArgumentUnion() {
+    fun testFieldDefaultValue() {
         doTest()
     }
 
-    fun testKeywordArgumentOptional() {
+    fun testFieldUnion() {
         doTest()
     }
 
-    fun testKeywordArgumentInvalid() {
+    fun testFieldOptional() {
         doTest()
     }
 
-    fun testKeywordArgumentUnionInvalid() {
+    fun testFieldOptionalDefaultValue() {
         doTest()
     }
 
-    fun testKeywordArgumentOptionalInvalid() {
+    fun testFieldInvalid() {
+        doTest()
+    }
+
+    fun testFieldDefaultValueInvalid() {
+        doTest()
+    }
+
+    fun testFieldUnionInvalid() {
+        doTest()
+    }
+
+    fun testFieldOptionalInvalid() {
+        doTest()
+    }
+
+    fun testFieldOptionalDefaultValueInvalid() {
+        doTest()
+    }
+
+    fun testFieldEllipsis() {
+        doTest()
+    }
+
+    fun testFieldSchema() {
+        doTest()
+    }
+
+    fun testFieldSchemaInvalid() {
         doTest()
     }
 }
