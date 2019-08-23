@@ -2,15 +2,10 @@ package com.koxudaxi.pydantic
 
 
 open class PydanticRefactorTest : PydanticTestCase() {
-    private val refactorPath = "refactor/"
 
-    private fun configureByFile() {
-        myFixture!!.configureByFile("testData/" + refactorPath + getTestName(true) + ".py")
-
-    }
 
     private fun checkResultByFile() {
-        myFixture!!.checkResultByFile(refactorPath + getTestName(true) + "_after.py")
+        myFixture!!.checkResultByFile("${testDataMethodPath}_after.py")
 
     }
 

@@ -24,6 +24,20 @@ abstract class PydanticTestCase : UsefulTestCase() {
 
     private var packageDir: VirtualFile? = null
 
+    private val testClassName: String
+        get() {
+            return this.javaClass.simpleName.replace("Pydantic", "").replace("Test", "").toLowerCase()
+        }
+
+    protected val testDataMethodPath: String
+        get() {
+            return "$testClassName/${getTestName(true)}"
+        }
+
+    protected fun configureByFile() {
+        myFixture!!.configureByFile("${myFixture!!.testDataPath}/$testDataMethodPath.py")
+
+    }
     @Throws(Exception::class)
     override fun setUp() {
         super.setUp()
