@@ -43,7 +43,7 @@ fun isPydanticDataclass(pyClass: PyClass): Boolean {
     return hasDecorator(pyClass, DATA_CLASS_Q_NAME)
 }
 
-fun isPydanticField(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
+fun isPydanticField(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(SCHEMA_Q_NAME, context) || pyClass.isSubclass(FIELD_Q_NAME, context)
 }
 
