@@ -169,7 +169,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (assignedValue.text == "...") {
             return null
         }
-        val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return ellipsis
+
+        val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return assignedValue
         val referenceExpression = callee.reference?.element as? PyReferenceExpression ?: return ellipsis
 
         val resolveResults = getResolveElements(referenceExpression, context)
@@ -180,14 +181,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     if (pyClass != null && isPydanticField(pyClass, context)) {
                         val defaultValue = assignedValue.getKeywordArgument("default")
                                 ?: assignedValue.getArgument(0, PyExpression::class.java)
-                        when {
-                            defaultValue == null -> return null
-                            defaultValue.text == "..." -> return null
-                            defaultValue.text == null -> return ellipsis
-                            defaultValue.text.isNotBlank() -> return ellipsis
+                        return when {
+                            defaultValue == null -> null
+                            defaultValue.text == "..." -> null
+                            else -> defaultValue
                         }
                     }
                 }
-        return ellipsis
+        return assignedValue
     }
 }

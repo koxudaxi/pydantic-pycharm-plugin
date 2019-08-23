@@ -7,7 +7,8 @@
     <h2>version 0.0.14</h2>
     <p>Features</p>
     <ul>
-        <li>Ignore warning for `self` argument with @validator
+        <li>Support default values [#46] <li>
+        <li>Ignore warning for self argument with @validator [#45] </li>
         <li>Support pydantic.dataclasses.dataclass [#43] </li>
         <li>Search related-fields by class attributes and keyword arguments of __init__. with Ctrl+B and Cmd+B [#42] </li>
     </ul>
@@ -41,7 +42,7 @@
          </li>
         <li>pydantic.dataclasses.dataclass
             <ul>
-                <li>Support same features as `pydantic.BaseModel`</li>
+                <li>Support same features as pydantic.BaseModel</li>
             </ul>
         </li>
     </ul>
