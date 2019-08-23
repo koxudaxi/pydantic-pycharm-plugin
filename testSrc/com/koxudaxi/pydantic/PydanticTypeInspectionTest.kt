@@ -61,4 +61,12 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
     fun testFieldSchemaInvalid() {
         doTest()
     }
+
+    fun testFieldBroken() {
+        doTest()
+    }
+
+    fun testBaseSetting (){
+        doTest()
+    }
 }

@@ -10,6 +10,7 @@ const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
 const val VALIDATOR_Q_NAME = "pydantic.validator"
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.field.Field"
+const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 
 fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument): PyClass? {
     val pyCallExpression = pyKeywordArgument.parent?.parent as? PyCallExpression ?: return null
@@ -28,6 +29,9 @@ fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalContext?): 
     return pyClass.isSubclass(BASE_MODEL_Q_NAME, context)
 }
 
+fun isBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean{
+    return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
+}
 fun hasDecorator(pyElement: PyElement, refName: String): Boolean {
         if (pyElement is PyDecoratable) {
             pyElement.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {

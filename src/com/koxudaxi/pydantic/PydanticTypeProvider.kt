@@ -115,7 +115,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val defaultValueFromField = getDefaultValueForParameter(field, ellipsis, context)
         val defaultValue = when {
-            pyClass.isSubclass("pydantic.env_settings.BaseSettings", context) -> ellipsis
+            isBaseSetting(pyClass, context) -> ellipsis
             else -> defaultValueFromField
         }
 
