@@ -21,6 +21,7 @@ abstract class PydanticTestCase : UsefulTestCase() {
     private val testDataPath: String = "testData"
     private val mockPath: String = "mock"
     private val pydanticMockPath: String = "$mockPath/pydantic"
+    private val pythonStubPath: String = "$mockPath/stub"
 
     private var packageDir: VirtualFile? = null
 
@@ -49,6 +50,7 @@ abstract class PydanticTestCase : UsefulTestCase() {
         myFixture!!.testDataPath = testDataPath
 
         myFixture!!.setUp()
+        myFixture!!.copyDirectoryToProject(pythonStubPath, "package")
         myFixture!!.copyDirectoryToProject(pydanticMockPath, "package/pydantic")
 
         packageDir = myFixture!!.findFileInTempDir("package")

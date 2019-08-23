@@ -1,8 +1,10 @@
+from builtins import *
+
 from pydantic import BaseModel
 
 
 class A(BaseModel):
-    a: str
+    a: int
 
 
-A(a='abc')
+A(a=int(123))

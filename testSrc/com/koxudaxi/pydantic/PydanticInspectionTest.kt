@@ -4,21 +4,10 @@ import com.jetbrains.python.inspections.PyInspection
 import kotlin.reflect.KClass
 
 
-open class PydanticInspectionTest : PydanticTestCase() {
+open class PydanticInspectionTest : PydanticInspectionBase() {
 
     @Suppress("UNCHECKED_CAST")
-    protected open val inspectionClass: KClass<PyInspection> = PydanticInspection::class as KClass<PyInspection>
-
-    private fun configureInspection() {
-        myFixture!!.enableInspections(inspectionClass.java)
-        myFixture!!.checkHighlighting(true, false, true)
-
-    }
-
-    private fun doTest() {
-        configureByFile()
-        configureInspection()
-    }
+    override val inspectionClass: KClass<PyInspection> = PydanticInspection::class as KClass<PyInspection>
 
     fun testPythonClass() {
         doTest()
