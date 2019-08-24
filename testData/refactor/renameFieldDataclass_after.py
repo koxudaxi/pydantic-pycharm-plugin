@@ -4,6 +4,7 @@ from pydantic.dataclasses import dataclass
 class A:
     cde: str
 
+@dataclass
 class B(A):
     cde: int
 

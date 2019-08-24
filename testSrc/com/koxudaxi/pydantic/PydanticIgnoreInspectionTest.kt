@@ -27,4 +27,8 @@ open class PydanticIgnoreInspectionTest : PydanticTestCase() {
     fun testPythonFunction() {
         doTest(false)
     }
+
+    fun testPythonMethod() {
+        doTest(false)
+    }
 }

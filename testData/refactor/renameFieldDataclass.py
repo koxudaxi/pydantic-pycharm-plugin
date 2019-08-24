@@ -4,6 +4,7 @@ from pydantic.dataclasses import dataclass
 class A:
     ab<caret>c: str
 
+@dataclass
 class B(A):
     abc: int
 
