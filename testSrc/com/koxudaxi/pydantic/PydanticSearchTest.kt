@@ -1,11 +1,7 @@
 package com.koxudaxi.pydantic
 
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.search.searches.ReferencesSearch
-import com.jetbrains.python.psi.PyKeywordArgument
-import com.jetbrains.python.psi.PyTargetExpression
-import org.jetbrains.annotations.NotNull
 
 
 open class PydanticSearchTest : PydanticTestCase() {
@@ -16,44 +12,39 @@ open class PydanticSearchTest : PydanticTestCase() {
         val element = myFixture!!.elementAtCaret
         val query = ReferencesSearch.search(element)
         return query.findAll()
-//        return query.mapNotNull {
-//            it.resolve()
-//        }.filter { it != element }
+    }
+
+    private fun assertMatch(count: Int) {
+        val elements = searchByCaret()
+        assertEquals(elements.size, count)
     }
 
     fun testField() {
-        val elements = searchByCaret()
-        assertEquals(elements.size, 4)
+        assertMatch(4)
     }
 
     fun testKeywordArgument() {
-        val elements = searchByCaret()
-        assertEquals(elements.size, 1)
+        assertMatch(1)
     }
 
     fun testChildField() {
-        val elements = searchByCaret()
-        assertEquals(elements.size, 3)
+        assertMatch(3)
     }
 
     fun testChildKeywordArgument() {
-        val elements = searchByCaret()
-        assertEquals(elements.size, 1)
+        assertMatch(1)
     }
 
     fun testChildrenField() {
-        val elements = searchByCaret()
-        assertEquals(elements.size, 3)
+        assertMatch(3)
     }
 
     fun testChildrenKeywordArgument() {
-        val elements = searchByCaret()
-        assertEquals(elements.size, 1)
+        assertMatch(1)
     }
 
 
     fun testGrandChildField() {
-        val elements = searchByCaret()
-        assertEquals(elements.size, 3)
+        assertMatch(3)
     }
 }
