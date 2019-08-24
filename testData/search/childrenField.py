@@ -5,10 +5,10 @@ class A(BaseModel):
     abc: str # expected
 
 class B(A):
-    abc: str  # expected
+    abc: str
 
 class C(B):
-    ab<caret>c: str
+    ab<caret>c: str # expected
 
 A(abc='cde')
 B(abc='cde')
