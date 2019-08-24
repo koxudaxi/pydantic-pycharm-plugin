@@ -43,11 +43,17 @@ open class PydanticSearchTest : PydanticTestCase() {
 
     fun testChildrenField() {
         val elements = searchByCaret()
-        assertEquals(elements.size, 4)
+        assertEquals(elements.size, 3)
     }
 
     fun testChildrenKeywordArgument() {
         val elements = searchByCaret()
         assertEquals(elements.size, 1)
+    }
+
+
+    fun testGrandChildField() {
+        val elements = searchByCaret()
+        assertEquals(elements.size, 3)
     }
 }

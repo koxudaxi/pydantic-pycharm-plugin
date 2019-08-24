@@ -5,9 +5,9 @@ class A(BaseModel):
     abc: str # expected
 
 class B(A):
-    abc: str
+    pass
 
-class C(A):
+class C(B):
     ab<caret>c: str # expected
 
 A(abc='cde')
