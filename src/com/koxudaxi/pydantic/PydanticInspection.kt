@@ -12,7 +12,6 @@ import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.impl.PyStarArgumentImpl
-import com.jetbrains.python.psi.impl.references.PyReferenceImpl
 
 class PydanticInspection : PyInspection() {
 
@@ -47,7 +46,7 @@ class PydanticInspection : PyInspection() {
             super.visitPyCallExpression(node)
 
             if (node != null) { // $COVERAGE-IGNORE$
-                val pyClass: PyClass = (node.callee?.reference as? PyReferenceImpl)?.resolve() as? PyClass ?: return // $COVERAGE-IGNORE$
+                val pyClass: PyClass = getPyClassByPyCallExpression(node) ?: return
                 if (!isPydanticModel(pyClass, myTypeEvalContext)) return
                 if ((node.callee as PyReferenceExpressionImpl).isQualified) return // $COVERAGE-IGNORE$
                 for (argument in node.arguments) {

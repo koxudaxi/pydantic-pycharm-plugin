@@ -31,4 +31,8 @@ open class PydanticIgnoreInspectionTest : PydanticTestCase() {
     fun testPythonMethod() {
         doTest(false)
     }
+
+    fun testPythonDecorator() {
+        doTest(false)
+    }
 }

@@ -12,9 +12,13 @@ const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.field.Field"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 
+fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression): PyClass? {
+    return pyCallExpression.callee?.reference?.resolve() as? PyClass
+}
+
 fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument): PyClass? {
     val pyCallExpression = pyKeywordArgument.parent?.parent as? PyCallExpression ?: return null
-    return pyCallExpression.callee?.reference?.resolve() as? PyClass ?: return null
+    return getPyClassByPyCallExpression(pyCallExpression)
 }
 
 fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
@@ -29,17 +33,18 @@ fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalContext?): 
     return pyClass.isSubclass(BASE_MODEL_Q_NAME, context)
 }
 
-fun isBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean{
+fun isBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
 }
+
 fun hasDecorator(pyElement: PyElement, refName: String): Boolean {
-        if (pyElement is PyDecoratable) {
-            pyElement.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {
-                PyResolveUtil.resolveImportedElementQNameLocally(it).forEach {
-                    decoratorQualifiedName -> if (decoratorQualifiedName == QualifiedName.fromDottedString(refName)) return true
-                }
+    if (pyElement is PyDecoratable) {
+        pyElement.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {
+            PyResolveUtil.resolveImportedElementQNameLocally(it).forEach { decoratorQualifiedName ->
+                if (decoratorQualifiedName == QualifiedName.fromDottedString(refName)) return true
             }
         }
+    }
     return false
 }
 

@@ -1,4 +1,4 @@
-class Schema:
+class Field:
     def __init__(
             self,
             default,

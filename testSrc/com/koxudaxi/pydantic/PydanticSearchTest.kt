@@ -47,4 +47,40 @@ open class PydanticSearchTest : PydanticTestCase() {
     fun testGrandChildField() {
         assertMatch(3)
     }
+
+    fun testGrandChildKeywordArgument() {
+        assertMatch(1)
+    }
+
+    fun testGrandChildKeywordArgumentNotFound() {
+        assertMatch(0)
+    }
+
+    fun testGrandChildKeywordArgumentWithPythonClass() {
+        assertMatch(0)
+    }
+
+    fun testGrandChildFieldWithPythonClass() {
+        assertMatch(2)
+    }
+
+    fun testMultipleInheritanceField() {
+        assertMatch(3)
+    }
+
+    fun testMultipleInheritanceKeywordArgument() {
+        assertMatch(1)
+    }
+
+    fun testPythonClassChildField() {
+        assertMatch(2)
+    }
+
+    fun testPythonClassChildKeywordArgument() {
+        assertMatch(0)
+    }
+
+    fun testUnResolve() {
+        assertMatch(0)
+    }
 }

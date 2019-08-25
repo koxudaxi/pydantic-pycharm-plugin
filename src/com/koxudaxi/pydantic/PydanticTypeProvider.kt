@@ -106,6 +106,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun hasAnnotationValue(field: PyTargetExpression): Boolean {
         return field.annotationValue != null
     }
+
     private fun fieldToParameter(field: PyTargetExpression,
                                  ellipsis: PyNoneLiteralExpression,
                                  context: TypeEvalContext,
@@ -145,8 +146,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 val annotation = (field.annotation?.value as? PySubscriptionExpressionImpl) ?: return null
 
                 when {
-                    annotation.qualifier?.text == "Optional" -> return ellipsis
-                    annotation.qualifier?.text == "Union" -> for (child in annotation.children) {
+                    annotation.qualifier == null -> return value
+                    annotation.qualifier!!.text == "Optional" -> return ellipsis
+                    annotation.qualifier!!.text == "Union" -> for (child in annotation.children) {
                         if (child is PyTupleExpression) {
                             for (type in child.children) {
                                 if (type is PyNoneLiteralExpression) {
@@ -192,9 +194,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                             defaultValue == null -> null
                             defaultValue.text == "..." -> null
                             else -> defaultValue
-                            }
                         }
                     }
+                }
         return assignedValue
     }
 }

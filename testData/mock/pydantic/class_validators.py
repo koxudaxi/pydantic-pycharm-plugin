@@ -1,1 +1,2 @@
-def validator(*args: str, **kwargs: str) -> Any:...
+def validator(*args: str, **kwargs: str):
+    pass

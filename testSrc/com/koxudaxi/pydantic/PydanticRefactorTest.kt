@@ -40,6 +40,10 @@ open class PydanticRefactorTest : PydanticTestCase() {
         doRefactorTest()
     }
 
+    fun testRenameGrandChildFieldWithPythonClass() {
+        doRefactorTest()
+    }
+
     fun testRenamePythonClass() {
         doRefactorTest(isApplicable = false)
     }

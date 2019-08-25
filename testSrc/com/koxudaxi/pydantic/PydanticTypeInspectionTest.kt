@@ -62,6 +62,14 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
+    fun testFieldField() {
+        doTest()
+    }
+
+    fun testFieldFieldInvalid() {
+        doTest()
+    }
+
     fun testFieldBroken() {
         doTest()
     }
@@ -93,4 +101,17 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
     fun testClassMethodClsInvalid () {
         doTest()
     }
+
+    fun testFieldInherit() {
+        doTest()
+    }
+
+    fun testFieldOverride() {
+        doTest()
+    }
+
+    fun testUnResolve() {
+        doTest()
+    }
 }
+
