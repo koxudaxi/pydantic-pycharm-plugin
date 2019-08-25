@@ -1,9 +1,15 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.14</version>
+    <version>0.0.15</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.0.15</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support to detect types by default value on Schema [#49] <li>
+        <li>Improve inner logic [#47] </li>
+    </ul>
     <h2>version 0.0.14</h2>
     <p>Features</p>
     <ul>
