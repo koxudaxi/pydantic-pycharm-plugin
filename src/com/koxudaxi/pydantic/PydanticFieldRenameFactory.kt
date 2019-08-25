@@ -51,19 +51,23 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
             when (element) {
                 is PyTargetExpression -> if (element.name != null) {
                     val pyClass = element.containingClass
-                    addAllElement(pyClass, element.name!!, added)
-                    suggestAllNames(element.name!!, newName)
+                    if (pyClass is PyClass) {
+                        addAllElement(pyClass, element.name!!, added)
+                    }
+                    suggestAllNames(element.name, newName)
+
                 }
                 is PyKeywordArgument -> if (element.name != null) {
                     val pyClass = getPyClassByPyKeywordArgument(element)
-                    addAllElement(pyClass, element.name!!, added)
+                    if (pyClass is PyClass) {
+                        addAllElement(pyClass, element.name!!, added)
+                    }
                     suggestAllNames(element.name!!, newName)
                 }
             }
         }
 
-        private fun addAllElement(pyClass: PyClass?, elementName: String, added: MutableSet<PyClass>) {
-            if (pyClass == null) return
+        private fun addAllElement(pyClass: PyClass, elementName: String, added: MutableSet<PyClass>) {
             added.add(pyClass)
             addClassAttributes(pyClass, elementName)
             addKeywordArguments(pyClass, elementName)

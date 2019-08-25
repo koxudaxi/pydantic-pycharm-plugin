@@ -8,9 +8,6 @@ class PydanticIgnoreInspection : PyInspectionExtension() {
 
     override fun ignoreMethodParameters(function: PyFunction, context: TypeEvalContext): Boolean {
         val pyClass = function.containingClass ?: return false
-        if (isPydanticModel(pyClass, context) && hasClassMethodDecorator(function, context)) {
-            return true
-        }
-        return false
+        return isPydanticModel(pyClass, context) && validatorMethod(function)
     }
 }

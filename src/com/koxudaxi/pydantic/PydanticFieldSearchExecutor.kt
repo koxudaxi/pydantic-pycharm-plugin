@@ -48,13 +48,12 @@ private fun searchDirectReferenceField(pyClass: PyClass, elementName: String, co
     return false
 }
 
-private fun searchAllElementReference(pyClass: PyClass?, elementName: String, added: MutableSet<PyClass>, consumer: Processor<in PsiReference>) {
-    if (pyClass == null) return
+private fun searchAllElementReference(pyClass: PyClass, elementName: String, added: MutableSet<PyClass>, consumer: Processor<in PsiReference>) {
     added.add(pyClass)
     searchField(pyClass, elementName, consumer)
     searchKeywordArgument(pyClass, elementName, consumer)
-    pyClass.getAncestorClasses(null).forEach {  ancestorClass ->
-        if (isPydanticBaseModel(ancestorClass) && !added.contains(ancestorClass)){
+    pyClass.getAncestorClasses(null).forEach { ancestorClass ->
+        if (isPydanticBaseModel(ancestorClass) && !added.contains(ancestorClass)) {
             searchField(pyClass, elementName, consumer)
         }
     }

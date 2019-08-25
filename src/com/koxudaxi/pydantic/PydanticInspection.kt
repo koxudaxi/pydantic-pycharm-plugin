@@ -12,7 +12,6 @@ import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.impl.PyStarArgumentImpl
-import com.jetbrains.python.psi.impl.references.PyReferenceImpl
 
 class PydanticInspection : PyInspection() {
 
@@ -23,16 +22,19 @@ class PydanticInspection : PyInspection() {
     private class Visitor(holder: ProblemsHolder, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
 
         override fun visitPyFunction(node: PyFunction?) {
+            super.visitPyFunction(node)
+
             val pyClass = node?.parent?.parent as? PyClass ?: return
-            if (!isPydanticModel(pyClass, myTypeEvalContext) || !hasClassMethodDecorator(node, myTypeEvalContext)) return
+            if (!isPydanticModel(pyClass, myTypeEvalContext) || !validatorMethod(node)) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
-            if (firstParam == null && node.modifier != PyFunction.Modifier.STATICMETHOD) {
+            if (firstParam == null) {
                 registerProblem(paramList, PyBundle.message("INSP.must.have.first.parameter", PyNames.CANONICAL_CLS),
                         ProblemHighlightType.GENERIC_ERROR)
-            } else if (firstParam!!.asNamed?.name != PyNames.CANONICAL_CLS) {
-                registerProblem(PyUtil.sure(params[0]),
+            } else if (firstParam.asNamed?.isSelf == true && firstParam.asNamed?.name != PyNames.CANONICAL_CLS) {
+
+                registerProblem(PyUtil.sure(firstParam),
                         PyBundle.message("INSP.usually.named.\$0", PyNames.CANONICAL_CLS),
                         ProblemHighlightType.WEAK_WARNING, null,
                         RenameParameterQuickFix(PyNames.CANONICAL_CLS))
@@ -43,10 +45,10 @@ class PydanticInspection : PyInspection() {
         override fun visitPyCallExpression(node: PyCallExpression?) {
             super.visitPyCallExpression(node)
 
-            if (node != null) {
-                val pyClass: PyClass = (node.callee?.reference as? PyReferenceImpl)?.resolve() as? PyClass ?: return
+            if (node != null) { // $COVERAGE-IGNORE$
+                val pyClass: PyClass = getPyClassByPyCallExpression(node) ?: return
                 if (!isPydanticModel(pyClass, myTypeEvalContext)) return
-                if ((node.callee as PyReferenceExpressionImpl).isQualified) return
+                if ((node.callee as PyReferenceExpressionImpl).isQualified) return // $COVERAGE-IGNORE$
                 for (argument in node.arguments) {
                     if (argument is PyKeywordArgument) {
                         continue
