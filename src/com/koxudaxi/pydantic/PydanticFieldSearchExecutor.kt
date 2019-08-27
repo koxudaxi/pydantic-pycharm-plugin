@@ -21,7 +21,6 @@ private fun searchField(pyClass: PyClass, elementName: String, consumer: Process
 }
 
 private fun searchKeywordArgument(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>) {
-    if (!isPydanticModel(pyClass)) return
     ReferencesSearch.search(pyClass as PsiElement).forEach { psiReference ->
         PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
                 ?.let { callee ->

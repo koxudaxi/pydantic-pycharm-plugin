@@ -38,12 +38,10 @@ fun isBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
 }
 
-fun hasDecorator(pyElement: PyElement, refName: String): Boolean {
-    if (pyElement is PyDecoratable) {
-        pyElement.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {
-            PyResolveUtil.resolveImportedElementQNameLocally(it).forEach { decoratorQualifiedName ->
-                if (decoratorQualifiedName == QualifiedName.fromDottedString(refName)) return true
-            }
+fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolean {
+    pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {
+        PyResolveUtil.resolveImportedElementQNameLocally(it).forEach { decoratorQualifiedName ->
+            if (decoratorQualifiedName == QualifiedName.fromDottedString(refName)) return true
         }
     }
     return false

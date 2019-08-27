@@ -9,12 +9,14 @@ open class PydanticRefactorTest : PydanticTestCase() {
 
     }
 
-    private fun doRefactorTest(newName: String = "cde", isApplicable: Boolean = true) {
+    private fun doRefactorTest(newName: String = "cde", isApplicable: Boolean = true, skipCheck: Boolean =false) {
         configureByFile()
         val pydanticFieldRenameFactory = PydanticFieldRenameFactory()
-        assertEquals(pydanticFieldRenameFactory.isApplicable(myFixture!!.elementAtCaret), isApplicable)
+        if (!skipCheck) {
+            assertEquals(pydanticFieldRenameFactory.isApplicable(myFixture!!.elementAtCaret), isApplicable)
 
-        if (!isApplicable) return
+            if (!isApplicable) return
+        }
 
         pydanticFieldRenameFactory.createRenamer(myFixture!!.elementAtCaret, newName, ArrayList()).renames.forEach { (t, u) ->
             if (t.name != newName) {
@@ -58,6 +60,17 @@ open class PydanticRefactorTest : PydanticTestCase() {
 
     fun testRenamePythonFunctionKeywordArgument() {
         doRefactorTest(isApplicable = false)
+    }
+
+    fun testRenameUnResolve() {
+        doRefactorTest(isApplicable = false)
+        doRefactorTest(skipCheck = true)
+    }
+
+    fun testRenameUnResolveTargetExpression() {
+        doRefactorTest(isApplicable = false)
+        doRefactorTest(skipCheck = true)
+
     }
 
     fun testGetOptionName() {

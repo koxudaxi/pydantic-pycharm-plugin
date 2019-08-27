@@ -9,9 +9,7 @@ import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PythonLanguage
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
-import com.jetbrains.python.psi.PyCallExpression
-import com.jetbrains.python.psi.PyClass
-import com.jetbrains.python.psi.PyKeywordArgument
+import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.types.TypeEvalContext
 
 class PydanticCompletionContributor : CompletionContributor() {
@@ -19,21 +17,25 @@ class PydanticCompletionContributor : CompletionContributor() {
         extend(CompletionType.BASIC,
                 psiElement()
                         .withLanguage(PythonLanguage.getInstance())
-                        .and(psiElement().inside(PyCallExpression::class.java)),
+                        .and(psiElement().withParents(
+                                PyReferenceExpression::class.java,
+                                PyArgumentList::class.java,
+                                PyCallExpression::class.java)
+                        ),
                 KeywordArgumentCompletionProvider)
     }
 
     private object KeywordArgumentCompletionProvider : CompletionProvider<CompletionParameters>() {
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-            val pyCallExpression = parameters.position.parent?.parent?.parent as? PyCallExpression ?: return
-            if (parameters.position.parent?.parent is PyKeywordArgument) return
+            val pyArgumentList = parameters.position.parent.parent !!as PyArgumentList
+            val pyCallExpression  = pyArgumentList.parent !!as PyCallExpression
             val pyClass = getPyClassByPyCallExpression(pyCallExpression) ?: return
             val typeEvalContext = parameters.getTypeEvalContext()
 
             if (!isPydanticModel(pyClass, typeEvalContext)) return
 
-            val definedSet = parameters.position.parent.parent.children
+            val definedSet = pyArgumentList.children
                     .mapNotNull { (it as? PyKeywordArgument)?.name }
                     .map { "${it}=" }
                     .toHashSet()
@@ -47,10 +49,11 @@ class PydanticCompletionContributor : CompletionContributor() {
             addFieldElement(pyClass, definedSet, newElements, typeEvalContext)
 
             result.runRemainingContributors(parameters)
-            { completionResult ->
-                completionResult.lookupElement.lookupString
-                        .takeIf { name -> !newElements.containsKey(name) && !definedSet.contains(name) }
-                        ?.let { result.passResult(completionResult) }
+            {
+                completionResult ->
+                 completionResult.lookupElement.lookupString
+                        .takeIf { name -> !newElements.containsKey(name) && !definedSet.contains(name)}
+                        ?.let {  result.passResult(completionResult) }
             }
             result.addAllElements(newElements.values)
         }
