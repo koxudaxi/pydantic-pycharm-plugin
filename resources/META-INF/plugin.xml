@@ -7,6 +7,7 @@
     <h2>version 0.0.15</h2>
     <p>Features</p>
     <ul>
+        <li>Improve autocompletion for signature subclasses of pydantic.BaseModel and pydantic.dataclasses.dataclass [#] </li>
         <li>Update kotlin version to 1.3.50  [#50] </li>
         <li>Support to detect types by default value on Schema [#49] </li>
         <li>Improve inner logic [#47] </li>
@@ -67,6 +68,9 @@
                          implementationClass="com.koxudaxi.pydantic.PydanticInspection"/>
         <automaticRenamerFactory implementation="com.koxudaxi.pydantic.PydanticFieldRenameFactory"/>
         <referencesSearch implementation="com.koxudaxi.pydantic.PydanticFieldSearchExecutor"/>
+        <completion.contributor language="Python"
+                                implementationClass="com.koxudaxi.pydantic.PydanticCompletionContributor"/>
+
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
