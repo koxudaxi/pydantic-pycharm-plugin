@@ -33,9 +33,10 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             if (!isPydanticModel(pyClass, typeEvalContext)) return
 
-            val definedSet = parameters.position.parent.parent.children.mapNotNull {
-                (it as? PyKeywordArgument)?.name
-            }.toHashSet()
+            val definedSet = parameters.position.parent.parent.children
+                    .mapNotNull { (it as? PyKeywordArgument)?.name }
+                    .map { "${it}=" }
+                    .toHashSet()
 
             val newElements: HashMap<String, LookupElement> = HashMap()
 
@@ -62,15 +63,17 @@ class PydanticCompletionContributor : CompletionContributor() {
                     .asReversed()
                     .asSequence()
                     .filterNot { PyTypingTypeProvider.isClassVar(it, typeEvalContext) }
-                    .filter { it.name != null && !excludes.contains(it.name!!) }
+                    .filter { it.name != null }
                     .forEach {
-                        val className = pyClass.qualifiedName ?: pyClass.name
                         val elementName = "${it.name!!}="
-                        val element = PrioritizedLookupElement.withGrouping(
-                                LookupElementBuilder
-                                        .createWithSmartPointer(elementName, it)
-                                        .withTypeText(className).withIcon(AllIcons.Nodes.Parameter), 1)
-                        results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+                        if (!excludes.contains(elementName)) {
+                            val className = pyClass.qualifiedName ?: pyClass.name
+                            val element = PrioritizedLookupElement.withGrouping(
+                                    LookupElementBuilder
+                                            .createWithSmartPointer(elementName, it)
+                                            .withTypeText(className).withIcon(AllIcons.Nodes.Parameter), 1)
+                            results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+                        }
                     }
         }
     }
