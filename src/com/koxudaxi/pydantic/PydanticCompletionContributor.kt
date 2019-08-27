@@ -28,8 +28,8 @@ class PydanticCompletionContributor : CompletionContributor() {
     private object KeywordArgumentCompletionProvider : CompletionProvider<CompletionParameters>() {
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-            val pyArgumentList = parameters.position.parent.parent !!as PyArgumentList
-            val pyCallExpression  = pyArgumentList.parent !!as PyCallExpression
+            val pyArgumentList = parameters.position.parent.parent!! as PyArgumentList
+            val pyCallExpression = pyArgumentList.parent!! as PyCallExpression
             val pyClass = getPyClassByPyCallExpression(pyCallExpression) ?: return
             val typeEvalContext = parameters.getTypeEvalContext()
 
@@ -40,7 +40,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                     .map { "${it}=" }
                     .toHashSet()
 
-            val newElements: HashMap<String, LookupElement> = HashMap()
+            val newElements: LinkedHashMap<String, LookupElement> = linkedMapOf()
 
             pyClass.getAncestorClasses(typeEvalContext)
                     .filter { isPydanticModel(it) && !isPydanticBaseModel(it) }
@@ -49,16 +49,15 @@ class PydanticCompletionContributor : CompletionContributor() {
             addFieldElement(pyClass, definedSet, newElements, typeEvalContext)
 
             result.runRemainingContributors(parameters)
-            {
-                completionResult ->
-                 completionResult.lookupElement.lookupString
-                        .takeIf { name -> !newElements.containsKey(name) && !definedSet.contains(name)}
-                        ?.let {  result.passResult(completionResult) }
+            { completionResult ->
+                completionResult.lookupElement.lookupString
+                        .takeIf { name -> !newElements.containsKey(name) && !definedSet.contains(name) }
+                        ?.let { result.passResult(completionResult) }
             }
             result.addAllElements(newElements.values)
         }
 
-        private fun addFieldElement(pyClass: PyClass, excludes: HashSet<String>, results: HashMap<String, LookupElement>, typeEvalContext: TypeEvalContext) {
+        private fun addFieldElement(pyClass: PyClass, excludes: HashSet<String>, results: LinkedHashMap<String, LookupElement>, typeEvalContext: TypeEvalContext) {
             pyClass.classAttributes
                     .asReversed()
                     .asSequence()
