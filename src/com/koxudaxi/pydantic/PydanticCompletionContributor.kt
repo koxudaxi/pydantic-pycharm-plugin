@@ -28,8 +28,8 @@ class PydanticCompletionContributor : CompletionContributor() {
     private object KeywordArgumentCompletionProvider : CompletionProvider<CompletionParameters>() {
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-            val pyArgumentList = parameters.position.parent.parent!! as PyArgumentList
-            val pyCallExpression = pyArgumentList.parent!! as PyCallExpression
+            val pyArgumentList = parameters.position.parent!!.parent !!as PyArgumentList
+            val pyCallExpression = pyArgumentList.parent !!as PyCallExpression
             val pyClass = getPyClassByPyCallExpression(pyCallExpression) ?: return
             val typeEvalContext = parameters.getTypeEvalContext()
 
@@ -40,7 +40,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                     .map { "${it}=" }
                     .toHashSet()
 
-            val newElements: LinkedHashMap<String, LookupElement> = linkedMapOf()
+            val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
 
             pyClass.getAncestorClasses(typeEvalContext)
                     .filter { isPydanticModel(it) && !isPydanticBaseModel(it) }
