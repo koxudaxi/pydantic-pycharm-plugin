@@ -1,7 +1,7 @@
 # pydantic-pycharm-plugin
 [![Build Status](https://travis-ci.org/koxudaxi/pydantic-pycharm-plugin.svg?branch=master)](https://travis-ci.org/koxudaxi/pydantic-pycharm-plugi)
 [![](https://img.shields.io/jetbrains/plugin/v/12861)](https://plugins.jetbrains.com/plugin/12861-pydantic)
-
+[![codecov](https://codecov.io/gh/koxudaxi/pydantic-pycharm-plugin/branch/master/graph/badge.svg)](https://codecov.io/gh/koxudaxi/pydantic-pycharm-plugin)
 
 [A JetBrains PyCharm plugin](https://plugins.jetbrains.com/plugin/12861-pydantic) for [`pydantic`](https://github.com/samuelcolvin/pydantic).
 
