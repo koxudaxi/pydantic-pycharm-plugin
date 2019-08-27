@@ -98,6 +98,10 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
+    fun testClassMethodClsDuplicate () {
+        doTest()
+    }
+
     fun testClassMethodClsInvalid () {
         doTest()
     }
@@ -111,6 +115,10 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
     }
 
     fun testUnResolve() {
+        doTest()
+    }
+
+    fun testDuplicateField() {
         doTest()
     }
 }

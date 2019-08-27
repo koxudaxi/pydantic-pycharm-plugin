@@ -32,8 +32,7 @@ class PydanticInspection : PyInspection() {
             if (firstParam == null) {
                 registerProblem(paramList, PyBundle.message("INSP.must.have.first.parameter", PyNames.CANONICAL_CLS),
                         ProblemHighlightType.GENERIC_ERROR)
-            } else if (firstParam.asNamed?.isSelf == true && firstParam.asNamed?.name != PyNames.CANONICAL_CLS) {
-
+            } else if (firstParam.asNamed?.let { it.isSelf && it.name != PyNames.CANONICAL_CLS } == true) {
                 registerProblem(PyUtil.sure(firstParam),
                         PyBundle.message("INSP.usually.named.\$0", PyNames.CANONICAL_CLS),
                         ProblemHighlightType.WEAK_WARNING, null,
@@ -45,22 +44,15 @@ class PydanticInspection : PyInspection() {
         override fun visitPyCallExpression(node: PyCallExpression?) {
             super.visitPyCallExpression(node)
 
-            if (node != null) { // $COVERAGE-IGNORE$
-                val pyClass: PyClass = getPyClassByPyCallExpression(node) ?: return
-                if (!isPydanticModel(pyClass, myTypeEvalContext)) return
-                if ((node.callee as PyReferenceExpressionImpl).isQualified) return // $COVERAGE-IGNORE$
-                for (argument in node.arguments) {
-                    if (argument is PyKeywordArgument) {
-                        continue
+            val pyClass: PyClass = node?.let { getPyClassByPyCallExpression(node) } ?: return
+            if (!isPydanticModel(pyClass, myTypeEvalContext)) return
+            if ((node.callee as PyReferenceExpressionImpl).isQualified) return
+            node.arguments
+                    .filterNot { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
+                    .forEach {
+                        registerProblem(it,
+                                "class '${pyClass.name}' accepts only keyword arguments")
                     }
-                    if ((argument as? PyStarArgumentImpl)?.isKeyword == true) {
-                        continue
-                    }
-                    registerProblem(argument,
-                            "class '${pyClass.name}' accepts only keyword arguments")
-                }
-
-            }
         }
     }
 }

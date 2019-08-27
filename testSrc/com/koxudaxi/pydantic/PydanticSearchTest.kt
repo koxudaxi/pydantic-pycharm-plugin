@@ -23,6 +23,10 @@ open class PydanticSearchTest : PydanticTestCase() {
         assertMatch(4)
     }
 
+    fun testFieldUnResolve() {
+        assertMatch(1)
+    }
+
     fun testKeywordArgument() {
         assertMatch(1)
     }
@@ -31,7 +35,15 @@ open class PydanticSearchTest : PydanticTestCase() {
         assertMatch(3)
     }
 
+    fun testParentField() {
+        assertMatch(4)
+    }
+
     fun testChildKeywordArgument() {
+        assertMatch(1)
+    }
+
+    fun testParentKeywordArgument() {
         assertMatch(1)
     }
 
@@ -72,6 +84,10 @@ open class PydanticSearchTest : PydanticTestCase() {
         assertMatch(1)
     }
 
+    fun testMultipleInheritedField() {
+        assertMatch(5)
+    }
+
     fun testPythonClassChildField() {
         assertMatch(2)
     }
@@ -81,6 +97,10 @@ open class PydanticSearchTest : PydanticTestCase() {
     }
 
     fun testUnResolve() {
+        assertMatch(0)
+    }
+
+    fun testKeywordArgumentUnResolve() {
         assertMatch(0)
     }
 }

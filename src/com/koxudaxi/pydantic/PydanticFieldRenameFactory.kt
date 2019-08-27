@@ -49,21 +49,22 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
         init {
             val added = mutableSetOf<PyClass>()
             when (element) {
-                is PyTargetExpression -> if (element.name != null) {
-                    val pyClass = element.containingClass
-                    if (pyClass is PyClass) {
-                        addAllElement(pyClass, element.name!!, added)
+                is PyTargetExpression ->
+                    element.name?.let { name ->
+                        element.containingClass
+                                ?.let { pyClass ->
+                                    addAllElement(pyClass, name, added)
+                                }
+                        suggestAllNames(name, newName)
                     }
-                    suggestAllNames(element.name, newName)
-
-                }
-                is PyKeywordArgument -> if (element.name != null) {
-                    val pyClass = getPyClassByPyKeywordArgument(element)
-                    if (pyClass is PyClass) {
-                        addAllElement(pyClass, element.name!!, added)
+                is PyKeywordArgument ->
+                    element.name?.let { name ->
+                        getPyClassByPyKeywordArgument(element)
+                                ?.let { pyClass ->
+                                    addAllElement(pyClass, name, added)
+                                }
+                        suggestAllNames(name, newName)
                     }
-                    suggestAllNames(element.name!!, newName)
-                }
             }
         }
 
@@ -71,19 +72,13 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
             added.add(pyClass)
             addClassAttributes(pyClass, elementName)
             addKeywordArguments(pyClass, elementName)
-            pyClass.getAncestorClasses(null).forEach { ancestorClass ->
-                if (!isPydanticBaseModel(ancestorClass)) {
-                    if (isPydanticModel(ancestorClass) &&
-                            !added.contains(ancestorClass)) {
-                        addAllElement(ancestorClass, elementName, added)
-                    }
-                }
-            }
-            PyClassInheritorsSearch.search(pyClass, true).forEach { inheritorsPyClass ->
-                if (!isPydanticBaseModel(inheritorsPyClass) && !added.contains(inheritorsPyClass)) {
-                    addAllElement(inheritorsPyClass, elementName, added)
-                }
-            }
+            pyClass.getAncestorClasses(null)
+                    .filter { !isPydanticBaseModel(it) && isPydanticModel(it) && !added.contains(it) }
+                    .forEach { addAllElement(it, elementName, added) }
+
+            PyClassInheritorsSearch.search(pyClass, true)
+                    .filterNot { added.contains(it) }
+                    .forEach { addAllElement(it, elementName, added) }
         }
 
         private fun addClassAttributes(pyClass: PyClass, elementName: String) {
@@ -93,12 +88,13 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
 
         private fun addKeywordArguments(pyClass: PyClass, elementName: String) {
             ReferencesSearch.search(pyClass as PsiElement).forEach { psiReference ->
-                val callee = PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
-                callee?.arguments?.forEach { argument ->
-                    if (argument is PyKeywordArgument && argument.name == elementName) {
-                        myElements.add(argument)
-                    }
-                }
+                PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
+                        ?.let { callee ->
+                            callee.arguments
+                                    .filterIsInstance<PyKeywordArgument>()
+                                    .filter { it.name == elementName }
+                                    .forEach { myElements.add(it) }
+                        }
             }
         }
 
