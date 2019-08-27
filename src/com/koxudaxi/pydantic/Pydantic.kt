@@ -1,5 +1,6 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveUtil
@@ -17,7 +18,7 @@ fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression): PyClass? {
 }
 
 fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument): PyClass? {
-    val pyCallExpression = pyKeywordArgument.parent?.parent as? PyCallExpression ?: return null
+    val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
     return getPyClassByPyCallExpression(pyCallExpression)
 }
 
