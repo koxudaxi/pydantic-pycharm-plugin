@@ -33,7 +33,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             if (!isPydanticModel(pyClass, typeEvalContext)) return
 
-            val definedList = parameters.position.parent.parent.children. mapNotNull {
+            val definedSet = parameters.position.parent.parent.children.mapNotNull {
                 (it as? PyKeywordArgument)?.name
             }.toHashSet()
 
@@ -42,15 +42,15 @@ class PydanticCompletionContributor : CompletionContributor() {
             pyClass.getAncestorClasses(typeEvalContext).filter {
                 isPydanticModel(it) && !isPydanticBaseModel(it)
             }.forEach {
-                addFieldElement(it, definedList, newElements, typeEvalContext)
+                addFieldElement(it, definedSet, newElements, typeEvalContext)
             }
 
-            addFieldElement(pyClass, definedList, newElements, typeEvalContext)
+            addFieldElement(pyClass, definedSet, newElements, typeEvalContext)
 
             result.runRemainingContributors(parameters)
             {
                 val name = it.lookupElement.lookupString
-                if (!newElements.containsKey(name) && !definedList.contains(name)) {
+                if (!newElements.containsKey(name) && !definedSet.contains(name)) {
                     result.passResult(it)
                 }
             }

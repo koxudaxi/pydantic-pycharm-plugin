@@ -13,7 +13,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression
         }.mapNotNull {
-            it!!.psiElement!!.text
+            it!!.lookupString
         }
         assertEquals(fieldNames, actual)
     }
@@ -21,9 +21,9 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testKeywordArgument() {
         doFieldTest(
                 listOf(
-                        "abc",
-                        "cde",
-                        "efg"
+                        "abc=",
+                        "cde=",
+                        "efg="
                 )
         )
     }
@@ -31,9 +31,9 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testKeywordArgumentParent() {
         doFieldTest(
                 listOf(
-                        "abc",
-                        "cde",
-                        "efg"
+                        "abc=",
+                        "cde=",
+                        "efg="
                 )
         )
     }
@@ -41,8 +41,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testKeywordArgumentInserted() {
         doFieldTest(
                 listOf(
-                        "cde",
-                        "efg"
+                        "cde=",
+                        "efg="
                 )
         )
     }
