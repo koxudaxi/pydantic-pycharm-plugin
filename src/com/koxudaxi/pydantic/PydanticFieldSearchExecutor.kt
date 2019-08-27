@@ -50,7 +50,7 @@ private fun searchAllElementReference(pyClass: PyClass, elementName: String, add
             .forEach { searchField(it, elementName, consumer) }
 
     PyClassInheritorsSearch.search(pyClass, true)
-            .filter { !isPydanticBaseModel(it) && !added.contains(it) }
+            .filterNot { added.contains(it) }
             .forEach { searchAllElementReference(it, elementName, added, consumer) }
 }
 
