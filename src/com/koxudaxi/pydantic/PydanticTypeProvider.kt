@@ -22,24 +22,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     override fun getParameterType(param: PyNamedParameter, func: PyFunction, context: TypeEvalContext): Ref<PyType>? {
         if (!param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == "__init__") {
-            val cls = func.containingClass
-            val name = param.name
+            val cls = func.containingClass ?: return null
+            val name = param.name ?: return null
 
-            if (cls != null && name != null) {
-                cls
-                        .findClassAttribute(name, false, context)
-                        ?.let {
-                            return Ref.create(getTypeForParameter(it, context))
-                        }
-
-                for (ancestor in cls.getAncestorClasses(context)) {
-                    ancestor
-                            .findClassAttribute(name, false, context)
-                            ?.let { return Ref.create(getTypeForParameter(it, context)) }
-                }
+            cls.findClassAttribute(name, false, context)
+                    ?.let { pyTargetExpression ->
+                        return Ref.create(getTypeForParameter(pyTargetExpression, context))
+                    }
+            cls.getAncestorClasses(context).forEach { ancestor ->
+                ancestor.findClassAttribute(name, false, context)
+                        .let { return Ref.create(it?.let { it1 -> getTypeForParameter(it1, context) }) }
             }
         }
-
         return null
     }
 
@@ -56,9 +50,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         it is PyParameter && it.isSelf -> {
                             PsiTreeUtil.getParentOfType(it, PyFunction::class.java)
                                     ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
-                                    ?.let {
-                                        it.containingClass?.let { getPydanticTypeForClass(it, context) }
-                                    }
+                                    ?.let { it.containingClass?.let { getPydanticTypeForClass(it, context) } }
                         }
                         else -> null
                     }
@@ -91,15 +83,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     .asSequence()
                     .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
                     .mapNotNull { fieldToParameter(it, ellipsis, context, current) }
-                    .forEach { parameter ->
-                        parameter.name?.let {
-                            if (!collected.containsKey(it)) {
-                                collected[it] = parameter
-                            }
-                        }
-                    }
+                    .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
+                    .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
-
         return PyCallableTypeImpl(collected.values.reversed(), clsType.toInstance())
     }
 
@@ -148,15 +134,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 when {
                     annotation.qualifier == null -> return value
                     annotation.qualifier!!.text == "Optional" -> return ellipsis
-                    annotation.qualifier!!.text == "Union" -> for (child in annotation.children) {
-                        if (child is PyTupleExpression) {
-                            for (type in child.children) {
-                                if (type is PyNoneLiteralExpression) {
-                                    return ellipsis
-                                }
+                    annotation.qualifier!!.text == "Union" -> annotation.children
+                            .filterIsInstance<PyTupleExpression>()
+                            .forEach {
+                                it.children
+                                        .forEach { type -> if (type is PyNoneLiteralExpression) return ellipsis }
                             }
-                        }
-                    }
                 }
                 return value
             }

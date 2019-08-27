@@ -40,20 +40,17 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             val newElements: HashMap<String, LookupElement> = HashMap()
 
-            pyClass.getAncestorClasses(typeEvalContext).filter {
-                isPydanticModel(it) && !isPydanticBaseModel(it)
-            }.forEach {
-                addFieldElement(it, definedSet, newElements, typeEvalContext)
-            }
+            pyClass.getAncestorClasses(typeEvalContext)
+                    .filter { isPydanticModel(it) && !isPydanticBaseModel(it) }
+                    .forEach { addFieldElement(it, definedSet, newElements, typeEvalContext) }
 
             addFieldElement(pyClass, definedSet, newElements, typeEvalContext)
 
             result.runRemainingContributors(parameters)
-            {
-                val name = it.lookupElement.lookupString
-                if (!newElements.containsKey(name) && !definedSet.contains(name)) {
-                    result.passResult(it)
-                }
+            { completionResult ->
+                completionResult.lookupElement.lookupString
+                        .takeIf { name -> !newElements.containsKey(name) && !definedSet.contains(name) }
+                        ?.let { result.passResult(completionResult) }
             }
             result.addAllElements(newElements.values)
         }

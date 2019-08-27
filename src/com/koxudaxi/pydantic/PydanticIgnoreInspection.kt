@@ -7,7 +7,6 @@ import com.jetbrains.python.psi.types.TypeEvalContext
 class PydanticIgnoreInspection : PyInspectionExtension() {
 
     override fun ignoreMethodParameters(function: PyFunction, context: TypeEvalContext): Boolean {
-        val pyClass = function.containingClass ?: return false
-        return isPydanticModel(pyClass, context) && validatorMethod(function)
+        return function.containingClass?.let { isPydanticModel(it, context) && validatorMethod(function) } == true
     }
 }
