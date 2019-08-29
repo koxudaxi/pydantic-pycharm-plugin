@@ -121,5 +121,9 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
     fun testDuplicateField() {
         doTest()
     }
+
+    fun testSkipMember() {
+        doTest()
+    }
 }
 
