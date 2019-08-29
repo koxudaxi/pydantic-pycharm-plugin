@@ -36,7 +36,6 @@ private fun searchDirectReferenceField(pyClass: PyClass, elementName: String, co
     if (searchField(pyClass, elementName, consumer)) return true
 
     return pyClass.getAncestorClasses(null)
-            .filterNot { isPydanticBaseModel(it) }
             .firstOrNull { isPydanticModel(it) && searchDirectReferenceField(it, elementName, consumer) } != null
 }
 

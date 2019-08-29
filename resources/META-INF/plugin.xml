@@ -4,6 +4,12 @@
     <version>0.0.15</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.0.16</h2>
+    <p>Features, BugFixes</p>
+    <ul>
+        <li>Add types and default values to popup of auto-completion [#54] </li>
+        <li>Fix class imported path on auto-completion [#54] </li>
+    </ul>
     <h2>version 0.0.15</h2>
     <p>Features</p>
     <ul>

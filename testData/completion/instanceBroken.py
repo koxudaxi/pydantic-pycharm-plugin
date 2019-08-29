@@ -1,14 +1,13 @@
 from builtins import *
-
 from pydantic import BaseModel
 
 
 class A(BaseModel):
-    abc: str
-    cde: str
-    efg: str
+    abc: str a
+    cde: str = s
+    efg:
 
 class B(A):
     hij: str
 
-A(<caret>)
+A().<caret>

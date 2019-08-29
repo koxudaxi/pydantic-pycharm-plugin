@@ -2,7 +2,6 @@ package com.koxudaxi.pydantic
 
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
-import com.jetbrains.python.documentation.PythonDocumentationProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.TypeEvalContext
@@ -24,7 +23,7 @@ internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument)
 }
 
 internal fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
-    return isSubClassOfPydanticBaseModel(pyClass, context) || isPydanticDataclass(pyClass)
+    return isSubClassOfPydanticBaseModel(pyClass, context) || isPydanticDataclass(pyClass) && !isPydanticBaseModel(pyClass)
 }
 
 internal fun isPydanticBaseModel(pyClass: PyClass): Boolean {
@@ -58,11 +57,4 @@ internal fun isPydanticField(pyClass: PyClass, context: TypeEvalContext): Boolea
 
 internal fun validatorMethod(pyFunction: PyFunction): Boolean {
     return hasDecorator(pyFunction, VALIDATOR_Q_NAME)
-}
-
-internal fun getTypeHint(pyClass: PyClass, typeEvalContext: TypeEvalContext, pyTargetExpression: PyTargetExpression): String {
-    val className = pyClass.qualifiedName ?: pyClass.name
-    val defaultValue = pyTargetExpression.findAssignedValue()?.text?.let { "=$it" } ?: ""
-    val typeHint = PythonDocumentationProvider.getTypeHint(typeEvalContext.getType(pyTargetExpression), typeEvalContext)
-    return "${typeHint}$defaultValue $className"
 }

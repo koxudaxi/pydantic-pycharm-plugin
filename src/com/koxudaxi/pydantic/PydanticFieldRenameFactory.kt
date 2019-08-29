@@ -73,7 +73,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
             addClassAttributes(pyClass, elementName)
             addKeywordArguments(pyClass, elementName)
             pyClass.getAncestorClasses(null)
-                    .filter { !isPydanticBaseModel(it) && isPydanticModel(it) && !added.contains(it) }
+                    .filter { isPydanticModel(it) && !added.contains(it) }
                     .forEach { addAllElement(it, elementName, added) }
 
             PyClassInheritorsSearch.search(pyClass, true)

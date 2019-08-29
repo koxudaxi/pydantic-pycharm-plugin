@@ -9,12 +9,11 @@ import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
+import com.jetbrains.python.documentation.PythonDocumentationProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
-
-
 
 
 class PydanticCompletionContributor : CompletionContributor() {
@@ -31,14 +30,21 @@ class PydanticCompletionContributor : CompletionContributor() {
                         .withParent(psiElement(PyReferenceExpression::class.java)),
                 FieldCompletionProvider)
     }
-    private abstract class PydanticCompletionProvider: CompletionProvider<CompletionParameters>() {
+
+    private abstract class PydanticCompletionProvider : CompletionProvider<CompletionParameters>() {
 
         abstract val icon: Icon
 
         abstract fun getLookupNameFromFieldName(fieldName: String): String
 
-        private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
-                                      typeEvalContext: TypeEvalContext, excludes: HashSet<String>? = null) {
+
+        private fun getTypeHint(pyClass: PyClass, typeEvalContext: TypeEvalContext, pyTargetExpression: PyTargetExpression): String {
+            val defaultValue = pyTargetExpression.findAssignedValue()?.text?.let { "=$it" } ?: ""
+            val typeHint = PythonDocumentationProvider.getTypeHint(typeEvalContext.getType(pyTargetExpression), typeEvalContext)
+            return "${typeHint}$defaultValue ${pyClass.name}"
+        }
+
+        private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>, typeEvalContext: TypeEvalContext, excludes: HashSet<String>?) {
             pyClass.classAttributes
                     .asReversed()
                     .asSequence()
@@ -59,20 +65,20 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         protected fun addAllFieldElement(parameters: CompletionParameters, result: CompletionResultSet,
                                          pyClass: PyClass, typeEvalContext: TypeEvalContext,
-                                         definedSet: HashSet<String>? = null) {
+                                         excludes: HashSet<String>? = null) {
 
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
 
             pyClass.getAncestorClasses(typeEvalContext)
-                    .filter { isPydanticModel(it) && !isPydanticBaseModel(it) }
-                    .forEach { addFieldElement(it, newElements, typeEvalContext) }
+                    .filter { isPydanticModel(it) }
+                    .forEach { addFieldElement(it, newElements, typeEvalContext, excludes) }
 
-            addFieldElement(pyClass, newElements, typeEvalContext)
+            addFieldElement(pyClass, newElements, typeEvalContext, excludes)
 
             result.runRemainingContributors(parameters)
             { completionResult ->
                 completionResult.lookupElement.lookupString
-                        .takeIf { name -> !newElements.containsKey(name) && (definedSet == null || !definedSet.contains(name)) }
+                        .takeIf { name -> !newElements.containsKey(name) && (excludes == null || !excludes.contains(name)) }
                         ?.let { result.passResult(completionResult) }
             }
             result.addAllElements(newElements.values)

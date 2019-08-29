@@ -3,7 +3,7 @@ from builtins import *
 from pydantic import BaseModel
 
 
-class A(BaseModel):
+class A:
     abc: str
     cde: str
     efg: str
@@ -11,4 +11,4 @@ class A(BaseModel):
 class B(A):
     hij: str
 
-A(<caret>)
+A().<caret>

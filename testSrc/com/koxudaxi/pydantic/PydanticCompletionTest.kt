@@ -1,19 +1,20 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.jetbrains.python.psi.PyTargetExpression
 
 
 open class PydanticCompletionTest : PydanticTestCase() {
 
 
-    private fun doFieldTest(fieldNames: List<String>) {
+    private fun doFieldTest(fieldNames: List<Pair<String, String>>) {
         configureByFile()
-
 
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression
         }.mapNotNull {
-            it!!.lookupString
+
+            Pair(it!!.lookupString, LookupElementPresentation.renderElement(it).typeText)
         }
         assertEquals(fieldNames, actual)
     }
@@ -21,9 +22,9 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testKeywordArgument() {
         doFieldTest(
                 listOf(
-                        "abc=",
-                        "cde=",
-                        "efg="
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str A"),
+                        Pair("efg=", "str A")
                 )
         )
     }
@@ -31,9 +32,9 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testKeywordArgumentParent() {
         doFieldTest(
                 listOf(
-                        "abc=",
-                        "cde=",
-                        "efg="
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str A"),
+                        Pair("efg=", "str B")
                 )
         )
     }
@@ -41,8 +42,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testKeywordArgumentInserted() {
         doFieldTest(
                 listOf(
-                        "cde=",
-                        "efg="
+                        Pair("cde=", "str A"),
+                        Pair("efg=", "str A")
                 )
         )
     }
@@ -62,6 +63,78 @@ open class PydanticCompletionTest : PydanticTestCase() {
     }
 
     fun testKeywordArgumentPythonFunction() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
+    fun testInstance() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                )
+        )
+    }
+
+    fun testInstanceParent() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str A"),
+                        Pair("efg", "str B")
+                )
+        )
+    }
+
+    fun testInstancePythonClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "A"),
+                        Pair("cde", "A"),
+                        Pair("efg", "A")
+                )
+        )
+    }
+
+    fun testInstancePythonFunction() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
+    fun testInstanceBroken() {
+        doFieldTest(
+                listOf(
+                    Pair("abc", "str A"),
+                    Pair("cde", "str=s A"),
+                    Pair("efg", "Any A")
+                )
+        )
+    }
+
+    fun testInstanceParentIsPythonClass() {
+        doFieldTest(
+                listOf(
+                        Pair("hij", "str B"),
+                        Pair("abc", "A"),
+                        Pair("cde", "A"),
+                        Pair("efg", "A")
+                )
+        )
+    }
+
+    fun testInstanceUnResolve() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
+    fun testString() {
         doFieldTest(
                 listOf(
                 )
