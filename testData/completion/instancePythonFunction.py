@@ -3,9 +3,7 @@ from builtins import *
 from pydantic import BaseModel
 
 
-class A:
-    abc: str
-    cde: str
-    efg: str
+def a():
+    pass
 
-A(<caret>)
+a().<caret>
