@@ -45,6 +45,21 @@ class PydanticCompletionContributor : CompletionContributor() {
             return "${typeHint}$defaultValue ${pyClass.name}"
         }
 
+        protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext): PyClass? {
+            val pyCallExpression = PyResolveUtil.fullResolveLocally(pyReferenceExpression) as? PyCallExpression
+            if (pyCallExpression is PyCallExpression) {
+                return getPyClassByPyCallExpression(pyCallExpression)
+            }
+            val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
+            return pyReferenceExpression.multiFollowAssignmentsChain(resolveContext).mapNotNull {
+                when (val resolveElement = it.element) {
+                    is PyClass -> resolveElement
+                    is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
+                    else -> null
+                }
+            }.firstOrNull()
+        }
+
         private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>, typeEvalContext: TypeEvalContext, excludes: HashSet<String>?) {
             pyClass.classAttributes
                     .asReversed()
@@ -96,9 +111,14 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
             val pyArgumentList = parameters.position.parent!!.parent!! as PyArgumentList
-            val pyCallExpression = pyArgumentList.parent!! as PyCallExpression
-            val pyClass = getPyClassByPyCallExpression(pyCallExpression) ?: return
             val typeEvalContext = parameters.getTypeEvalContext()
+
+            val pyClass = when (val pyCallableElement = pyArgumentList.parent!!) {
+                is PyReferenceExpression -> getPyClassByPyReferenceExpression(pyCallableElement, typeEvalContext)
+                        ?: return
+                is PyCallExpression -> getPyClassByPyCallExpression(pyCallableElement) ?: return
+                else -> return
+            }
 
             if (!isPydanticModel(pyClass, typeEvalContext)) return
 
@@ -118,28 +138,13 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         override val icon: Icon = AllIcons.Nodes.Field
 
-        private fun getPyCallExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext): PyClass? {
-            val pyCallExpression = PyResolveUtil.fullResolveLocally(pyReferenceExpression) as? PyCallExpression
-            if (pyCallExpression is PyCallExpression) {
-                return getPyClassByPyCallExpression(pyCallExpression)
-            }
-            val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
-            return when (val resolveElement = pyReferenceExpression.followAssignmentsChain(resolveContext).element) {
-                is PyClass -> resolveElement
-                is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
-                else -> null
-            }
-
-        }
-
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+            val typeEvalContext = parameters.getTypeEvalContext()
             val pyClass = when (val instance = parameters.position.parent.firstChild) {
-                is PyReferenceExpression -> getPyCallExpression(instance, parameters.getTypeEvalContext()) ?: return
+                is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext) ?: return
                 is PyCallExpression -> getPyClassByPyCallExpression(instance) ?: return
                 else -> return
             }
-
-            val typeEvalContext = parameters.getTypeEvalContext()
 
             if (!isPydanticModel(pyClass, typeEvalContext)) return
 
