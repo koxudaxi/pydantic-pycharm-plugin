@@ -40,13 +40,12 @@ internal fun isBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean 
 }
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolean {
-    return pyDecoratable.decoratorList?.decorators?.let { decorators ->
-        decorators.mapNotNull { it.callee as? PyReferenceExpression }.any {
-            PyResolveUtil.resolveImportedElementQNameLocally(it).any { decoratorQualifiedName ->
-                decoratorQualifiedName == QualifiedName.fromDottedString(refName)
-            }
+    pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {
+        PyResolveUtil.resolveImportedElementQNameLocally(it).forEach { decoratorQualifiedName ->
+            if (decoratorQualifiedName == QualifiedName.fromDottedString(refName)) return true
         }
-    } ?: false
+    }
+    return false
 }
 
 internal fun isPydanticDataclass(pyClass: PyClass): Boolean {
