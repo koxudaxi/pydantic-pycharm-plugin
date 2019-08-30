@@ -24,7 +24,7 @@ internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument)
 }
 
 internal fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
-    return isSubClassOfPydanticBaseModel(pyClass, context) || isPydanticDataclass(pyClass) && !isPydanticBaseModel(pyClass)
+    return (isSubClassOfPydanticBaseModel(pyClass, context) || isPydanticDataclass(pyClass)) && !isPydanticBaseModel(pyClass)
 }
 
 internal fun isPydanticBaseModel(pyClass: PyClass): Boolean {

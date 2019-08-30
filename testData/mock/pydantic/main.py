@@ -1,2 +1,5 @@
 class BaseModel:
-    pass
+    class Config:
+        pass
+
+    ___slots__ = ()
