@@ -13,44 +13,6 @@ import com.jetbrains.python.psi.PyKeywordArgument
 import com.jetbrains.python.psi.PyTargetExpression
 import com.jetbrains.python.psi.search.PyClassInheritorsSearch
 
-private fun searchField(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>): Boolean {
-    if (!isPydanticModel(pyClass)) return false
-    val pyTargetExpression = pyClass.findClassAttribute(elementName, false, null) ?: return false
-    consumer.process(pyTargetExpression.reference)
-    return true
-}
-
-private fun searchKeywordArgument(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>) {
-    ReferencesSearch.search(pyClass as PsiElement).forEach { psiReference ->
-        PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
-                ?.let { callee ->
-                    callee.arguments
-                            .filterIsInstance<PyKeywordArgument>()
-                            .filter { it.name == elementName }
-                            .forEach { consumer.process(it.reference) }
-                }
-    }
-}
-
-private fun searchDirectReferenceField(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>): Boolean {
-    if (searchField(pyClass, elementName, consumer)) return true
-
-    return pyClass.getAncestorClasses(null)
-            .firstOrNull { isPydanticModel(it) && searchDirectReferenceField(it, elementName, consumer) } != null
-}
-
-private fun searchAllElementReference(pyClass: PyClass, elementName: String, added: MutableSet<PyClass>, consumer: Processor<in PsiReference>) {
-    added.add(pyClass)
-    searchField(pyClass, elementName, consumer)
-    searchKeywordArgument(pyClass, elementName, consumer)
-    pyClass.getAncestorClasses(null)
-            .filter { !isPydanticBaseModel(it) && !added.contains(it) }
-            .forEach { searchField(it, elementName, consumer) }
-
-    PyClassInheritorsSearch.search(pyClass, true)
-            .filterNot { added.contains(it) }
-            .forEach { searchAllElementReference(it, elementName, added, consumer) }
-}
 
 class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>() {
     override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>) {
@@ -72,5 +34,44 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                         }
             }
         }
+    }
+
+    private fun searchField(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>): Boolean {
+        if (!isPydanticModel(pyClass)) return false
+        val pyTargetExpression = pyClass.findClassAttribute(elementName, false, null) ?: return false
+        consumer.process(pyTargetExpression.reference)
+        return true
+    }
+
+    private fun searchKeywordArgument(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>) {
+        ReferencesSearch.search(pyClass as PsiElement).forEach { psiReference ->
+            PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
+                    ?.let { callee ->
+                        callee.arguments
+                                .filterIsInstance<PyKeywordArgument>()
+                                .filter { it.name == elementName }
+                                .forEach { consumer.process(it.reference) }
+                    }
+        }
+    }
+
+    private fun searchDirectReferenceField(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>): Boolean {
+        if (searchField(pyClass, elementName, consumer)) return true
+
+        return pyClass.getAncestorClasses(null)
+                .firstOrNull { isPydanticModel(it) && searchDirectReferenceField(it, elementName, consumer) } != null
+    }
+
+    private fun searchAllElementReference(pyClass: PyClass, elementName: String, added: MutableSet<PyClass>, consumer: Processor<in PsiReference>) {
+        added.add(pyClass)
+        searchField(pyClass, elementName, consumer)
+        searchKeywordArgument(pyClass, elementName, consumer)
+        pyClass.getAncestorClasses(null)
+                .filter { !isPydanticBaseModel(it) && !added.contains(it) }
+                .forEach { searchField(it, elementName, consumer) }
+
+        PyClassInheritorsSearch.search(pyClass, true)
+                .filterNot { added.contains(it) }
+                .forEach { searchAllElementReference(it, elementName, added, consumer) }
     }
 }

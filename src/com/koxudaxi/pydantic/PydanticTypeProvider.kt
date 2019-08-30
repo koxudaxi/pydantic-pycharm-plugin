@@ -5,7 +5,6 @@ import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.containers.isNullOrEmpty
 import com.jetbrains.python.PyNames
-import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyCallExpressionNavigator
@@ -77,11 +76,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             val current = currentType.pyClass
             if (!isPydanticModel(current, context)) return null
 
-            current
-                    .classAttributes
-                    .asReversed()
-                    .asSequence()
-                    .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
+            getClassVariables(current, context)
                     .mapNotNull { fieldToParameter(it, ellipsis, context, current) }
                     .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
                     .forEach { parameter -> collected[parameter.name!!] = parameter }
@@ -167,7 +162,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val resolveResults = getResolveElements(referenceExpression, context)
         PyUtil.filterTopPriorityResults(resolveResults)
-                .asSequence()
                 .forEach { it ->
                     val pyClass = PsiTreeUtil.getContextOfType(it, PyClass::class.java)
                     if (pyClass != null && isPydanticField(pyClass, context)) {

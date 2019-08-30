@@ -45,10 +45,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
 
         private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>, typeEvalContext: TypeEvalContext, excludes: HashSet<String>?) {
-            pyClass.classAttributes
-                    .asReversed()
-                    .asSequence()
-                    .filterNot { PyTypingTypeProvider.isClassVar(it, typeEvalContext) }
+            getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
                     .forEach {
                         val elementName = getLookupNameFromFieldName(it.name!!)

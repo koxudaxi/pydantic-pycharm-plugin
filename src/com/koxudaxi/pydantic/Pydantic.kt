@@ -2,6 +2,7 @@ package com.koxudaxi.pydantic
 
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
+import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.TypeEvalContext
@@ -39,12 +40,13 @@ internal fun isBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean 
 }
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolean {
-    pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {
-        PyResolveUtil.resolveImportedElementQNameLocally(it).forEach { decoratorQualifiedName ->
-            if (decoratorQualifiedName == QualifiedName.fromDottedString(refName)) return true
+    return pyDecoratable.decoratorList?.decorators?.let { decorators ->
+        decorators.mapNotNull { it.callee as? PyReferenceExpression }.any {
+            PyResolveUtil.resolveImportedElementQNameLocally(it).any { decoratorQualifiedName ->
+                decoratorQualifiedName == QualifiedName.fromDottedString(refName)
+            }
         }
-    }
-    return false
+    } ?: false
 }
 
 internal fun isPydanticDataclass(pyClass: PyClass): Boolean {
@@ -55,6 +57,13 @@ internal fun isPydanticField(pyClass: PyClass, context: TypeEvalContext): Boolea
     return pyClass.isSubclass(SCHEMA_Q_NAME, context) || pyClass.isSubclass(FIELD_Q_NAME, context)
 }
 
-internal fun validatorMethod(pyFunction: PyFunction): Boolean {
+internal fun isValidatorMethod(pyFunction: PyFunction): Boolean {
     return hasDecorator(pyFunction, VALIDATOR_Q_NAME)
+}
+
+internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
+    return pyClass.classAttributes
+            .asReversed()
+            .asSequence()
+            .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
 }
