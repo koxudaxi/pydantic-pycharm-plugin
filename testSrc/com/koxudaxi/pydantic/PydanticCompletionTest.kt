@@ -141,6 +141,13 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testAssignedString() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
     fun testAssignedInstance() {
         doFieldTest(
                 listOf(
