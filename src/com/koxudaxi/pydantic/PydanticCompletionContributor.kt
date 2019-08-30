@@ -58,10 +58,6 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
 
         protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext): PyClass? {
-            val pyCallExpression = PyResolveUtil.fullResolveLocally(pyReferenceExpression) as? PyCallExpression
-            if (pyCallExpression is PyCallExpression) {
-                return getPyClassByPyCallExpression(pyCallExpression)
-            }
             val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
             return pyReferenceExpression.multiFollowAssignmentsChain(resolveContext).mapNotNull {
                 return when (val resolveElement = it.element) {

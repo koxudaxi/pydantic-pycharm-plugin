@@ -158,6 +158,17 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testAssignedInstanceWithImport() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                ),
+                listOf("instance")
+        )
+    }
+
     fun testParameterAnnotation() {
         doFieldTest(
                 listOf(
@@ -249,6 +260,16 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testUnResolveInstance() {
         doFieldTest(
                 listOf(
+                )
+        )
+    }
+
+    fun testClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
                 )
         )
     }
