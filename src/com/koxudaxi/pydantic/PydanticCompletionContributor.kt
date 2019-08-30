@@ -11,6 +11,7 @@ import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.documentation.PythonDocumentationProvider
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
@@ -116,10 +117,17 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
 
         override val icon: Icon = AllIcons.Nodes.Field
+        private fun getPyCallExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext): PyCallExpression? {
+            val pyCallExpression = PyResolveUtil.fullResolveLocally(pyReferenceExpression) as? PyCallExpression
+            if (pyCallExpression is PyCallExpression) return pyCallExpression
+            val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
+            return pyReferenceExpression.followAssignmentsChain(resolveContext).element as? PyCallExpression
+
+        }
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
             val pyCallExpression = when (val instance = parameters.position.parent.firstChild) {
-                is PyReferenceExpression -> PyResolveUtil.fullResolveLocally(instance) as? PyCallExpression ?: return
+                is PyReferenceExpression -> getPyCallExpression(instance, parameters.getTypeEvalContext()) ?: return
                 is PyCallExpression -> instance
                 else -> return
             }
