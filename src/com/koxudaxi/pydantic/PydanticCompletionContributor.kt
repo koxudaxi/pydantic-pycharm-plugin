@@ -13,6 +13,8 @@ import com.jetbrains.python.documentation.PythonDocumentationProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
+import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyUnionType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
 
@@ -45,6 +47,16 @@ class PydanticCompletionContributor : CompletionContributor() {
             return "${typeHint}$defaultValue ${pyClass.name}"
         }
 
+        private fun getPyClassFromPyNamedParameter(pyNamedParameter: PyNamedParameter, typeEvalContext: TypeEvalContext): PyClass? {
+            return when (val pyClassTypes = pyNamedParameter.getArgumentType(typeEvalContext)) {
+                is PyClassType -> pyClassTypes.pyClass
+                is PyUnionType -> pyClassTypes.members.filterIsInstance<PyClassType>()
+                        .map { pyClassType -> pyClassType.pyClass }
+                        .firstOrNull()
+                else -> null
+            }
+        }
+
         protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext): PyClass? {
             val pyCallExpression = PyResolveUtil.fullResolveLocally(pyReferenceExpression) as? PyCallExpression
             if (pyCallExpression is PyCallExpression) {
@@ -52,9 +64,10 @@ class PydanticCompletionContributor : CompletionContributor() {
             }
             val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
             return pyReferenceExpression.multiFollowAssignmentsChain(resolveContext).mapNotNull {
-                when (val resolveElement = it.element) {
+                return when (val resolveElement = it.element) {
                     is PyClass -> resolveElement
                     is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
+                    is PyNamedParameter -> getPyClassFromPyNamedParameter(resolveElement, typeEvalContext)
                     else -> null
                 }
             }.firstOrNull()
@@ -99,7 +112,6 @@ class PydanticCompletionContributor : CompletionContributor() {
             }
             result.addAllElements(newElements.values)
         }
-
     }
 
     private object KeywordArgumentCompletionProvider : PydanticCompletionProvider() {
@@ -148,11 +160,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             if (!isPydanticModel(pyClass, typeEvalContext)) return
 
-
             addAllFieldElement(parameters, result, pyClass, typeEvalContext)
         }
-
     }
-
-
 }

@@ -35,10 +35,18 @@ abstract class PydanticTestCase : UsefulTestCase() {
             return "$testClassName/${getTestName(true)}"
         }
 
-    protected fun configureByFile() {
-        myFixture!!.configureByFile("${myFixture!!.testDataPath}/$testDataMethodPath.py")
+    protected fun configureByFile(additionalFileNames: List<String>? = null) {
+        configureByFileName("${testDataMethodPath}.py")
 
+        additionalFileNames?.forEach {
+            configureByFileName("${testClassName}/${it}.py")
+        }
     }
+
+    private fun configureByFileName(fileName: String) {
+        myFixture!!.configureByFile("${myFixture!!.testDataPath}/${fileName}")
+    }
+
     @Throws(Exception::class)
     override fun setUp() {
         super.setUp()
