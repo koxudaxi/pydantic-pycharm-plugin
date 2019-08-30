@@ -117,21 +117,27 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
 
         override val icon: Icon = AllIcons.Nodes.Field
-        private fun getPyCallExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext): PyCallExpression? {
+
+        private fun getPyCallExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext): PyClass? {
             val pyCallExpression = PyResolveUtil.fullResolveLocally(pyReferenceExpression) as? PyCallExpression
-            if (pyCallExpression is PyCallExpression) return pyCallExpression
+            if (pyCallExpression is PyCallExpression) {
+                return getPyClassByPyCallExpression(pyCallExpression)
+            }
             val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
-            return pyReferenceExpression.followAssignmentsChain(resolveContext).element as? PyCallExpression
+            return when (val resolveElement = pyReferenceExpression.followAssignmentsChain(resolveContext).element) {
+                is PyClass -> resolveElement
+                is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
+                else -> null
+            }
 
         }
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-            val pyCallExpression = when (val instance = parameters.position.parent.firstChild) {
+            val pyClass = when (val instance = parameters.position.parent.firstChild) {
                 is PyReferenceExpression -> getPyCallExpression(instance, parameters.getTypeEvalContext()) ?: return
-                is PyCallExpression -> instance
+                is PyCallExpression -> getPyClassByPyCallExpression(instance) ?: return
                 else -> return
             }
-            val pyClass = getPyClassByPyCallExpression(pyCallExpression) ?: return
 
             val typeEvalContext = parameters.getTypeEvalContext()
 
