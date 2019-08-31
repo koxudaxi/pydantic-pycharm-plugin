@@ -7,8 +7,8 @@ import com.jetbrains.python.psi.PyTargetExpression
 open class PydanticCompletionTest : PydanticTestCase() {
 
 
-    private fun doFieldTest(fieldNames: List<Pair<String, String>>) {
-        configureByFile()
+    private fun doFieldTest(fieldNames: List<Pair<String, String>>, additionalModules: List<String>? = null) {
+        configureByFile(additionalModules)
 
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression
@@ -137,6 +137,139 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testString() {
         doFieldTest(
                 listOf(
+                )
+        )
+    }
+
+    fun testAssignedString() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
+    fun testAssignedInstance() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                )
+        )
+    }
+
+    fun testAssignedInstanceWithImport() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                ),
+                listOf("instance")
+        )
+    }
+
+    fun testParameterAnnotation() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                )
+        )
+    }
+
+    fun testParameterAnnotationUnion() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                )
+        )
+    }
+    fun testAssignedInstancePythonClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "A"),
+                        Pair("cde", "A"),
+                        Pair("efg", "A")
+                )
+        )
+    }
+
+    fun testParameterAnnotationPythonClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "A"),
+                        Pair("cde", "A"),
+                        Pair("efg", "A")
+                )
+        )
+    }
+
+    fun testParameterAnnotationUnionPythonClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "A"),
+                        Pair("cde", "A"),
+                        Pair("efg", "A")
+                )
+        )
+    }
+
+    fun testImportedInstance() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                ),
+                listOf("instance")
+        )
+    }
+
+    fun testImportedAssignedInstance() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                ),
+                listOf("assignedInstance")
+        )
+    }
+
+    fun testParameterDefaultValue() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
+                )
+        )
+    }
+
+    fun testParameterNoType() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
+    fun testUnResolveInstance() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
+    fun testClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A")
                 )
         )
     }
