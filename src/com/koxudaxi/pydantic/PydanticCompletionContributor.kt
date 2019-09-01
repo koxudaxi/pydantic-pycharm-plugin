@@ -141,9 +141,13 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             result.runRemainingContributors(parameters)
             { completionResult ->
-                completionResult.lookupElement.lookupString
-                        .takeIf { name -> !fieldElements.contains(name) && (excludes == null || !excludes.contains(name)) }
-                        ?.let { result.passResult(completionResult) }
+                if (completionResult.lookupElement.psiElement?.getIcon(0) == AllIcons.Nodes.Field ) {
+                    completionResult.lookupElement.lookupString
+                            .takeIf { name -> !fieldElements.contains(name) && (excludes == null || !excludes.contains(name)) }
+                            ?.let { result.passResult(completionResult) }
+                } else {
+                    result.passResult(completionResult)
+                }
             }
         }
     }
