@@ -4,9 +4,10 @@ from pydantic import BaseModel
 
 
 class A(BaseModel):
-    a: int
+    abc: str
 
-class B(A):
-    a: str
+    @classmethod
+    def test(cls):
+        return cls.<caret>
 
-B(a=str(123))
+

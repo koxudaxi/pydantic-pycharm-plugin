@@ -291,8 +291,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=... A"),
-                        Pair("hij", "Any=... A"),
+                        Pair("efg", "str A"),
+                        Pair("hij", "Any A"),
                         Pair("___slots__", "BaseModel")
                 )
         )
@@ -301,7 +301,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldOptional() {
         doFieldTest(
                 listOf(
-                        Pair("abc", "Optional[str] A"),
+                        Pair("abc", "Optional[str]=None A"),
                         Pair("cde", "str=str('abc') A"),
                         Pair("efg", "str=str('abc') A"),
                         Pair("___slots__", "BaseModel")
@@ -313,8 +313,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
                 listOf(
                         Pair("abc", "Union[str, int] A"),
-                        Pair("cde", "Union[str, int]=... A"),
-                        Pair("efg", "str=str('abc') A"),
+                        Pair("cde", "Union[str, int] A"),
+                        Pair("efg", "Union[str, int, None]=None A"),
                         Pair("___slots__", "BaseModel")
                 )
         )
@@ -323,10 +323,47 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldSchema() {
         doFieldTest(
                 listOf(
-                        Pair("abc", "str=Schema(...) A"),
-                        Pair("cde", "str=Schema(str('abc')) A"),
-                        Pair("efg", "str=Schema(default=str('abc')) A"),
-                        Pair("hij", "Any=Schema(default=...) A"),
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("hij", "Any A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+    fun testClassMethodCls() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+    fun testMethodSelf() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+    fun testFieldOverride() {
+        doFieldTest(
+                listOf(
+                        Pair("a", "str B"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+
+    fun testBaseSetting() {
+        doFieldTest(
+                listOf(
+                        Pair("b", "str=... A"),
                         Pair("___slots__", "BaseModel")
                 )
         )

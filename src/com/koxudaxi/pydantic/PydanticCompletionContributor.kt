@@ -9,6 +9,7 @@ import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.documentation.PythonDocumentationProvider
+import com.jetbrains.python.documentation.PythonDocumentationProvider.*
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
@@ -38,10 +39,20 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         abstract fun getLookupNameFromFieldName(fieldName: String): String
 
+        val typeProvider: PydanticTypeProvider = PydanticTypeProvider()
 
-        private fun getTypeHint(pyClass: PyClass, typeEvalContext: TypeEvalContext, pyTargetExpression: PyTargetExpression): String {
-            val defaultValue = pyTargetExpression.findAssignedValue()?.text?.let { "=$it" } ?: ""
-            val typeHint = PythonDocumentationProvider.getTypeHint(typeEvalContext.getType(pyTargetExpression), typeEvalContext)
+        private fun getTypeText(pyClass: PyClass, typeEvalContext: TypeEvalContext,
+                                pyTargetExpression: PyTargetExpression,
+                                ellipsis: PyNoneLiteralExpression): String {
+            val parameter = typeProvider.fieldToParameter(pyTargetExpression, ellipsis, typeEvalContext, pyClass)
+            val defaultValue = parameter?.defaultValue?.let {
+                if (parameter.defaultValue is PyNoneLiteralExpression && !isBaseSetting(pyClass, typeEvalContext)) {
+                    "=None"
+                } else{
+                    "=${parameter.defaultValueText}"
+                }
+            } ?: ""
+            val typeHint = getTypeHint(parameter?.getType(typeEvalContext), typeEvalContext)
             return "${typeHint}$defaultValue ${pyClass.name}"
         }
 
@@ -67,7 +78,10 @@ class PydanticCompletionContributor : CompletionContributor() {
             }.firstOrNull()
         }
 
-        private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>, typeEvalContext: TypeEvalContext, excludes: HashSet<String>?) {
+        private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
+                                    typeEvalContext: TypeEvalContext,
+                                    ellipsis: PyNoneLiteralExpression,
+                                    excludes: HashSet<String>?) {
             getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
                     .forEach {
@@ -76,7 +90,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                             val element = PrioritizedLookupElement.withGrouping(
                                     LookupElementBuilder
                                             .createWithSmartPointer(elementName, it)
-                                            .withTypeText(getTypeHint(pyClass, typeEvalContext, it))
+                                            .withTypeText(getTypeText(pyClass, typeEvalContext, it, ellipsis))
                                             .withIcon(icon), 1)
                             results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
                         }
@@ -85,15 +99,16 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         protected fun addAllFieldElement(parameters: CompletionParameters, result: CompletionResultSet,
                                          pyClass: PyClass, typeEvalContext: TypeEvalContext,
+                                         ellipsis: PyNoneLiteralExpression,
                                          excludes: HashSet<String>? = null) {
 
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
 
             pyClass.getAncestorClasses(typeEvalContext)
                     .filter { isPydanticModel(it) }
-                    .forEach { addFieldElement(it, newElements, typeEvalContext, excludes) }
+                    .forEach { addFieldElement(it, newElements, typeEvalContext, ellipsis, excludes) }
 
-            addFieldElement(pyClass, newElements, typeEvalContext, excludes)
+            addFieldElement(pyClass, newElements, typeEvalContext, ellipsis, excludes)
 
             result.runRemainingContributors(parameters)
             { completionResult ->
@@ -129,8 +144,8 @@ class PydanticCompletionContributor : CompletionContributor() {
                     .mapNotNull { (it as? PyKeywordArgument)?.name }
                     .map { "${it}=" }
                     .toHashSet()
-
-            addAllFieldElement(parameters, result, pyClass, typeEvalContext, definedSet)
+            val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
+            addAllFieldElement(parameters, result, pyClass, typeEvalContext, ellipsis, definedSet)
         }
     }
 
@@ -150,8 +165,8 @@ class PydanticCompletionContributor : CompletionContributor() {
             }
 
             if (!isPydanticModel(pyClass, typeEvalContext)) return
-
-            addAllFieldElement(parameters, result, pyClass, typeEvalContext)
+            val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
+            addAllFieldElement(parameters, result, pyClass, typeEvalContext, ellipsis)
         }
     }
 }
