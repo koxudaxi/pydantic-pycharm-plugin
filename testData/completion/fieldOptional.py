@@ -1,11 +1,11 @@
 from builtins import *
-from typing import Union
+from typing import Union, Optional
 
 from pydantic import BaseModel
 
 
 class A(BaseModel):
-    abc: Union[str, int]
+    abc: Optional[str]
     cde = str('abc')
     efg: str = str('abc')
 

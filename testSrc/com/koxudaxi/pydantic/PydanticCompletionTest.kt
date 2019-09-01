@@ -285,4 +285,48 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 )
         )
     }
+
+    fun testField() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=... A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+    fun testFieldOptional() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "Optional[str] A"),
+                        Pair("cde", "str=str('abc') A"),
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+    fun testFieldUnion() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "Union[str, int] A"),
+                        Pair("cde", "Union[str, int]=... A"),
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+    fun testFieldSchema() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "str=Schema(...) A"),
+                        Pair("cde", "str=Schema(str('abc')) A"),
+                        Pair("efg", "str=Schema(default=str('abc')) A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
 }

@@ -1,6 +1,7 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.openapi.util.Ref
+import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.containers.isNullOrEmpty
@@ -15,27 +16,51 @@ import one.util.streamex.StreamEx
 
 class PydanticTypeProvider : PyTypeProviderBase() {
 
+
     override fun getReferenceExpressionType(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
         return getPydanticTypeForCallee(referenceExpression, context)
     }
 
-    override fun getParameterType(param: PyNamedParameter, func: PyFunction, context: TypeEvalContext): Ref<PyType>? {
-        if (!param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == "__init__") {
-            val cls = func.containingClass ?: return null
-            val name = param.name ?: return null
-
-            cls.findClassAttribute(name, false, context)
-                    ?.let { pyTargetExpression ->
-                        return Ref.create(getTypeForParameter(pyTargetExpression, context))
-                    }
-            cls.getAncestorClasses(context).forEach { ancestor ->
-                ancestor.findClassAttribute(name, false, context)
-                        .let { return Ref.create(it?.let { it1 -> getTypeForParameter(it1, context) }) }
-            }
+    override fun getReferenceType(referenceTarget: PsiElement, context: TypeEvalContext, anchor: PsiElement?): Ref<PyType>? {
+        if (referenceTarget is PyTargetExpression) {
+            val pyClass = referenceTarget.containingClass ?: return null
+            if (!isPydanticModel(pyClass, context)) return null
+            val name = referenceTarget.name ?: return null
+            getRefTypeFromFieldName(name, context, pyClass)?.let { return it }
         }
         return null
     }
 
+    override fun getParameterType(param: PyNamedParameter, func: PyFunction, context: TypeEvalContext): Ref<PyType>? {
+        if (!param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == "__init__") {
+            val pyClass = func.containingClass ?: return null
+            if (!isPydanticModel(pyClass, context)) return null
+            val name = param.name ?: return null
+            getRefTypeFromFieldName(name, context, pyClass)?.let { return it }
+        }
+        return null
+    }
+
+    private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass) : Ref<PyType>?{
+        var ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
+        pyClass.findClassAttribute(name, false, context)
+                ?.let { return getRefTypeFromField(it, ellipsis, context, pyClass) }
+        pyClass.getAncestorClasses(context).forEach { ancestor ->
+            ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
+            ancestor.findClassAttribute(name, false, context)
+                    ?.let { return getRefTypeFromField(it, ellipsis, context, ancestor) }
+        }
+        return null
+    }
+    private fun getRefTypeFromField(pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
+                                 context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
+
+        fieldToParameter(pyTargetExpression, ellipsis, context, pyClass)
+                ?.let { parameter ->
+                    return Ref.create(parameter.getType(context))
+                }
+        return null
+    }
     private fun getPydanticTypeForCallee(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyCallableType? {
         if (PyCallExpressionNavigator.getPyCallExpressionByCallee(referenceExpression) == null) return null
 
@@ -57,15 +82,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .firstOrNull { it != null }
     }
 
-    private fun getPydanticTypeForClass(cls: PyClass, context: TypeEvalContext): PyCallableType? {
-        val clsType = (context.getType(cls) as? PyClassLikeType) ?: return null
-
+    private fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext): PyCallableType? {
+        val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
+        val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
         val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
-        val ellipsis = PyElementGenerator.getInstance(cls.project).createEllipsis()
 
         val collected = linkedMapOf<String, PyCallableParameter>()
 
-        for (currentType in StreamEx.of(clsType).append(cls.getAncestorTypes(context))) {
+        for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
             if (currentType == null ||
                     !currentType.resolveMember(PyNames.INIT, null, AccessDirection.READ, resolveContext, false).isNullOrEmpty() ||
                     !currentType.resolveMember(PyNames.NEW, null, AccessDirection.READ, resolveContext, false).isNullOrEmpty() ||

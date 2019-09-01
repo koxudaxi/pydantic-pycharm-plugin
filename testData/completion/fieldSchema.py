@@ -1,11 +1,10 @@
 from builtins import *
-from pydantic import BaseModel
-
+from pydantic import BaseModel, Schema
 
 class A(BaseModel):
-    abc: str
-    cde = str('abc')
-    efg: str = str('abc')
+    abc: str = Schema(...)
+    cde = Schema(str('abc'))
+    efg = Schema(default=str('abc'))
 
 class B(A):
     hij: str
