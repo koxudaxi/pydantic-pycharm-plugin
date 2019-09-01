@@ -1,14 +1,15 @@
 from builtins import *
+from typing import Union
+
 from pydantic import BaseModel
 
 
 class A(BaseModel):
-    abc: str
-    cde = str('abc')
+    abc: Union[str, int]
+    cde: Union[str, int] = ...
     efg: str = str('abc')
 
 class B(A):
     hij: str
 
-a = A()
-a.<caret>
+A().<caret>

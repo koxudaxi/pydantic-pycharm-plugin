@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class A(BaseModel):
     abc: str
-    cde: str = str('abc')
+    cde = str('abc')
     efg: str = str('abc')
 
 class B(A):

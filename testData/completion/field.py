@@ -5,10 +5,10 @@ from pydantic import BaseModel
 class A(BaseModel):
     abc: str
     cde = str('abc')
-    efg: str = str('abc')
+    efg: str = ...
+    hij = ...
 
 class B(A):
     hij: str
 
-a = A()
-a.<caret>
+A().<caret>
