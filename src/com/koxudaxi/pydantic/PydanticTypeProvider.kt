@@ -1,10 +1,12 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.containers.isNullOrEmpty
+import com.jetbrains.python.PyElementTypes.NONE_LITERAL_EXPRESSION
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
@@ -41,19 +43,19 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return null
     }
 
-    private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass) : Ref<PyType>?{
-        var ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
+    private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
+        val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
         pyClass.findClassAttribute(name, false, context)
                 ?.let { return getRefTypeFromField(it, ellipsis, context, pyClass) }
         pyClass.getAncestorClasses(context).forEach { ancestor ->
-            ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
             ancestor.findClassAttribute(name, false, context)
                     ?.let { return getRefTypeFromField(it, ellipsis, context, ancestor) }
         }
         return null
     }
+
     private fun getRefTypeFromField(pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
-                                 context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
+                                    context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
 
         fieldToParameter(pyTargetExpression, ellipsis, context, pyClass)
                 ?.let { parameter ->
@@ -61,6 +63,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 }
         return null
     }
+
     private fun getPydanticTypeForCallee(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyCallableType? {
         if (PyCallExpressionNavigator.getPyCallExpressionByCallee(referenceExpression) == null) return null
 
@@ -112,10 +115,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return field.annotationValue != null
     }
 
-    private fun fieldToParameter(field: PyTargetExpression,
-                                 ellipsis: PyNoneLiteralExpression,
-                                 context: TypeEvalContext,
-                                 pyClass: PyClass): PyCallableParameter? {
+    internal fun fieldToParameter(field: PyTargetExpression,
+                                  ellipsis: PyNoneLiteralExpression,
+                                  context: TypeEvalContext,
+                                  pyClass: PyClass): PyCallableParameter? {
 
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 

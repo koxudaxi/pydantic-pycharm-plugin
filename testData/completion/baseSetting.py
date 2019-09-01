@@ -7,4 +7,4 @@ class A(BaseSettings):
     b: str
 
 
-A()
+A().<caret>

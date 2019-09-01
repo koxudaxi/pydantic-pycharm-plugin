@@ -6,8 +6,8 @@ from pydantic import BaseModel
 class A(BaseModel):
     a: int
 
-    @classmethod
-    def test(cls):
-        return cls(int(123))
+class B(A):
+    a: str
 
-
+b = B()
+b.<caret>
