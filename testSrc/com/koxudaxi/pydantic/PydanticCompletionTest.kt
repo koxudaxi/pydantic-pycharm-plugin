@@ -74,7 +74,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -84,7 +85,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str A"),
-                        Pair("efg", "str B")
+                        Pair("efg", "str B"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -111,7 +113,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                     Pair("abc", "str A"),
                     Pair("cde", "str=s A"),
-                    Pair("efg", "Any A")
+                    Pair("efg", "Any A"),
+                    Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -122,7 +125,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("hij", "str B"),
                         Pair("abc", "A"),
                         Pair("cde", "A"),
-                        Pair("efg", "A")
+                        Pair("efg", "A"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -153,7 +157,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -163,7 +168,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 ),
                 listOf("instance")
         )
@@ -174,7 +180,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -184,7 +191,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -223,7 +231,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 ),
                 listOf("instance")
         )
@@ -234,7 +243,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 ),
                 listOf("assignedInstance")
         )
@@ -245,7 +255,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -269,7 +280,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A")
+                        Pair("efg", "str=str('abc') A"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
