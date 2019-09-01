@@ -6,8 +6,9 @@ class A(BaseModel):
     abc: str
     cde = str('abc')
     efg: str = ...
+    hij = ...
 
 class B(A):
     hij: str
 
-A.<caret>
+A().<caret>

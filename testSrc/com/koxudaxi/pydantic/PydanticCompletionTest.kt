@@ -292,6 +292,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("abc", "str A"),
                         Pair("cde", "str=str('abc') A"),
                         Pair("efg", "str=... A"),
+                        Pair("hij", "Any=... A"),
                         Pair("___slots__", "BaseModel")
                 )
         )
@@ -325,6 +326,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("abc", "str=Schema(...) A"),
                         Pair("cde", "str=Schema(str('abc')) A"),
                         Pair("efg", "str=Schema(default=str('abc')) A"),
+                        Pair("hij", "Any=Schema(default=...) A"),
                         Pair("___slots__", "BaseModel")
                 )
         )

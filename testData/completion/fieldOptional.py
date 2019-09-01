@@ -12,4 +12,4 @@ class A(BaseModel):
 class B(A):
     hij: str
 
-A.<caret>
+A().<caret>
