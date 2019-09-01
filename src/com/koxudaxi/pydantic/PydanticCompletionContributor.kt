@@ -8,7 +8,6 @@ import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
-import com.jetbrains.python.documentation.PythonDocumentationProvider
 import com.jetbrains.python.documentation.PythonDocumentationProvider.*
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
@@ -41,6 +40,8 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         val typeProvider: PydanticTypeProvider = PydanticTypeProvider()
 
+        val excludeFields: HashSet<String> = hashSetOf("Config")
+
         private fun getTypeText(pyClass: PyClass, typeEvalContext: TypeEvalContext,
                                 pyTargetExpression: PyTargetExpression,
                                 ellipsis: PyNoneLiteralExpression): String {
@@ -66,11 +67,18 @@ class PydanticCompletionContributor : CompletionContributor() {
             }
         }
 
-        protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext): PyClass? {
+        protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext, parameters: CompletionParameters? = null,  result: CompletionResultSet? = null): PyClass? {
             val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
             return pyReferenceExpression.multiFollowAssignmentsChain(resolveContext).mapNotNull {
-                return when (val resolveElement = it.element) {
-                    is PyClass -> resolveElement
+                when (val resolveElement = it.element) {
+                    is PyClass ->  {
+                        if (parameters != null && result != null) {
+                            removeAllFieldElement(parameters, result, resolveElement, typeEvalContext, excludeFields)
+                            null
+                        } else {
+                            resolveElement
+                        }
+                    }
                     is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
                     is PyNamedParameter -> getPyClassFromPyNamedParameter(resolveElement, typeEvalContext)
                     else -> null
@@ -118,6 +126,26 @@ class PydanticCompletionContributor : CompletionContributor() {
             }
             result.addAllElements(newElements.values)
         }
+        protected fun removeAllFieldElement(parameters: CompletionParameters, result: CompletionResultSet,
+                                         pyClass: PyClass, typeEvalContext: TypeEvalContext,
+                                         excludes: HashSet<String>? = null) {
+
+            val fieldElements: HashSet<String> = HashSet()
+
+            pyClass.getAncestorClasses(typeEvalContext)
+                    .filter { isPydanticModel(it) }
+                    .forEach { fieldElements.addAll(it.classAttributes.mapNotNull { attribute -> attribute?.name }) }
+
+
+            fieldElements.addAll(pyClass.classAttributes.mapNotNull { attribute -> attribute?.name })
+
+            result.runRemainingContributors(parameters)
+            { completionResult ->
+                completionResult.lookupElement.lookupString
+                        .takeIf { name -> !fieldElements.contains(name) && (excludes == null || !excludes.contains(name)) }
+                        ?.let { result.passResult(completionResult) }
+            }
+        }
     }
 
     private object KeywordArgumentCompletionProvider : PydanticCompletionProvider() {
@@ -159,7 +187,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
             val typeEvalContext = parameters.getTypeEvalContext()
             val pyClass = when (val instance = parameters.position.parent.firstChild) {
-                is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext) ?: return
+                is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext, parameters, result) ?: return
                 is PyCallExpression -> getPyClassByPyCallExpression(instance) ?: return
                 else -> return
             }

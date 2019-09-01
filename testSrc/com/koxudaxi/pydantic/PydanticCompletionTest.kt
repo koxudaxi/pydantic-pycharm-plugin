@@ -278,9 +278,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testClass() {
         doFieldTest(
                 listOf(
-                        Pair("abc", "str A"),
-                        Pair("cde", "str=str('abc') A"),
-                        Pair("efg", "str=str('abc') A"),
+                        Pair("hij", "B"),
                         Pair("___slots__", "BaseModel")
                 )
         )
