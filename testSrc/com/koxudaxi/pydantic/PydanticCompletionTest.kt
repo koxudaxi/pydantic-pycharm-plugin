@@ -333,7 +333,6 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testClassMethodCls() {
         doFieldTest(
                 listOf(
-                        Pair("abc", "str A"),
                         Pair("___slots__", "BaseModel")
                 )
         )

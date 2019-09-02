@@ -5,6 +5,8 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.PsiTreeUtil.getParentOfType
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
@@ -80,7 +82,17 @@ class PydanticCompletionContributor : CompletionContributor() {
                         }
                     }
                     is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
-                    is PyNamedParameter -> getPyClassFromPyNamedParameter(resolveElement, typeEvalContext)
+                    is PyNamedParameter -> {
+                            if ((parameters != null && result != null) && resolveElement.isSelf){
+                                getParentOfType(resolveElement, PyFunction::class.java)
+                                        ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
+                                        ?.takeIf { it.containingClass is PyClass }
+                                        ?.let {
+                                            removeAllFieldElement(parameters, result, it.containingClass!!, typeEvalContext, excludeFields)
+                                            return null
+                                        }
+                            }
+                        getPyClassFromPyNamedParameter(resolveElement, typeEvalContext)}
                     else -> null
                 }
             }.firstOrNull()
