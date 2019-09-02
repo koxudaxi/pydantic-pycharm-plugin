@@ -7,7 +7,7 @@
     <h2>version 0.0.16</h2>
     <p>Features, BugFixes</p>
     <ul>
-        <li>remove fields on auto-completion of subclasses of pydantic.BaseModel and pydantic.dataclasses.dataclass [#61] </li>
+        <li>Remove fields on auto-completion of subclasses of pydantic.BaseModel and pydantic.dataclasses.dataclass [#61] </li>
         <li>Change default value "..." to None on auto-completion [#60] </li>
         <li>Add types and default values to popup of auto-completion [#54] </li>
         <li>Fix class imported path on auto-completion [#54] </li>
