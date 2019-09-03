@@ -5,7 +5,7 @@
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
     <h2>version 0.0.17</h2>
-    <p>Features, BugFixes</p>
+    <p>BugFixes</p>
     <ul>
         <li>Fix removing fields on non-subclasses of pydantic.BaseModel and pydantic.dataclasses.dataclass [#62] </li>
     </ul>
