@@ -142,6 +142,8 @@ class PydanticCompletionContributor : CompletionContributor() {
                                          pyClass: PyClass, typeEvalContext: TypeEvalContext,
                                          excludes: HashSet<String>? = null) {
 
+            if (!isPydanticModel(pyClass)) return
+
             val fieldElements: HashSet<String> = HashSet()
 
             pyClass.getAncestorClasses(typeEvalContext)

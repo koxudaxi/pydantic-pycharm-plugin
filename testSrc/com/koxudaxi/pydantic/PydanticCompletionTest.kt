@@ -284,6 +284,16 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testPythonClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "A"),
+                        Pair("cde", "A"),
+                        Pair("efg", "A")
+                )
+        )
+    }
+
     fun testField() {
         doFieldTest(
                 listOf(
