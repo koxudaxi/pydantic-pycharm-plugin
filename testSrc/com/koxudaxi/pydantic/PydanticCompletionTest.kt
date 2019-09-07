@@ -340,6 +340,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("e_id", "str A"),
                         Pair("efg", "str=str('abc') A"),
                         Pair("f_id", "str A"),
+                        Pair("g_id", "str=get_alias() A"),
                         Pair("hij", "Any A"),
                         Pair("___slots__", "BaseModel")
                 )
@@ -393,6 +394,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("e_id=", "str A"),
                         Pair("efg=", "str=str('abc') A"),
                         Pair("f_id=", "str A"),
+                        Pair("g_id=", "str=get_alias() A"),
                         Pair("hij=", "Any A"),
                         Pair("b_id", "null")
                 )

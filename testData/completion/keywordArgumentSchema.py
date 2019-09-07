@@ -15,6 +15,7 @@ class A(BaseModel):
     d_id: str = Schema(..., alias=)
     e_id: str = Schema(..., alias=broken)
     f_id: str = Schema(..., alias=123)
+    g_id: str = get_alias()
 class B(A):
     hij: str
 
