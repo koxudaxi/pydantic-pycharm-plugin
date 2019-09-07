@@ -336,7 +336,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("b_id","str A"),
                         Pair("c_id","str A"),
                         Pair("cde", "str=str('abc') A"),
+                        Pair("d_id", "str A"),
+                        Pair("e_id", "str A"),
                         Pair("efg", "str=str('abc') A"),
+                        Pair("f_id", "str A"),
                         Pair("hij", "Any A"),
                         Pair("___slots__", "BaseModel")
                 )
@@ -386,7 +389,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("alias_b_id=", "str A"),
                         Pair("c_id=", "str A"),
                         Pair("cde=", "str=str('abc') A"),
+                        Pair("d_id=", "str A"),
+                        Pair("e_id=", "str A"),
                         Pair("efg=", "str=str('abc') A"),
+                        Pair("f_id=", "str A"),
                         Pair("hij=", "Any A"),
                         Pair("b_id", "null")
                 )

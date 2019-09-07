@@ -12,7 +12,9 @@ class A(BaseModel):
     a_id: str = Schema(..., alias='alias_a_id')
     b_id: str = Schema(..., alias=b_id)
     c_id: str = Schema(..., alias=get_alias())
-
+    d_id: str = Schema(..., alias=)
+    e_id: str = Schema(..., alias=broken)
+    f_id: str = Schema(..., alias=123)
 class B(A):
     hij: str
 
