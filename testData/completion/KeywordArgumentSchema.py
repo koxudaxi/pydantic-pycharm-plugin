@@ -3,7 +3,7 @@ from pydantic import BaseModel, Schema
 
 def get_alias():
     return 'alias_c_id'
-b_id = 'alias_b_id'
+b_id: str = 'alias_b_id'
 class A(BaseModel):
     abc: str = Schema(...)
     cde = Schema(str('abc'))
@@ -16,4 +16,4 @@ class A(BaseModel):
 class B(A):
     hij: str
 
-A().<caret>
+A(<caret>)

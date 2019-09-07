@@ -5,12 +5,11 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiTreeUtil.getParentOfType
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
-import com.jetbrains.python.documentation.PythonDocumentationProvider.*
+import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHint
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
@@ -38,7 +37,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         abstract val icon: Icon
 
-        abstract fun getLookupNameFromFieldName(fieldName: String): String
+        abstract fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext): String
 
         val typeProvider: PydanticTypeProvider = PydanticTypeProvider()
 
@@ -51,7 +50,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val defaultValue = parameter?.defaultValue?.let {
                 if (parameter.defaultValue is PyNoneLiteralExpression && !isBaseSetting(pyClass, typeEvalContext)) {
                     "=None"
-                } else{
+                } else {
                     "=${parameter.defaultValueText}"
                 }
             } ?: ""
@@ -69,11 +68,11 @@ class PydanticCompletionContributor : CompletionContributor() {
             }
         }
 
-        protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext, parameters: CompletionParameters? = null,  result: CompletionResultSet? = null): PyClass? {
+        protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext, parameters: CompletionParameters? = null, result: CompletionResultSet? = null): PyClass? {
             val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
             return pyReferenceExpression.multiFollowAssignmentsChain(resolveContext).mapNotNull {
                 when (val resolveElement = it.element) {
-                    is PyClass ->  {
+                    is PyClass -> {
                         if (parameters != null && result != null) {
                             removeAllFieldElement(parameters, result, resolveElement, typeEvalContext, excludeFields)
                             null
@@ -83,16 +82,17 @@ class PydanticCompletionContributor : CompletionContributor() {
                     }
                     is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
                     is PyNamedParameter -> {
-                            if ((parameters != null && result != null) && resolveElement.isSelf){
-                                getParentOfType(resolveElement, PyFunction::class.java)
-                                        ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
-                                        ?.takeIf { it.containingClass is PyClass }
-                                        ?.let {
-                                            removeAllFieldElement(parameters, result, it.containingClass!!, typeEvalContext, excludeFields)
-                                            return null
-                                        }
-                            }
-                        getPyClassFromPyNamedParameter(resolveElement, typeEvalContext)}
+                        if ((parameters != null && result != null) && resolveElement.isSelf) {
+                            getParentOfType(resolveElement, PyFunction::class.java)
+                                    ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
+                                    ?.takeIf { it.containingClass is PyClass }
+                                    ?.let {
+                                        removeAllFieldElement(parameters, result, it.containingClass!!, typeEvalContext, excludeFields)
+                                        return null
+                                    }
+                        }
+                        getPyClassFromPyNamedParameter(resolveElement, typeEvalContext)
+                    }
                     else -> null
                 }
             }.firstOrNull()
@@ -105,7 +105,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
                     .forEach {
-                        val elementName = getLookupNameFromFieldName(it.name!!)
+                        val elementName = getLookupNameFromFieldName(it, typeEvalContext)
                         if (excludes == null || !excludes.contains(elementName)) {
                             val element = PrioritizedLookupElement.withGrouping(
                                     LookupElementBuilder
@@ -138,9 +138,10 @@ class PydanticCompletionContributor : CompletionContributor() {
             }
             result.addAllElements(newElements.values)
         }
+
         protected fun removeAllFieldElement(parameters: CompletionParameters, result: CompletionResultSet,
-                                         pyClass: PyClass, typeEvalContext: TypeEvalContext,
-                                         excludes: HashSet<String>? = null) {
+                                            pyClass: PyClass, typeEvalContext: TypeEvalContext,
+                                            excludes: HashSet<String>? = null) {
 
             if (!isPydanticModel(pyClass)) return
 
@@ -155,7 +156,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             result.runRemainingContributors(parameters)
             { completionResult ->
-                if (completionResult.lookupElement.psiElement?.getIcon(0) == AllIcons.Nodes.Field ) {
+                if (completionResult.lookupElement.psiElement?.getIcon(0) == AllIcons.Nodes.Field) {
                     completionResult.lookupElement.lookupString
                             .takeIf { name -> !fieldElements.contains(name) && (excludes == null || !excludes.contains(name)) }
                             ?.let { result.passResult(completionResult) }
@@ -167,8 +168,8 @@ class PydanticCompletionContributor : CompletionContributor() {
     }
 
     private object KeywordArgumentCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(fieldName: String): String {
-            return "${fieldName}="
+        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext): String {
+            return "${getAliasedFieldName(field, context)}="
         }
 
         override val icon: Icon = AllIcons.Nodes.Parameter
@@ -196,8 +197,8 @@ class PydanticCompletionContributor : CompletionContributor() {
     }
 
     private object FieldCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(fieldName: String): String {
-            return fieldName
+        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext): String {
+            return field.name!!
         }
 
         override val icon: Icon = AllIcons.Nodes.Field
@@ -205,7 +206,8 @@ class PydanticCompletionContributor : CompletionContributor() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
             val typeEvalContext = parameters.getTypeEvalContext()
             val pyClass = when (val instance = parameters.position.parent.firstChild) {
-                is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext, parameters, result) ?: return
+                is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext, parameters, result)
+                        ?: return
                 is PyCallExpression -> getPyClassByPyCallExpression(instance) ?: return
                 else -> return
             }

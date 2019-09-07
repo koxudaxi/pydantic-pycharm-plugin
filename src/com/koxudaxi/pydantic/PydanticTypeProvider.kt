@@ -1,12 +1,9 @@
 package com.koxudaxi.pydantic
 
-import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
-import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.containers.isNullOrEmpty
-import com.jetbrains.python.PyElementTypes.NONE_LITERAL_EXPRESSION
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
@@ -136,7 +133,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             getTypeForParameter(field, context)
         }
 
-        return PyCallableParameterImpl.nonPsi(field.name, typeForParameter, defaultValue)
+
+        return PyCallableParameterImpl.nonPsi(getAliasedFieldName(field, context), typeForParameter, defaultValue)
     }
 
     private fun getTypeForParameter(field: PyTargetExpression,
@@ -169,12 +167,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }
     }
 
-    private fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
-        val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
-        return referenceExpression.getReference(resolveContext).multiResolve(false)
-
-    }
-
     private fun getDefaultValueByAssignedValue(field: PyTargetExpression,
                                                ellipsis: PyNoneLiteralExpression,
                                                context: TypeEvalContext): PyExpression? {
@@ -189,18 +181,20 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val resolveResults = getResolveElements(referenceExpression, context)
         PyUtil.filterTopPriorityResults(resolveResults)
-                .forEach { it ->
-                    val pyClass = PsiTreeUtil.getContextOfType(it, PyClass::class.java)
-                    if (pyClass != null && isPydanticField(pyClass, context)) {
-                        val defaultValue = assignedValue.getKeywordArgument("default")
-                                ?: assignedValue.getArgument(0, PyExpression::class.java)
-                        return when {
-                            defaultValue == null -> null
-                            defaultValue.text == "..." -> null
-                            else -> defaultValue
+                .mapNotNull { PsiTreeUtil.getContextOfType(it, PyClass::class.java) }
+                .any { isPydanticField(it, context) }.let {
+                    return when {
+                        it -> {
+                            val defaultValue = assignedValue.getKeywordArgument("default")
+                                    ?: assignedValue.getArgument(0, PyExpression::class.java)
+                            when {
+                                defaultValue == null -> null
+                                defaultValue.text == "..." -> null
+                                else -> defaultValue
+                            }
                         }
+                        else -> assignedValue
                     }
                 }
-        return assignedValue
     }
 }
