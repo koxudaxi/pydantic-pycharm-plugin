@@ -1,9 +1,13 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.impl.PyCallExpressionImpl
+import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
+import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.TypeEvalContext
 
@@ -65,4 +69,34 @@ internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequ
             .asReversed()
             .asSequence()
             .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
+}
+
+internal fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalContext): String? {
+    val fieldName = field.name
+    val assignedValue = field.findAssignedValue() ?: return fieldName
+    val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return fieldName
+    val referenceExpression = callee.reference?.element as? PyReferenceExpression ?: return fieldName
+
+
+    val resolveResults = getResolveElements(referenceExpression, context)
+    return PyUtil.filterTopPriorityResults(resolveResults)
+            .mapNotNull { PsiTreeUtil.getContextOfType(it, PyClass::class.java) }
+            .filter { isPydanticField(it, context) }
+            .mapNotNull {
+                when (val alias = assignedValue.getKeywordArgument("alias")) {
+                    is StringLiteralExpression -> alias.stringValue
+                    is PyReferenceExpression -> ((alias.reference.resolve() as? PyTargetExpressionImpl)
+                            ?.findAssignedValue() as? StringLiteralExpression)?.stringValue
+                    //TODO Support dynamic assigned Value. eg:  Schema(..., alias=get_alias_name(field_name))
+                    else -> null
+                }
+            }
+            .firstOrNull() ?: fieldName
+}
+
+
+internal fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
+    val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
+    return referenceExpression.getReference(resolveContext).multiResolve(false)
+
 }

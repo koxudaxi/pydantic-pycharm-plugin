@@ -14,7 +14,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
             it!!.psiElement is PyTargetExpression
         }.mapNotNull {
 
-            Pair(it!!.lookupString, LookupElementPresentation.renderElement(it).typeText)
+            Pair(it!!.lookupString, LookupElementPresentation.renderElement(it).typeText ?: "null")
         }
         assertEquals(fieldNames, actual)
     }
@@ -331,9 +331,16 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldSchema() {
         doFieldTest(
                 listOf(
+                        Pair("a_id","str A"),
                         Pair("abc", "str A"),
+                        Pair("b_id","str A"),
+                        Pair("c_id","str A"),
                         Pair("cde", "str=str('abc') A"),
+                        Pair("d_id", "str A"),
+                        Pair("e_id", "str A"),
                         Pair("efg", "str=str('abc') A"),
+                        Pair("f_id", "str A"),
+                        Pair("g_id", "str=get_alias() A"),
                         Pair("hij", "Any A"),
                         Pair("___slots__", "BaseModel")
                 )
@@ -372,6 +379,24 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("b", "str=... A"),
                         Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+    fun testKeywordArgumentSchema() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("alias_a_id=", "str A"),
+                        Pair("alias_b_id=", "str A"),
+                        Pair("c_id=", "str A"),
+                        Pair("cde=", "str=str('abc') A"),
+                        Pair("d_id=", "str A"),
+                        Pair("e_id=", "str A"),
+                        Pair("efg=", "str=str('abc') A"),
+                        Pair("f_id=", "str A"),
+                        Pair("g_id=", "str=get_alias() A"),
+                        Pair("hij=", "Any A"),
+                        Pair("b_id", "null")
                 )
         )
     }
