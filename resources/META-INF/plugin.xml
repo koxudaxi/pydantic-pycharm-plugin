@@ -4,15 +4,10 @@
     <version>0.0.18</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
-        <h2>version 0.0.18</h2>
+    <h2>version 0.0.18</h2>
     <p>Features</p>
     <ul>
         <li>Support alias on Schema [#64] </li>
-    </ul>
-    <h2>version 0.0.16</h2>
-    <p>Features, BugFixes</p>
-    <ul>
-        <li>Remove fields on auto-completion of subclasses of pydantic.BaseModel and pydantic.dataclasses.dataclass [#61] </li>
     </ul>
     <h2>version 0.0.17</h2>
     <p>BugFixes</p>
