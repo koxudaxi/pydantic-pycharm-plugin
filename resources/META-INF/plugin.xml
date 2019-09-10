@@ -5,7 +5,7 @@
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
     <h2>version 0.0.19</h2>
-    <p>Features</p>
+    <p>BugFixes</p>
     <ul>
         <li>Fix wrong warning message for cls initialization [#66] </li>
     </ul>
