@@ -83,6 +83,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext): PyCallableType? {
+        if (!isPydanticModel(pyClass, context)) return null
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
         val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
