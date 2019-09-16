@@ -58,11 +58,11 @@ class PydanticCompletionContributor : CompletionContributor() {
             return "${typeHint}$defaultValue ${pyClass.name}"
         }
 
-        private fun getPyClassFromPyNamedParameter(pyNamedParameter: PyNamedParameter, typeEvalContext: TypeEvalContext): PyClass? {
+        private fun getPyClassTypeFromPyNamedParameter(pyNamedParameter: PyNamedParameter, typeEvalContext: TypeEvalContext): PyClassType? {
             return when (val pyClassTypes = pyNamedParameter.getArgumentType(typeEvalContext)) {
-                is PyClassType -> pyClassTypes.pyClass
+                is PyClassType -> pyClassTypes
                 is PyUnionType -> pyClassTypes.members.filterIsInstance<PyClassType>()
-                        .map { pyClassType -> pyClassType.pyClass }
+                        .map { pyClassType -> pyClassType }
                         .firstOrNull()
                 else -> null
             }
@@ -73,6 +73,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             return pyReferenceExpression.multiFollowAssignmentsChain(resolveContext).mapNotNull {
                 when (val resolveElement = it.element) {
                     is PyClass -> {
+                        resolveElement.getType(typeEvalContext)?.isDefinition
                         if (parameters != null && result != null) {
                             removeAllFieldElement(parameters, result, resolveElement, typeEvalContext, excludeFields)
                             null
@@ -80,18 +81,27 @@ class PydanticCompletionContributor : CompletionContributor() {
                             resolveElement
                         }
                     }
-                    is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
+                    is PyCallExpression -> getPyClassByPyCallExpression(resolveElement, typeEvalContext)
                     is PyNamedParameter -> {
-                        if ((parameters != null && result != null) && resolveElement.isSelf) {
-                            getParentOfType(resolveElement, PyFunction::class.java)
-                                    ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
-                                    ?.takeIf { it.containingClass is PyClass }
-                                    ?.let {
-                                        removeAllFieldElement(parameters, result, it.containingClass!!, typeEvalContext, excludeFields)
-                                        return null
-                                    }
+                        if (parameters != null && result != null) {
+                            if (resolveElement.isSelf) {
+                                getParentOfType(resolveElement, PyFunction::class.java)
+                                        ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
+                                        ?.takeIf { it.containingClass is PyClass }
+                                        ?.let {
+                                            removeAllFieldElement(parameters, result, it.containingClass!!, typeEvalContext, excludeFields)
+                                            return null
+                                        }
+                            }
+                            val pyClassType = getPyClassTypeFromPyNamedParameter(resolveElement, typeEvalContext)
+                                    ?: return null
+                            if (pyClassType.isDefinition) {  // is class
+                                removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields)
+                                return null
+                            }
+                            return pyClassType.pyClass
                         }
-                        getPyClassFromPyNamedParameter(resolveElement, typeEvalContext)
+                        getPyClassTypeFromPyNamedParameter(resolveElement, typeEvalContext)?.pyClass
                     }
                     else -> null
                 }
@@ -181,7 +191,8 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pyClass = when (val pyCallableElement = pyArgumentList.parent!!) {
                 is PyReferenceExpression -> getPyClassByPyReferenceExpression(pyCallableElement, typeEvalContext, null, null)
                         ?: return
-                is PyCallExpression -> getPyClassByPyCallExpression(pyCallableElement) ?: return
+                is PyCallExpression -> getPyClassByPyCallExpression(pyCallableElement, typeEvalContext, onlyDefinition = true)
+                        ?: return
                 else -> return
             }
 
@@ -208,7 +219,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pyClass = when (val instance = parameters.position.parent.firstChild) {
                 is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext, parameters, result)
                         ?: return
-                is PyCallExpression -> getPyClassByPyCallExpression(instance) ?: return
+                is PyCallExpression -> getPyClassByPyCallExpression(instance, typeEvalContext) ?: return
                 else -> return
             }
 

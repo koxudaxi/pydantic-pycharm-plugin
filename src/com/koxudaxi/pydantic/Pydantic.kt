@@ -9,6 +9,8 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
+import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyUnionType
 import com.jetbrains.python.psi.types.TypeEvalContext
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
@@ -18,13 +20,24 @@ const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.field.Field"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 
-internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression): PyClass? {
-    return pyCallExpression.callee?.reference?.resolve() as? PyClass
+internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext, onlyDefinition: Boolean = false): PyClass? {
+    return when (val resolvedElement = pyCallExpression.callee?.reference?.resolve()) {
+        is PyClass -> resolvedElement
+        is PyNamedParameter -> when (val argumentType = resolvedElement.getArgumentType(context)) {
+            is PyClassType -> argumentType.takeIf { !onlyDefinition || it.isDefinition }?.pyClass
+            is PyUnionType -> argumentType.members.filterIsInstance<PyClassType>()
+                    .map { pyClassType ->
+                        pyClassType.takeIf { !onlyDefinition || it.isDefinition }?.pyClass }
+                    .firstOrNull()
+            else -> null
+        }
+        else -> null
+    }
 }
 
-internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument): PyClass? {
+internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
-    return getPyClassByPyCallExpression(pyCallExpression)
+    return getPyClassByPyCallExpression(pyCallExpression, context)
 }
 
 internal fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {

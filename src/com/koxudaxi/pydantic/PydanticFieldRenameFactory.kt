@@ -12,6 +12,7 @@ import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyKeywordArgument
 import com.jetbrains.python.psi.PyTargetExpression
 import com.jetbrains.python.psi.search.PyClassInheritorsSearch
+import com.jetbrains.python.psi.types.TypeEvalContext
 
 
 class PydanticFieldRenameFactory : AutomaticRenamerFactory {
@@ -22,7 +23,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                 if (isPydanticModel(pyClass)) return true
             }
             is PyKeywordArgument -> {
-                val pyClass = getPyClassByPyKeywordArgument(element) ?: return false
+                val pyClass = getPyClassByPyKeywordArgument(element, TypeEvalContext.codeAnalysis(element.project, element.containingFile)) ?: return false
                 if (isPydanticModel(pyClass)) return true
             }
         }
@@ -59,7 +60,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                     }
                 is PyKeywordArgument ->
                     element.name?.let { name ->
-                        getPyClassByPyKeywordArgument(element)
+                        getPyClassByPyKeywordArgument(element, TypeEvalContext.codeAnalysis(element.project, element.containingFile))
                                 ?.let { pyClass ->
                                     addAllElement(pyClass, name, added)
                                 }

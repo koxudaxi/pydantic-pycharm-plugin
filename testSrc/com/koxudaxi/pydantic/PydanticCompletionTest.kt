@@ -186,6 +186,17 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testParameterAnnotationType() {
+        doFieldTest(
+                listOf(
+                        Pair("abc", "A"),
+                        Pair("cde", "A"),
+                        Pair("efg", "A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
     fun testParameterAnnotationUnion() {
         doFieldTest(
                 listOf(
@@ -196,6 +207,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 )
         )
     }
+
     fun testAssignedInstancePythonClass() {
         doFieldTest(
                 listOf(

@@ -103,4 +103,8 @@ open class PydanticSearchTest : PydanticTestCase() {
     fun testKeywordArgumentUnResolve() {
         assertMatch(0)
     }
+
+    fun testKeywordArgumentInFunctionByField() {
+        assertMatch(2)
+    }
 }
