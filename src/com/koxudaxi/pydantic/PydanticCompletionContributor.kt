@@ -57,10 +57,10 @@ class PydanticCompletionContributor : CompletionContributor() {
             return "${typeHint}$defaultValue ${pyClass.name}"
         }
 
-        private fun getPyClassTypeFromPyNamedParameter(pyNamedParameter: PyNamedParameter, typeEvalContext: TypeEvalContext): PyClassType? {
+        private fun getPydanticPyClassTypesFromPyNamedParameter(pyNamedParameter: PyNamedParameter, typeEvalContext: TypeEvalContext): PyClassType? {
             return pyNamedParameter.getArgumentType(typeEvalContext)?.let {
-                getPyClassTypeByPyTypes(it).firstOrNull()
-            }
+                getPyClassTypeByPyTypes(it)
+            }?.firstOrNull { it1 -> isPydanticModel(it1.pyClass) }
         }
 
         protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext, parameters: CompletionParameters?, result: CompletionResultSet?): PyClass? {
@@ -88,15 +88,14 @@ class PydanticCompletionContributor : CompletionContributor() {
                                             return null
                                         }
                             }
-                            val pyClassType = getPyClassTypeFromPyNamedParameter(resolveElement, typeEvalContext)
-                                    ?: return null
+                            val pyClassType = getPydanticPyClassTypesFromPyNamedParameter(resolveElement, typeEvalContext) ?: return null
                             if (pyClassType.isDefinition) {  // is class
                                 removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields)
                                 return null
                             }
                             return pyClassType.pyClass
                         }
-                        getPyClassTypeFromPyNamedParameter(resolveElement, typeEvalContext)?.pyClass
+                        getPydanticPyClassTypesFromPyNamedParameter(resolveElement, typeEvalContext)?.pyClass
                     }
                     else -> null
                 }
@@ -215,6 +214,18 @@ class PydanticCompletionContributor : CompletionContributor() {
                 is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext, parameters, result)
                         ?: return
                 is PyCallExpression -> getPyClassByPyCallExpression(instance, typeEvalContext) ?: return
+                is PySubscriptionExpression ->  {
+                    val pyType = typeEvalContext.getType(instance as PyTypedElement) ?: return
+                    getPyClassTypeByPyTypes(pyType).filter {  isPydanticModel(it.pyClass) }.map {
+                        when {
+                            it.isDefinition -> {
+                                removeAllFieldElement(parameters, result, it.pyClass, typeEvalContext, excludeFields)
+                                null
+                            }
+                            else -> it.pyClass
+                        }
+                    }.firstOrNull() ?: return
+                }
                 else -> return
             }
 

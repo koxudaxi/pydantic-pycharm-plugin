@@ -23,8 +23,15 @@ internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, co
         is PyClass -> resolvedElement
         is PyNamedParameter -> resolvedElement.getArgumentType(context)?.let {
             getPyClassTypeByPyTypes(it).filter { pyClassType ->
-            !onlyDefinition || pyClassType.isDefinition
+            (!onlyDefinition || pyClassType.isDefinition ) && isPydanticModel(pyClassType.pyClass)
             }.map { filteredPyClassType -> filteredPyClassType.pyClass }.firstOrNull()
+        }
+        is PyTargetExpression -> (resolvedElement as? PyTypedElement)?.let {pyTypedElement ->
+            context.getType(pyTypedElement)
+                    ?.let {pyType -> getPyClassTypeByPyTypes(pyType) }
+                    ?.filter {pyClassType -> isPydanticModel(pyClassType.pyClass) }
+                    ?.map{ it -> it.pyClass}
+                    ?.firstOrNull()
         }
         else -> null
     }
