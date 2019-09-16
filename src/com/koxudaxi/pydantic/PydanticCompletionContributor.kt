@@ -68,7 +68,6 @@ class PydanticCompletionContributor : CompletionContributor() {
             return pyReferenceExpression.multiFollowAssignmentsChain(resolveContext).mapNotNull {
                 when (val resolveElement = it.element) {
                     is PyClass -> {
-                        resolveElement.getType(typeEvalContext)?.isDefinition
                         if (parameters != null && result != null) {
                             removeAllFieldElement(parameters, result, resolveElement, typeEvalContext, excludeFields)
                             null
@@ -88,7 +87,8 @@ class PydanticCompletionContributor : CompletionContributor() {
                                             return null
                                         }
                             }
-                            val pyClassType = getPydanticPyClassTypesFromPyNamedParameter(resolveElement, typeEvalContext) ?: return null
+                            val pyClassType = getPydanticPyClassTypesFromPyNamedParameter(resolveElement, typeEvalContext)
+                                    ?: return null
                             if (pyClassType.isDefinition) {  // is class
                                 removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields)
                                 return null
@@ -214,9 +214,9 @@ class PydanticCompletionContributor : CompletionContributor() {
                 is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext, parameters, result)
                         ?: return
                 is PyCallExpression -> getPyClassByPyCallExpression(instance, typeEvalContext) ?: return
-                is PySubscriptionExpression ->  {
+                is PySubscriptionExpression -> {
                     val pyType = typeEvalContext.getType(instance as PyTypedElement) ?: return
-                    getPyClassTypeByPyTypes(pyType).filter {  isPydanticModel(it.pyClass) }.map {
+                    getPyClassTypeByPyTypes(pyType).filter { isPydanticModel(it.pyClass) }.map {
                         when {
                             it.isDefinition -> {
                                 removeAllFieldElement(parameters, result, it.pyClass, typeEvalContext, excludeFields)

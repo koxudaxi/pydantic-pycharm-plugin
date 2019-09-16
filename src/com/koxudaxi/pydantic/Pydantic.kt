@@ -123,7 +123,8 @@ internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
                     .flatMap {
                         when (it) {
                             is PyClassType -> listOf(it)
-                            else -> getPyClassTypeByPyTypes(it)
+                            is PyType ->  getPyClassTypeByPyTypes(it)
+                            else -> listOf()
                         }
                     }
         }
