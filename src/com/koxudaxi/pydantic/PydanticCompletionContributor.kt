@@ -13,7 +13,6 @@ import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHin
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
-import com.jetbrains.python.psi.types.PyUnionType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
 
@@ -59,12 +58,8 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
 
         private fun getPyClassTypeFromPyNamedParameter(pyNamedParameter: PyNamedParameter, typeEvalContext: TypeEvalContext): PyClassType? {
-            return when (val pyClassTypes = pyNamedParameter.getArgumentType(typeEvalContext)) {
-                is PyClassType -> pyClassTypes
-                is PyUnionType -> pyClassTypes.members.filterIsInstance<PyClassType>()
-                        .map { pyClassType -> pyClassType }
-                        .firstOrNull()
-                else -> null
+            return pyNamedParameter.getArgumentType(typeEvalContext)?.let {
+                getPyClassTypeByPyTypes(it).firstOrNull()
             }
         }
 

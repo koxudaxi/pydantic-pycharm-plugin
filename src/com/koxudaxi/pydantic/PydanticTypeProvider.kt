@@ -76,19 +76,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                     ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
                                     ?.let { it.containingClass?.let { getPydanticTypeForClass(it, context) } }
                         }
-                        it is PyNamedParameter -> {
-                            when (val argumentType = it.getArgumentType(context)) {
-                                is PyClassType -> argumentType.takeIf { argumentType.isDefinition }?.let { pyClassType ->
-                                    getPydanticTypeForClass(pyClassType.pyClass, context)
-                                }
-                                is PyUnionType -> argumentType.members.filterIsInstance<PyClassType>()
-                                        .map { pyClassType ->
-                                            pyClassType
-                                                    .takeIf { pyClassType.isDefinition }
-                                                    ?.let { getPydanticTypeForClass(pyClassType.pyClass, context) }
-                                        }.firstOrNull()
-                                else -> null
-                            }
+                        it is PyNamedParameter -> it.getArgumentType(context)?.let {pyType ->
+                            getPyClassTypeByPyTypes(pyType).filter { pyClassType ->
+                                pyClassType.isDefinition
+                            }.map { filteredPyClassType -> getPydanticTypeForClass(filteredPyClassType.pyClass, context) }.firstOrNull()
                         }
                         else -> null
                     }
