@@ -44,7 +44,7 @@ class PydanticInspection : PyInspection() {
         override fun visitPyCallExpression(node: PyCallExpression?) {
             super.visitPyCallExpression(node)
 
-            val pyClass: PyClass = node?.let { getPyClassByPyCallExpression(node, myTypeEvalContext) } ?: return
+            val pyClass: PyClass = node?.let { getPydanticPyClassByPyCallExpression(node, myTypeEvalContext) } ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext)) return
             if ((node.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
             node.arguments

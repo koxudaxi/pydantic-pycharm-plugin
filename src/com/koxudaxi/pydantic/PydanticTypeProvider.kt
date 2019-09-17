@@ -84,7 +84,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         it is PyTargetExpression -> (it as? PyTypedElement)?.let {pyTypedElement ->
                             context.getType(pyTypedElement)
                                     ?.let {pyType -> getPyClassTypeByPyTypes(pyType) }
-                                    ?.filter {pyClassType -> isPydanticModel(pyClassType.pyClass) }
                                     ?.map {filteredPyClassType ->
                                             getPydanticTypeForClass(filteredPyClassType.pyClass, context)
                                     }?.firstOrNull()

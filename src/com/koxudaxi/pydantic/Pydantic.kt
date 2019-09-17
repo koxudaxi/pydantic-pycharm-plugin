@@ -18,7 +18,7 @@ const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.field.Field"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 
-internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext, onlyDefinition: Boolean = false): PyClass? {
+internal fun getPydanticPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext, onlyDefinition: Boolean = false): PyClass? {
     return when (val resolvedElement = pyCallExpression.callee?.reference?.resolve()) {
         is PyClass -> resolvedElement
         is PyNamedParameter -> resolvedElement.getArgumentType(context)?.let {
@@ -33,13 +33,29 @@ internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, co
                     ?.map{ it -> it.pyClass}
                     ?.firstOrNull()
         }
-        else -> null
+        else -> {
+            when (val callee =  pyCallExpression.callee) {
+                is PySubscriptionExpression -> {
+                    val pyType = context.getType(callee as PyTypedElement) ?: return null
+                    getPyClassTypeByPyTypes(pyType).filter { isPydanticModel(it.pyClass) }.map {
+                        when {
+                            it.isDefinition -> {
+                                it.pyClass
+                            }
+                            else -> null
+                        }
+                    }.firstOrNull()
+                }
+            else -> null
+            }
+
+        }
     }
 }
 
 internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
-    return getPyClassByPyCallExpression(pyCallExpression, context)
+    return getPydanticPyClassByPyCallExpression(pyCallExpression, context)
 }
 
 internal fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
