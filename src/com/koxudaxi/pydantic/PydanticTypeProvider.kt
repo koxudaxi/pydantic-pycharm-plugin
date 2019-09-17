@@ -76,18 +76,19 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                     ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
                                     ?.let { it.containingClass?.let { getPydanticTypeForClass(it, context) } }
                         }
-                        it is PyNamedParameter -> it.getArgumentType(context)?.let {pyType ->
+                        it is PyNamedParameter -> it.getArgumentType(context)?.let { pyType ->
                             getPyClassTypeByPyTypes(pyType).filter { pyClassType ->
                                 pyClassType.isDefinition
                             }.map { filteredPyClassType -> getPydanticTypeForClass(filteredPyClassType.pyClass, context) }.firstOrNull()
                         }
-                        it is PyTargetExpression -> (it as? PyTypedElement)?.let {pyTypedElement ->
+                        it is PyTargetExpression -> (it as? PyTypedElement)?.let { pyTypedElement ->
                             context.getType(pyTypedElement)
-                                    ?.let {pyType -> getPyClassTypeByPyTypes(pyType) }
-                                    ?.map {filteredPyClassType ->
-                                            getPydanticTypeForClass(filteredPyClassType.pyClass, context)
+                                    ?.let { pyType -> getPyClassTypeByPyTypes(pyType) }
+                                    ?.filter { pyClassType -> pyClassType.isDefinition }
+                                    ?.map { filteredPyClassType ->
+                                        getPydanticTypeForClass(filteredPyClassType.pyClass, context)
                                     }?.firstOrNull()
-                            }
+                        }
                         else -> null
                     }
                 }

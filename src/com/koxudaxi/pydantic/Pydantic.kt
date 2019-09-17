@@ -9,7 +9,10 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
-import com.jetbrains.python.psi.types.*
+import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyType
+import com.jetbrains.python.psi.types.PyUnionType
+import com.jetbrains.python.psi.types.TypeEvalContext
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
@@ -18,35 +21,30 @@ const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.field.Field"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 
-internal fun getPydanticPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext, onlyDefinition: Boolean = false): PyClass? {
+internal fun getPydanticPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
     return when (val resolvedElement = pyCallExpression.callee?.reference?.resolve()) {
         is PyClass -> resolvedElement
         is PyNamedParameter -> resolvedElement.getArgumentType(context)?.let {
             getPyClassTypeByPyTypes(it).filter { pyClassType ->
-            (!onlyDefinition || pyClassType.isDefinition ) && isPydanticModel(pyClassType.pyClass)
+                isPydanticModel(pyClassType.pyClass)
             }.map { filteredPyClassType -> filteredPyClassType.pyClass }.firstOrNull()
         }
-        is PyTargetExpression -> (resolvedElement as? PyTypedElement)?.let {pyTypedElement ->
+        is PyTargetExpression -> (resolvedElement as? PyTypedElement)?.let { pyTypedElement ->
             context.getType(pyTypedElement)
-                    ?.let {pyType -> getPyClassTypeByPyTypes(pyType) }
-                    ?.filter {pyClassType -> isPydanticModel(pyClassType.pyClass) }
-                    ?.map{ it -> it.pyClass}
+                    ?.let { pyType -> getPyClassTypeByPyTypes(pyType) }
+                    ?.filter { pyClassType -> isPydanticModel(pyClassType.pyClass) }
+                    ?.map { it -> it.pyClass }
                     ?.firstOrNull()
         }
         else -> {
-            when (val callee =  pyCallExpression.callee) {
+            when (val callee = pyCallExpression.callee) {
                 is PySubscriptionExpression -> {
                     val pyType = context.getType(callee as PyTypedElement) ?: return null
-                    getPyClassTypeByPyTypes(pyType).filter { isPydanticModel(it.pyClass) }.map {
-                        when {
-                            it.isDefinition -> {
-                                it.pyClass
-                            }
-                            else -> null
-                        }
-                    }.firstOrNull()
+                    getPyClassTypeByPyTypes(pyType)
+                            .filter { isPydanticModel(it.pyClass) }
+                            .map { it.pyClass }.firstOrNull()
                 }
-            else -> null
+                else -> null
             }
 
         }
@@ -139,7 +137,7 @@ internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
                     .flatMap {
                         when (it) {
                             is PyClassType -> listOf(it)
-                            is PyType ->  getPyClassTypeByPyTypes(it)
+                            is PyType -> getPyClassTypeByPyTypes(it)
                             else -> listOf()
                         }
                     }

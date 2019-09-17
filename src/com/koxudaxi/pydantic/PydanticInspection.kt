@@ -12,6 +12,7 @@ import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.impl.PyStarArgumentImpl
+import com.jetbrains.python.psi.types.PyClassType
 
 class PydanticInspection : PyInspection() {
 
@@ -44,14 +45,16 @@ class PydanticInspection : PyInspection() {
         override fun visitPyCallExpression(node: PyCallExpression?) {
             super.visitPyCallExpression(node)
 
-            val pyClass: PyClass = node?.let { getPydanticPyClassByPyCallExpression(node, myTypeEvalContext) } ?: return
-            if (!isPydanticModel(pyClass, myTypeEvalContext)) return
+            if (node == null) return
+
+            val pyClassType = myTypeEvalContext.getType(node) as? PyClassType ?: return
+            if (!isPydanticModel(pyClassType.pyClass, myTypeEvalContext)) return
             if ((node.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
             node.arguments
                     .filterNot { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
                     .forEach {
                         registerProblem(it,
-                                "class '${pyClass.name}' accepts only keyword arguments")
+                                "class '${pyClassType.pyClass.name}' accepts only keyword arguments")
                     }
         }
     }
