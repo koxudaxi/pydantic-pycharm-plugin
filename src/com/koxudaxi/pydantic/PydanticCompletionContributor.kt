@@ -55,12 +55,6 @@ class PydanticCompletionContributor : CompletionContributor() {
             return "${typeHint}$defaultValue ${pyClass.name}"
         }
 
-        protected fun getPydanticPyClassTypesFromPyNamedParameter(pyNamedParameter: PyNamedParameter, typeEvalContext: TypeEvalContext): PyClassType? {
-            return pyNamedParameter.getArgumentType(typeEvalContext)?.let {
-                getPyClassTypeByPyTypes(it)
-            }?.firstOrNull { it1 -> isPydanticModel(it1.pyClass) }
-        }
-
 
         private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
                                     typeEvalContext: TypeEvalContext,

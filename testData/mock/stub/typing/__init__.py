@@ -8,3 +8,9 @@ class Optional:
     @classmethod
     def __getitem__(cls, item):
         pass
+
+
+class Type:
+    @classmethod
+    def __getitem__(cls, item):
+        pass

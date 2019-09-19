@@ -163,6 +163,17 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testAssignedClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("a", "null"),
+                        Pair("cde=", "str=str('abc') A"),
+                        Pair("efg=", "str=str('abc') A")
+                )
+        )
+    }
+
     fun testAssignedInstanceWithImport() {
         doFieldTest(
                 listOf(
@@ -189,10 +200,17 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testParameterAnnotationType() {
         doFieldTest(
                 listOf(
-                        Pair("abc", "A"),
-                        Pair("cde", "A"),
-                        Pair("efg", "A"),
                         Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+    fun testParameterAnnotationTypeKeywordArgument() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str=str('abc') A"),
+                        Pair("efg=", "str=str('abc') A")
                 )
         )
     }
@@ -302,6 +320,14 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("abc", "A"),
                         Pair("cde", "A"),
                         Pair("efg", "A")
+                )
+        )
+    }
+
+    fun testClassFields() {
+        doFieldTest(
+                listOf(
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }

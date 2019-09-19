@@ -18,7 +18,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
             is PyKeywordArgument -> run<RuntimeException> {
                 element.name
                         ?.let { elementName ->
-                            getPyClassByPyKeywordArgument(element, TypeEvalContext.deepCodeInsight(element.project))
+                            getPyClassByPyKeywordArgument(element, TypeEvalContext.userInitiated(element.project, element.containingFile))
                                     ?.takeIf { pyClass -> isPydanticModel(pyClass) }
                                     ?.let { pyClass -> searchDirectReferenceField(pyClass, elementName, consumer) }
                         }
@@ -54,7 +54,9 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
 
             PsiTreeUtil.getParentOfType(psiReference.element, PyNamedParameter::class.java)
                     ?.let { param ->
-                        param.getArgumentType(TypeEvalContext.deepCodeInsight(psiReference.element.project))
+                        param.getArgumentType(TypeEvalContext.userInitiated(
+                                psiReference.element.project,
+                                psiReference.element.containingFile))
                                 ?.let { pyType ->
                                     getPyClassTypeByPyTypes(pyType)
                                             .firstOrNull { pyClassType -> isPydanticModel(pyClassType.pyClass) }
@@ -64,9 +66,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                                                 }
                                             }
                                 }
-
                     }
-
         }
 
     }

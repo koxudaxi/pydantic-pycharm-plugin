@@ -60,7 +60,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                     }
                 is PyKeywordArgument ->
                     element.name?.let { name ->
-                        getPyClassByPyKeywordArgument(element, TypeEvalContext.codeAnalysis(element.project, element.containingFile))
+                        getPyClassByPyKeywordArgument(element, TypeEvalContext.userInitiated(element.project, element.containingFile))
                                 ?.let { pyClass ->
                                     addAllElement(pyClass, name, added)
                                 }

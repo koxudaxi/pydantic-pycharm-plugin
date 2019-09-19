@@ -1,9 +1,15 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.19</version>
+    <version>0.0.20</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.0.20</h2>
+    <p>Features, BugFixes</p>
+    <ul>
+        <li>Support all features by parameters [#67] </li>
+        <li>Fix to handle models which have __init__ or __new__ methods [#67] </li>
+    </ul>
     <h2>version 0.0.19</h2>
     <p>BugFixes</p>
     <ul>
