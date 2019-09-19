@@ -47,14 +47,14 @@ class PydanticInspection : PyInspection() {
 
             if (node == null) return
 
-            val pyClassType = myTypeEvalContext.getType(node) as? PyClassType ?: return
-            if (!isPydanticModel(pyClassType.pyClass, myTypeEvalContext)) return
+            val pyClass = getPyClassByPyCallExpression(node, myTypeEvalContext) ?: return
+            if (!isPydanticModel(pyClass, myTypeEvalContext)) return
             if ((node.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
             node.arguments
                     .filterNot { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
                     .forEach {
                         registerProblem(it,
-                                "class '${pyClassType.pyClass.name}' accepts only keyword arguments")
+                                "class '${pyClass.name}' accepts only keyword arguments")
                     }
         }
     }
