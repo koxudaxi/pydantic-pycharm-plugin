@@ -18,39 +18,11 @@ const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.field.Field"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 
-internal fun getPydanticPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
-    return when (val resolvedElement = pyCallExpression.callee?.reference?.resolve()) {
-        is PyClass -> resolvedElement
-        is PyNamedParameter -> resolvedElement.getArgumentType(context)?.let {
-            getPyClassTypeByPyTypes(it).filter { pyClassType ->
-                isPydanticModel(pyClassType.pyClass)
-            }.map { filteredPyClassType -> filteredPyClassType.pyClass }.firstOrNull()
-        }
-        is PyTargetExpression -> (resolvedElement as? PyTypedElement)?.let { pyTypedElement ->
-            context.getType(pyTypedElement)
-                    ?.let { pyType -> getPyClassTypeByPyTypes(pyType) }
-                    ?.filter { pyClassType -> isPydanticModel(pyClassType.pyClass) }
-                    ?.map { it -> it.pyClass }
-                    ?.firstOrNull()
-        }
-        else -> {
-            when (val callee = pyCallExpression.callee) {
-                is PySubscriptionExpression -> {
-                    val pyType = context.getType(callee as PyTypedElement) ?: return null
-                    getPyClassTypeByPyTypes(pyType)
-                            .filter { isPydanticModel(it.pyClass) }
-                            .map { it.pyClass }.firstOrNull()
-                }
-                else -> null
-            }
-
-        }
-    }
-}
-
 internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
-    return getPydanticPyClassByPyCallExpression(pyCallExpression, context)
+    val resolvedElement = pyCallExpression.callee?.reference?.resolve() as? PyTypedElement ?: return null
+    val type = context.getType(resolvedElement) ?: return null
+    return getPyClassTypeByPyTypes(type).firstOrNull { isPydanticModel(it.pyClass) }?.pyClass
 }
 
 internal fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {

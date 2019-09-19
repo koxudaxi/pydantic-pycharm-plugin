@@ -14,3 +14,9 @@ class Type:
     @classmethod
     def __getitem__(cls, item):
         pass
+
+
+class List:
+    @classmethod
+    def __getitem__(cls, item):
+        pass

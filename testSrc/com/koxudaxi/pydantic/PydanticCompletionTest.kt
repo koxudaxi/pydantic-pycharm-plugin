@@ -438,4 +438,15 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 )
         )
     }
+
+    fun testSubscriptionClass() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str=str('abc') A"),
+                        Pair("efg=", "str=str('abc') A")
+                )
+        )
+    }
+
 }
