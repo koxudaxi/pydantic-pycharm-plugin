@@ -9,10 +9,7 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
-import com.jetbrains.python.psi.types.PyClassType
-import com.jetbrains.python.psi.types.PyType
-import com.jetbrains.python.psi.types.PyUnionType
-import com.jetbrains.python.psi.types.TypeEvalContext
+import com.jetbrains.python.psi.types.*
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
@@ -132,16 +129,17 @@ internal fun getResolveElements(referenceExpression: PyReferenceExpression, cont
 
 internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
     return when (pyType) {
-        is PyUnionType -> {
+        is PyUnionType ->
             pyType.members
                     .flatMap {
-                        when (it) {
-                            is PyClassType -> listOf(it)
-                            is PyType -> getPyClassTypeByPyTypes(it)
-                            else -> listOf()
-                        }
+                        getPyClassTypeByPyTypes(it)
                     }
-        }
+
+        is PyCollectionType ->
+            pyType.elementTypes
+                    .flatMap {
+                        getPyClassTypeByPyTypes(it)
+                    }
         is PyClassType -> listOf(pyType)
         else -> listOf()
     }

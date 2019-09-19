@@ -9,7 +9,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.Processor
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.search.PyClassInheritorsSearch
-import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.TypeEvalContext
 
 
@@ -45,28 +44,33 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     private fun searchKeywordArgumentByPsiReference(psiReference: PsiReference, elementName: String, consumer: Processor<in PsiReference>) {
         PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
                 ?.let { callee ->
-                    callee.arguments
-                            .filterIsInstance<PyKeywordArgument>()
-                            .filter { it.name == elementName }
-                            .forEach { consumer.process(it.reference) }
+                    callee.arguments.firstOrNull { it.name == elementName }?.let { consumer.process(it.reference) }
                 }
     }
+
     private fun searchKeywordArgument(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>) {
         ReferencesSearch.search(pyClass as PsiElement).forEach { psiReference ->
             searchKeywordArgumentByPsiReference(psiReference, elementName, consumer)
+
             PsiTreeUtil.getParentOfType(psiReference.element, PyNamedParameter::class.java)
                     ?.let { param ->
-                        val t = param.getArgumentType(TypeEvalContext.deepCodeInsight(psiReference.element.project))
-                        t?.let {
-                            (it as? PyClassType)?.let {
-                                ReferencesSearch.search(param as PsiElement).forEach { paramReference ->
-                                    searchKeywordArgumentByPsiReference(paramReference, elementName, consumer)
+                        param.getArgumentType(TypeEvalContext.deepCodeInsight(psiReference.element.project))
+                                ?.let { pyType ->
+                                    getPyClassTypeByPyTypes(pyType)
+                                            .firstOrNull { pyClassType -> isPydanticModel(pyClassType.pyClass) }
+                                            ?.let {
+                                                ReferencesSearch.search(param as PsiElement).forEach {
+                                                    searchKeywordArgumentByPsiReference(it, elementName, consumer)
+                                                }
+                                            }
                                 }
-                            }
-                        }
+
                     }
+
         }
+
     }
+
 
     private fun searchDirectReferenceField(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>): Boolean {
         if (searchField(pyClass, elementName, consumer)) return true
