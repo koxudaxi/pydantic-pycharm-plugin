@@ -5,15 +5,12 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.psi.util.PsiTreeUtil.getParentOfType
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHint
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
-import com.jetbrains.python.psi.types.PyUnionType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
 
@@ -58,45 +55,6 @@ class PydanticCompletionContributor : CompletionContributor() {
             return "${typeHint}$defaultValue ${pyClass.name}"
         }
 
-        private fun getPyClassFromPyNamedParameter(pyNamedParameter: PyNamedParameter, typeEvalContext: TypeEvalContext): PyClass? {
-            return when (val pyClassTypes = pyNamedParameter.getArgumentType(typeEvalContext)) {
-                is PyClassType -> pyClassTypes.pyClass
-                is PyUnionType -> pyClassTypes.members.filterIsInstance<PyClassType>()
-                        .map { pyClassType -> pyClassType.pyClass }
-                        .firstOrNull()
-                else -> null
-            }
-        }
-
-        protected fun getPyClassByPyReferenceExpression(pyReferenceExpression: PyReferenceExpression, typeEvalContext: TypeEvalContext, parameters: CompletionParameters?, result: CompletionResultSet?): PyClass? {
-            val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(typeEvalContext)
-            return pyReferenceExpression.multiFollowAssignmentsChain(resolveContext).mapNotNull {
-                when (val resolveElement = it.element) {
-                    is PyClass -> {
-                        if (parameters != null && result != null) {
-                            removeAllFieldElement(parameters, result, resolveElement, typeEvalContext, excludeFields)
-                            null
-                        } else {
-                            resolveElement
-                        }
-                    }
-                    is PyCallExpression -> getPyClassByPyCallExpression(resolveElement)
-                    is PyNamedParameter -> {
-                        if ((parameters != null && result != null) && resolveElement.isSelf) {
-                            getParentOfType(resolveElement, PyFunction::class.java)
-                                    ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
-                                    ?.takeIf { it.containingClass is PyClass }
-                                    ?.let {
-                                        removeAllFieldElement(parameters, result, it.containingClass!!, typeEvalContext, excludeFields)
-                                        return null
-                                    }
-                        }
-                        getPyClassFromPyNamedParameter(resolveElement, typeEvalContext)
-                    }
-                    else -> null
-                }
-            }.firstOrNull()
-        }
 
         private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
                                     typeEvalContext: TypeEvalContext,
@@ -177,22 +135,17 @@ class PydanticCompletionContributor : CompletionContributor() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
             val pyArgumentList = parameters.position.parent!!.parent!! as PyArgumentList
             val typeEvalContext = parameters.getTypeEvalContext()
+            val pyClassType = (typeEvalContext.getType(pyArgumentList.parent as PyCallExpression) as? PyClassType)
+                    ?: return
 
-            val pyClass = when (val pyCallableElement = pyArgumentList.parent!!) {
-                is PyReferenceExpression -> getPyClassByPyReferenceExpression(pyCallableElement, typeEvalContext, null, null)
-                        ?: return
-                is PyCallExpression -> getPyClassByPyCallExpression(pyCallableElement) ?: return
-                else -> return
-            }
-
-            if (!isPydanticModel(pyClass, typeEvalContext)) return
+            if (!isPydanticModel(pyClassType.pyClass, typeEvalContext)) return
 
             val definedSet = pyArgumentList.children
                     .mapNotNull { (it as? PyKeywordArgument)?.name }
                     .map { "${it}=" }
                     .toHashSet()
-            val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
-            addAllFieldElement(parameters, result, pyClass, typeEvalContext, ellipsis, definedSet)
+            val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
+            addAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, ellipsis, definedSet)
         }
     }
 
@@ -205,16 +158,15 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
             val typeEvalContext = parameters.getTypeEvalContext()
-            val pyClass = when (val instance = parameters.position.parent.firstChild) {
-                is PyReferenceExpression -> getPyClassByPyReferenceExpression(instance, typeEvalContext, parameters, result)
-                        ?: return
-                is PyCallExpression -> getPyClassByPyCallExpression(instance) ?: return
-                else -> return
-            }
+            val pyType = typeEvalContext.getType(parameters.position.parent.firstChild as PyTypedElement) ?: return
 
-            if (!isPydanticModel(pyClass, typeEvalContext)) return
-            val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
-            addAllFieldElement(parameters, result, pyClass, typeEvalContext, ellipsis)
+            val pyClassType = getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass) } ?: return
+            if (pyClassType.isDefinition) { // class
+                removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields)
+                return
+            }
+            val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
+            addAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, ellipsis)
         }
     }
 }

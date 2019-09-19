@@ -9,7 +9,7 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
-import com.jetbrains.python.psi.types.TypeEvalContext
+import com.jetbrains.python.psi.types.*
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
@@ -18,13 +18,13 @@ const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.field.Field"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 
-internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression): PyClass? {
-    return pyCallExpression.callee?.reference?.resolve() as? PyClass
-}
-
-internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument): PyClass? {
+internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
-    return getPyClassByPyCallExpression(pyCallExpression)
+    val callee = pyCallExpression.callee ?: return null
+    val pyClass = context.getType(callee)
+    if (pyClass is PyClass) return pyClass
+    val pyType = (callee.reference?.resolve() as? PyTypedElement)?.let { context.getType(it) } ?: return null
+    return getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass) }?.pyClass
 }
 
 internal fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
@@ -99,4 +99,24 @@ internal fun getResolveElements(referenceExpression: PyReferenceExpression, cont
     val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
     return referenceExpression.getReference(resolveContext).multiResolve(false)
 
+}
+
+internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
+    return when (pyType) {
+        is PyUnionType ->
+            pyType.members
+                    .mapNotNull { it }
+                    .flatMap {
+                        getPyClassTypeByPyTypes(it)
+                    }
+
+        is PyCollectionType ->
+            pyType.elementTypes
+                    .mapNotNull { it }
+                    .flatMap {
+                        getPyClassTypeByPyTypes(it)
+                    }
+        is PyClassType -> listOf(pyType)
+        else -> listOf()
+    }
 }

@@ -76,6 +76,19 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                     ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
                                     ?.let { it.containingClass?.let { getPydanticTypeForClass(it, context) } }
                         }
+                        it is PyNamedParameter -> it.getArgumentType(context)?.let { pyType ->
+                            getPyClassTypeByPyTypes(pyType).filter { pyClassType ->
+                                pyClassType.isDefinition
+                            }.map { filteredPyClassType -> getPydanticTypeForClass(filteredPyClassType.pyClass, context) }.firstOrNull()
+                        }
+                        it is PyTargetExpression -> (it as? PyTypedElement)?.let { pyTypedElement ->
+                            context.getType(pyTypedElement)
+                                    ?.let { pyType -> getPyClassTypeByPyTypes(pyType) }
+                                    ?.filter { pyClassType -> pyClassType.isDefinition }
+                                    ?.map { filteredPyClassType ->
+                                        getPydanticTypeForClass(filteredPyClassType.pyClass, context)
+                                    }?.firstOrNull()
+                        }
                         else -> null
                     }
                 }
@@ -86,20 +99,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (!isPydanticModel(pyClass, context)) return null
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
-        val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
 
         val collected = linkedMapOf<String, PyCallableParameter>()
 
         for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
-            if (currentType == null ||
-                    !currentType.resolveMember(PyNames.INIT, null, AccessDirection.READ, resolveContext, false).isNullOrEmpty() ||
-                    !currentType.resolveMember(PyNames.NEW, null, AccessDirection.READ, resolveContext, false).isNullOrEmpty() ||
-                    currentType !is PyClassType) {
-                continue
-            }
+            if ( currentType !is PyClassType) continue
 
             val current = currentType.pyClass
-            if (!isPydanticModel(current, context)) return null
+            if (!isPydanticModel(current, context)) continue
 
             getClassVariables(current, context)
                     .mapNotNull { fieldToParameter(it, ellipsis, context, current) }
