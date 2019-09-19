@@ -21,9 +21,11 @@ const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
     val callee = pyCallExpression.callee ?: return null
-    val pyClass = context.getType(callee)
-    if (pyClass is PyClass) return pyClass
-    val pyType = (callee.reference?.resolve() as? PyTypedElement)?.let { context.getType(it) } ?: return null
+    val pyType = when (val type = context.getType(callee)) {
+        is PyClass -> return type
+        is PyClassType -> type
+        else -> (callee.reference?.resolve() as? PyTypedElement)?.let { context.getType(it) } ?: return null
+    }
     return getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass) }?.pyClass
 }
 
