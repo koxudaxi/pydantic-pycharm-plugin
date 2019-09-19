@@ -1,9 +1,9 @@
 from pydantic import BaseModel, validator
-
+from typing import Type
 
 class A(BaseModel):
-    ab<caret>c: str # expected
+    abc: str # expected
 
 def func(instance: A):
-    instance.abc
+    instance(ab<caret>c)
 ## count: 2
