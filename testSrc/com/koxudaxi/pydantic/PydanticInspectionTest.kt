@@ -37,4 +37,8 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     fun testValidatorSelf() {
         doTest()
     }
+
+    fun testRootValidatorSelf() {
+        doTest()
+    }
 }

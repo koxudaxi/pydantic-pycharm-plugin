@@ -14,6 +14,7 @@ import com.jetbrains.python.psi.types.*
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
 const val VALIDATOR_Q_NAME = "pydantic.validator"
+const val ROOT_VALIDATOR_Q_NAME = "pydantic.root_validator"
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.field.Field"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
@@ -67,7 +68,7 @@ internal fun isPydanticField(pyClass: PyClass, context: TypeEvalContext): Boolea
 }
 
 internal fun isValidatorMethod(pyFunction: PyFunction): Boolean {
-    return hasDecorator(pyFunction, VALIDATOR_Q_NAME)
+    return hasDecorator(pyFunction, VALIDATOR_Q_NAME) || hasDecorator(pyFunction, ROOT_VALIDATOR_Q_NAME)
 }
 
 internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
