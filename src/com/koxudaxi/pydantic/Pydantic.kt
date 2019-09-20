@@ -15,7 +15,7 @@ const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
 const val VALIDATOR_Q_NAME = "pydantic.validator"
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
-const val FIELD_Q_NAME = "pydantic.field.Field"
+const val FIELD_Q_NAME = "pydantic.fields.Field"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 
 internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
