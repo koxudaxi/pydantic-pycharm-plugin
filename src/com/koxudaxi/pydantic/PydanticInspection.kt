@@ -12,7 +12,6 @@ import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.impl.PyStarArgumentImpl
-import com.jetbrains.python.psi.types.PyClassType
 
 class PydanticInspection : PyInspection() {
 
@@ -47,10 +46,16 @@ class PydanticInspection : PyInspection() {
 
             if (node == null) return
 
-            val pyClass = getPyClassByPyCallExpression(node, myTypeEvalContext) ?: return
+            inspectPydanticModelCallableExpression(node)
+
+
+        }
+
+        private fun inspectPydanticModelCallableExpression(pyCallExpression :PyCallExpression) {
+            val pyClass = getPyClassByPyCallExpression(pyCallExpression, myTypeEvalContext) ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext)) return
-            if ((node.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
-            node.arguments
+            if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
+            pyCallExpression.arguments
                     .filterNot { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
                     .forEach {
                         registerProblem(it,

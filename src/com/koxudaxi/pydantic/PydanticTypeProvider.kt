@@ -3,13 +3,10 @@ package com.koxudaxi.pydantic
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.containers.isNullOrEmpty
-import com.jetbrains.python.PyNames
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyCallExpressionNavigator
 import com.jetbrains.python.psi.impl.PySubscriptionExpressionImpl
-import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.*
 import one.util.streamex.StreamEx
 
@@ -103,7 +100,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val collected = linkedMapOf<String, PyCallableParameter>()
 
         for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
-            if ( currentType !is PyClassType) continue
+            if (currentType !is PyClassType) continue
 
             val current = currentType.pyClass
             if (!isPydanticModel(current, context)) continue
@@ -188,21 +185,30 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val referenceExpression = callee.reference?.element as? PyReferenceExpression ?: return ellipsis
 
         val resolveResults = getResolveElements(referenceExpression, context)
+        val versionZero = getVersion(field.project, context).major == 0
         PyUtil.filterTopPriorityResults(resolveResults)
-                .mapNotNull { PsiTreeUtil.getContextOfType(it, PyClass::class.java) }
-                .any { isPydanticField(it, context) }.let {
+                .any {
+                    when {
+                        versionZero -> isPydanticSchemaByPsiElement(it, context)
+                        else -> isPydanticFieldByPsiElement(it, context)
+                    }
+
+                }
+                .let {
                     return when {
-                        it -> {
-                            val defaultValue = assignedValue.getKeywordArgument("default")
-                                    ?: assignedValue.getArgument(0, PyExpression::class.java)
-                            when {
-                                defaultValue == null -> null
-                                defaultValue.text == "..." -> null
-                                else -> defaultValue
-                            }
-                        }
+                        it -> getDefaultValue(assignedValue)
                         else -> assignedValue
                     }
                 }
+    }
+
+    private fun getDefaultValue(assignedValue: PyCallExpression): PyExpression? {
+        val defaultValue = assignedValue.getKeywordArgument("default")
+                ?: assignedValue.getArgument(0, PyExpression::class.java)
+        return when {
+            defaultValue == null -> null
+            defaultValue.text == "..." -> null
+            else -> defaultValue
+        }
     }
 }
