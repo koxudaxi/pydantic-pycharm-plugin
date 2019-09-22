@@ -13,14 +13,14 @@ import com.jetbrains.python.PythonDialectsTokenSetProvider
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.impl.PythonLanguageLevelPusher
 
-abstract class PydanticTestCase : UsefulTestCase() {
+abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
     protected var myFixture: CodeInsightTestFixture? = null
 
     private val projectDescriptor: LightProjectDescriptor? = LightProjectDescriptor()
     private val testDataPath: String = "testData"
     private val mockPath: String = "mock"
-    private val pydanticMockPath: String = "$mockPath/pydantic"
+    private val pydanticMockPath: String = "$mockPath/pydantic$version"
     private val pythonStubPath: String = "$mockPath/stub"
 
     private var packageDir: VirtualFile? = null
