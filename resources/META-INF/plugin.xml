@@ -105,7 +105,8 @@
         <referencesSearch implementation="com.koxudaxi.pydantic.PydanticFieldSearchExecutor"/>
         <completion.contributor language="Python"
                                 implementationClass="com.koxudaxi.pydantic.PydanticCompletionContributor"/>
-
+        <typedHandler implementation="com.koxudaxi.pydantic.PydanticTypedValidatorMethodHandler"
+                      id="pydanticTypedValidatorMethodHandler" order="before pyMethodNameTypedHandler"/>
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
