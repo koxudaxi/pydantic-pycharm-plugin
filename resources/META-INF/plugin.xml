@@ -8,7 +8,7 @@
     <p>Features, BugFixes</p>
     <ul>
         <li>Support root_validator [#72] </li>
-        <li>Fix fields module name for pydantic v1 [#71] </li>
+        <li>Support Field for v1 [#71, #73] </li>
     </ul>
     <h2>version 0.0.20</h2>
     <p>Features, BugFixes</p>

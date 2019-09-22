@@ -34,7 +34,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         abstract val icon: Icon
 
-        abstract fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext): String
+        abstract fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String
 
         val typeProvider: PydanticTypeProvider = PydanticTypeProvider()
 
@@ -42,8 +42,9 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         private fun getTypeText(pyClass: PyClass, typeEvalContext: TypeEvalContext,
                                 pyTargetExpression: PyTargetExpression,
-                                ellipsis: PyNoneLiteralExpression): String {
-            val parameter = typeProvider.fieldToParameter(pyTargetExpression, ellipsis, typeEvalContext, pyClass)
+                                ellipsis: PyNoneLiteralExpression,
+                                pydanticVersion: KotlinVersion?): String {
+            val parameter = typeProvider.fieldToParameter(pyTargetExpression, ellipsis, typeEvalContext, pyClass, pydanticVersion)
             val defaultValue = parameter?.defaultValue?.let {
                 if (parameter.defaultValue is PyNoneLiteralExpression && !isBaseSetting(pyClass, typeEvalContext)) {
                     "=None"
@@ -60,15 +61,16 @@ class PydanticCompletionContributor : CompletionContributor() {
                                     typeEvalContext: TypeEvalContext,
                                     ellipsis: PyNoneLiteralExpression,
                                     excludes: HashSet<String>?) {
+            val pydanticVersion = getPydanticVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
                     .forEach {
-                        val elementName = getLookupNameFromFieldName(it, typeEvalContext)
+                        val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion)
                         if (excludes == null || !excludes.contains(elementName)) {
                             val element = PrioritizedLookupElement.withGrouping(
                                     LookupElementBuilder
                                             .createWithSmartPointer(elementName, it)
-                                            .withTypeText(getTypeText(pyClass, typeEvalContext, it, ellipsis))
+                                            .withTypeText(getTypeText(pyClass, typeEvalContext, it, ellipsis, pydanticVersion))
                                             .withIcon(icon), 1)
                             results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
                         }
@@ -126,8 +128,8 @@ class PydanticCompletionContributor : CompletionContributor() {
     }
 
     private object KeywordArgumentCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext): String {
-            return "${getAliasedFieldName(field, context)}="
+        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String {
+            return "${getAliasedFieldName(field, context, pydanticVersion)}="
         }
 
         override val icon: Icon = AllIcons.Nodes.Parameter
@@ -150,7 +152,7 @@ class PydanticCompletionContributor : CompletionContributor() {
     }
 
     private object FieldCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext): String {
+        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String {
             return field.name!!
         }
 

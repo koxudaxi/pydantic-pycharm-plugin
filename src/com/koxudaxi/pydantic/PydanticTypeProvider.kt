@@ -3,13 +3,10 @@ package com.koxudaxi.pydantic
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.containers.isNullOrEmpty
-import com.jetbrains.python.PyNames
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyCallExpressionNavigator
 import com.jetbrains.python.psi.impl.PySubscriptionExpressionImpl
-import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.*
 import one.util.streamex.StreamEx
 
@@ -42,19 +39,22 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
+
+        val pydanticVersion = getPydanticVersion(pyClass.project, context)
         pyClass.findClassAttribute(name, false, context)
-                ?.let { return getRefTypeFromField(it, ellipsis, context, pyClass) }
+                ?.let { return getRefTypeFromField(it, ellipsis, context, pyClass, pydanticVersion) }
         pyClass.getAncestorClasses(context).forEach { ancestor ->
             ancestor.findClassAttribute(name, false, context)
-                    ?.let { return getRefTypeFromField(it, ellipsis, context, ancestor) }
+                    ?.let { return getRefTypeFromField(it, ellipsis, context, ancestor, pydanticVersion) }
         }
         return null
     }
 
     private fun getRefTypeFromField(pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
-                                    context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
+                                    context: TypeEvalContext, pyClass: PyClass,
+                                    pydanticVersion: KotlinVersion?): Ref<PyType>? {
 
-        fieldToParameter(pyTargetExpression, ellipsis, context, pyClass)
+        fieldToParameter(pyTargetExpression, ellipsis, context, pyClass, pydanticVersion)
                 ?.let { parameter ->
                     return Ref.create(parameter.getType(context))
                 }
@@ -101,15 +101,15 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
         val collected = linkedMapOf<String, PyCallableParameter>()
-
+        val pydanticVersion = getPydanticVersion(pyClass.project, context)
         for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
-            if ( currentType !is PyClassType) continue
+            if (currentType !is PyClassType) continue
 
             val current = currentType.pyClass
             if (!isPydanticModel(current, context)) continue
 
             getClassVariables(current, context)
-                    .mapNotNull { fieldToParameter(it, ellipsis, context, current) }
+                    .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion) }
                     .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
                     .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
@@ -123,11 +123,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     internal fun fieldToParameter(field: PyTargetExpression,
                                   ellipsis: PyNoneLiteralExpression,
                                   context: TypeEvalContext,
-                                  pyClass: PyClass): PyCallableParameter? {
+                                  pyClass: PyClass,
+                                  pydanticVersion: KotlinVersion?): PyCallableParameter? {
 
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
-        val defaultValueFromField = getDefaultValueForParameter(field, ellipsis, context)
+        val defaultValueFromField = getDefaultValueForParameter(field, ellipsis, context, pydanticVersion)
         val defaultValue = when {
             isBaseSetting(pyClass, context) -> ellipsis
             else -> defaultValueFromField
@@ -142,7 +143,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }
 
 
-        return PyCallableParameterImpl.nonPsi(getAliasedFieldName(field, context), typeForParameter, defaultValue)
+        return PyCallableParameterImpl.nonPsi(getAliasedFieldName(field, context, pydanticVersion), typeForParameter, defaultValue)
     }
 
     private fun getTypeForParameter(field: PyTargetExpression,
@@ -153,7 +154,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getDefaultValueForParameter(field: PyTargetExpression,
                                             ellipsis: PyNoneLiteralExpression,
-                                            context: TypeEvalContext): PyExpression? {
+                                            context: TypeEvalContext,
+                                            pydanticVersion: KotlinVersion?): PyExpression? {
 
         when (val value = field.findAssignedValue()) {
             null -> {
@@ -171,13 +173,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 }
                 return value
             }
-            else -> return getDefaultValueByAssignedValue(field, ellipsis, context)
+            else -> return getDefaultValueByAssignedValue(field, ellipsis, context, pydanticVersion)
         }
     }
 
     private fun getDefaultValueByAssignedValue(field: PyTargetExpression,
                                                ellipsis: PyNoneLiteralExpression,
-                                               context: TypeEvalContext): PyExpression? {
+                                               context: TypeEvalContext,
+                                               pydanticVersion: KotlinVersion?): PyExpression? {
         val assignedValue = field.findAssignedValue()!!
 
         if (assignedValue.text == "...") {
@@ -188,21 +191,30 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val referenceExpression = callee.reference?.element as? PyReferenceExpression ?: return ellipsis
 
         val resolveResults = getResolveElements(referenceExpression, context)
+        val versionZero = pydanticVersion?.major == 0
         PyUtil.filterTopPriorityResults(resolveResults)
-                .mapNotNull { PsiTreeUtil.getContextOfType(it, PyClass::class.java) }
-                .any { isPydanticField(it, context) }.let {
+                .any {
+                    when {
+                        versionZero -> isPydanticSchemaByPsiElement(it, context)
+                        else -> isPydanticFieldByPsiElement(it, context)
+                    }
+
+                }
+                .let {
                     return when {
-                        it -> {
-                            val defaultValue = assignedValue.getKeywordArgument("default")
-                                    ?: assignedValue.getArgument(0, PyExpression::class.java)
-                            when {
-                                defaultValue == null -> null
-                                defaultValue.text == "..." -> null
-                                else -> defaultValue
-                            }
-                        }
+                        it -> getDefaultValue(assignedValue)
                         else -> assignedValue
                     }
                 }
+    }
+
+    private fun getDefaultValue(assignedValue: PyCallExpression): PyExpression? {
+        val defaultValue = assignedValue.getKeywordArgument("default")
+                ?: assignedValue.getArgument(0, PyExpression::class.java)
+        return when {
+            defaultValue == null -> null
+            defaultValue.text == "..." -> null
+            else -> defaultValue
+        }
     }
 }
