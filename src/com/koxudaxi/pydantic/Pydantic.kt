@@ -6,7 +6,6 @@ import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.extenstions.ModuleBasedContextAnchor
-import com.jetbrains.extenstions.ProjectSdkContextAnchor
 import com.jetbrains.extenstions.QNameResolveContext
 import com.jetbrains.extenstions.resolveToElement
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
@@ -30,17 +29,12 @@ const val DEPRECATED_SCHEMA_Q_NAME= "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 
-val versionSplitPattern: Pattern = Pattern.compile("[.a-zA-Z]")!!
+val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
-var pydanticVersions: HashMap<Project, KotlinVersion> = hashMapOf()
+val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
 
-internal fun getVersion(project: Project, context: TypeEvalContext): KotlinVersion {
-    return pydanticVersions.getOrElse(project, {
-        val version = getPydanticVersion(project, context) ?: KotlinVersion(0, 0)
-        pydanticVersions[project] = version
-        version
-    })
-}
+val pydanticVersionCache: HashMap<String, KotlinVersion> = hashMapOf()
+
 
 internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
     val callee = pyCallExpression.callee ?: return null
@@ -105,7 +99,7 @@ internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequ
             .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
 }
 
-internal fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalContext): String? {
+internal fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String? {
     val fieldName = field.name
     val assignedValue = field.findAssignedValue() ?: return fieldName
     val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return fieldName
@@ -114,7 +108,7 @@ internal fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalCon
 
     val resolveResults = getResolveElements(referenceExpression, context)
 
-    val versionZero = getVersion(field.project, context).major == 0
+    val versionZero = pydanticVersion?.major == 0
     return PyUtil.filterTopPriorityResults(resolveResults)
             .filter {
                 if (versionZero) {
@@ -183,14 +177,17 @@ internal fun getPydanticVersion(project: Project, context: TypeEvalContext): Kot
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
     val contextAnchor = ModuleBasedContextAnchor(module)
-    val qualifiedName = QualifiedName.fromDottedString(VERSION_Q_NAME)
-    val version = qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyTargetExpressionImpl ?: return null
-    val versionString = version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression ?: return null
-    val versionList = versionString.stringValue.split(versionSplitPattern).map { it.toIntOrNull() ?: 0 }
-    return when {
-        versionList.size == 1 -> KotlinVersion(versionList[0], 0)
-        versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
-        versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
-        else -> return null
-    }
+    val version = VERSION_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyTargetExpressionImpl ?: return null
+    val versionString = (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue ?: return null
+    return pydanticVersionCache.getOrElse(versionString, {
+    val versionList = versionString.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
+        val pydanticVersion = when {
+                    versionList.size == 1 -> KotlinVersion(versionList[0], 0)
+                    versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
+                    versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
+                    else ->  null
+                }  ?: KotlinVersion(0, 0)
+        pydanticVersionCache[versionString] = pydanticVersion
+        pydanticVersion
+    })
 }
