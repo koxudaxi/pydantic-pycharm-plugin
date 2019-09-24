@@ -4,6 +4,12 @@
     <version>0.0.21</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.0.22</h2>
+    <p>Features, BugFixes</p>
+    <ul>
+        <li>Fix auto-completion for Fields [#75] </li>
+        <li>Improve to insert validate methods [#74] </li>
+    </ul>
     <h2>version 0.0.21</h2>
     <p>Features, BugFixes</p>
     <ul>

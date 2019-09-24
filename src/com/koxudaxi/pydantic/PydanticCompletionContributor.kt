@@ -118,7 +118,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             { completionResult ->
                 if (completionResult.lookupElement.psiElement?.getIcon(0) == AllIcons.Nodes.Field) {
                     completionResult.lookupElement.lookupString
-                            .takeIf { name -> !fieldElements.contains(name) && (excludes == null || !excludes.contains(name)) }
+                            .takeIf { name -> !fieldElements.contains(name) && (!excludes.contains(name)) }
                             ?.let { result.passResult(completionResult) }
                 } else {
                     result.passResult(completionResult)
@@ -135,9 +135,9 @@ class PydanticCompletionContributor : CompletionContributor() {
         override val icon: Icon = AllIcons.Nodes.Parameter
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-            val pyArgumentList = parameters.position.parent!!.parent!! as PyArgumentList
+            val pyArgumentList = parameters.position.parent?.parent as? PyArgumentList ?: return
             val typeEvalContext = parameters.getTypeEvalContext()
-            val pyClassType = (typeEvalContext.getType(pyArgumentList.parent as PyCallExpression) as? PyClassType)
+            val pyClassType = (pyArgumentList.parent as? PyCallExpression)?.let{typeEvalContext.getType(it)} as? PyClassType
                     ?: return
 
             if (!isPydanticModel(pyClassType.pyClass, typeEvalContext)) return
@@ -160,7 +160,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
             val typeEvalContext = parameters.getTypeEvalContext()
-            val pyType = typeEvalContext.getType(parameters.position.parent.firstChild as PyTypedElement) ?: return
+            val pyType = (parameters.position.parent?.firstChild as? PyTypedElement)?.let { typeEvalContext.getType(it)} ?: return
 
             val pyClassType = getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass) } ?: return
             if (pyClassType.isDefinition) { // class
