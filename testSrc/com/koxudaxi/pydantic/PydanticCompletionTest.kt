@@ -431,6 +431,14 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testClassValidatorCls() {
+        doFieldTest(
+                listOf(
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
     fun testMethodSelf() {
         doFieldTest(
                 listOf(

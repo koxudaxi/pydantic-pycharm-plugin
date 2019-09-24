@@ -28,13 +28,20 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     override fun getParameterType(param: PyNamedParameter, func: PyFunction, context: TypeEvalContext): Ref<PyType>? {
-        if (!param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == "__init__") {
-            val pyClass = func.containingClass ?: return null
-            if (!isPydanticModel(pyClass, context)) return null
-            val name = param.name ?: return null
-            getRefTypeFromFieldName(name, context, pyClass)?.let { return it }
+        return when {
+            !param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == "__init__" -> {
+                val pyClass = func.containingClass ?: return null
+                if (!isPydanticModel(pyClass, context)) return null
+                val name = param.name ?: return null
+                getRefTypeFromFieldName(name, context, pyClass)?.let { it }
+            }
+            param.isSelf && isValidatorMethod(func) -> {
+                val pyClass = func.containingClass ?: return null
+                if (!isPydanticModel(pyClass, context)) return null
+                Ref.create(context.getType(pyClass))
+            }
+            else -> null
         }
-        return null
     }
 
     private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
