@@ -114,7 +114,7 @@ internal fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalCon
                 if (versionZero) {
                     isPydanticSchemaByPsiElement(it, context)
                 } else {
-                    isPydanticFieldByPsiElement(it, context)
+                    isPydanticFieldByPsiElement(it)
                 }
 
             }
@@ -164,7 +164,7 @@ internal fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeE
     return false
 }
 
-internal fun isPydanticFieldByPsiElement(psiElement: PsiElement, context: TypeEvalContext): Boolean {
+internal fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
     when (psiElement) {
         is PyFunction -> return isPydanticField(psiElement)
         else -> PsiTreeUtil.getContextOfType(psiElement, PyFunction::class.java)
@@ -190,4 +190,8 @@ internal fun getPydanticVersion(project: Project, context: TypeEvalContext): Kot
         pydanticVersionCache[versionString] = pydanticVersion
         pydanticVersion
     })
+}
+
+internal fun isValidFieldName(name: String): Boolean {
+    return name.first() != '_'
 }

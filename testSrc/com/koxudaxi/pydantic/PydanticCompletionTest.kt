@@ -29,6 +29,13 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testKeywordArgumentIgnore() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
     fun testKeywordArgumentParent() {
         doFieldTest(
                 listOf(
@@ -339,6 +346,14 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("cde", "str=str('abc') A"),
                         Pair("efg", "str A"),
                         Pair("hij", "Any A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+
+    fun testFieldIgnore() {
+        doFieldTest(
+                listOf(
                         Pair("___slots__", "BaseModel")
                 )
         )

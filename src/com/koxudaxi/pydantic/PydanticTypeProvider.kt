@@ -132,7 +132,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                   context: TypeEvalContext,
                                   pyClass: PyClass,
                                   pydanticVersion: KotlinVersion?): PyCallableParameter? {
-
+        if (field.name == null || ! isValidFieldName(field.name!!)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
         val defaultValueFromField = getDefaultValueForParameter(field, ellipsis, context, pydanticVersion)
@@ -203,7 +203,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .any {
                     when {
                         versionZero -> isPydanticSchemaByPsiElement(it, context)
-                        else -> isPydanticFieldByPsiElement(it, context)
+                        else -> isPydanticFieldByPsiElement(it)
                     }
 
                 }
