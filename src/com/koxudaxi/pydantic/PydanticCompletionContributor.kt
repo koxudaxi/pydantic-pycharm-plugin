@@ -64,6 +64,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pydanticVersion = getPydanticVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
+                    .filter {isValidFieldName(it.name!!)}
                     .forEach {
                         val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion)
                         if (excludes == null || !excludes.contains(elementName)) {
@@ -109,10 +110,17 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             pyClass.getAncestorClasses(typeEvalContext)
                     .filter { isPydanticModel(it) }
-                    .forEach { fieldElements.addAll(it.classAttributes.mapNotNull { attribute -> attribute?.name }) }
+                    .forEach { fieldElements.addAll(it.classAttributes
+                            .filter {attribute
+                                -> attribute.name?.let { name -> isValidFieldName(name)} ?: false}
+                            .mapNotNull { attribute -> attribute?.name }) }
 
 
-            fieldElements.addAll(pyClass.classAttributes.mapNotNull { attribute -> attribute?.name })
+
+            fieldElements.addAll(pyClass.classAttributes
+                    .filter {attribute
+                        -> attribute.name?.let { name -> isValidFieldName(name)} ?: false}
+                    .mapNotNull { attribute -> attribute?.name })
 
             result.runRemainingContributors(parameters)
             { completionResult ->
