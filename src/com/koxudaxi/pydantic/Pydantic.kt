@@ -145,13 +145,6 @@ internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
                     .flatMap {
                         getPyClassTypeByPyTypes(it)
                     }
-
-        is PyCollectionType ->
-            pyType.elementTypes
-                    .mapNotNull { it }
-                    .flatMap {
-                        getPyClassTypeByPyTypes(it)
-                    }
         is PyClassType -> listOf(pyType)
         else -> listOf()
     }
