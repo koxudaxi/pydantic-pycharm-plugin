@@ -14,7 +14,10 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
-import com.jetbrains.python.psi.types.*
+import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyType
+import com.jetbrains.python.psi.types.PyUnionType
+import com.jetbrains.python.psi.types.TypeEvalContext
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
@@ -25,7 +28,7 @@ const val VALIDATOR_Q_NAME = "pydantic.validator"
 const val ROOT_VALIDATOR_Q_NAME = "pydantic.root_validator"
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.fields.Field"
-const val DEPRECATED_SCHEMA_Q_NAME= "pydantic.fields.Schema"
+const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 
@@ -153,7 +156,7 @@ internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
 
 internal fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeEvalContext): Boolean {
     PsiTreeUtil.getContextOfType(psiElement, PyClass::class.java)
-            ?.let {return isPydanticSchema(it, context) }
+            ?.let { return isPydanticSchema(it, context) }
     return false
 }
 
@@ -161,7 +164,7 @@ internal fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
     when (psiElement) {
         is PyFunction -> return isPydanticField(psiElement)
         else -> PsiTreeUtil.getContextOfType(psiElement, PyFunction::class.java)
-                ?.let {return isPydanticField(it) }
+                ?.let { return isPydanticField(it) }
     }
     return false
 }
@@ -170,16 +173,18 @@ internal fun getPydanticVersion(project: Project, context: TypeEvalContext): Kot
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
     val contextAnchor = ModuleBasedContextAnchor(module)
-    val version = VERSION_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyTargetExpressionImpl ?: return null
-    val versionString = (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue ?: return null
+    val version = VERSION_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyTargetExpressionImpl
+            ?: return null
+    val versionString = (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue
+            ?: return null
     return pydanticVersionCache.getOrElse(versionString, {
-    val versionList = versionString.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
+        val versionList = versionString.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
         val pydanticVersion = when {
-                    versionList.size == 1 -> KotlinVersion(versionList[0], 0)
-                    versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
-                    versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
-                    else ->  null
-                }  ?: KotlinVersion(0, 0)
+            versionList.size == 1 -> KotlinVersion(versionList[0], 0)
+            versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
+            versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
+            else -> null
+        } ?: KotlinVersion(0, 0)
         pydanticVersionCache[versionString] = pydanticVersion
         pydanticVersion
     })
@@ -187,4 +192,52 @@ internal fun getPydanticVersion(project: Project, context: TypeEvalContext): Kot
 
 internal fun isValidFieldName(name: String): Boolean {
     return name.first() != '_'
+}
+
+data class Config(
+        var allowPopulationByAlias: Boolean? = null,
+        var allowPopulationByFieldName: Boolean? = null
+)
+
+val DEFAULT_CONFIG = Config(
+        allowPopulationByAlias = false,
+        allowPopulationByFieldName = false
+)
+
+private fun getAssignedValueFromClassAttribute(pyClass: PyClass, name: String, context: TypeEvalContext): String? {
+    return pyClass.findClassAttribute(name, true, context)
+            ?.let { it.findAssignedValue()?.text }
+}
+
+internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): Config {
+    val config = Config()
+    pyClass.getAncestorClasses(context)
+            .filter { isPydanticModel(it) }
+            .map { getConfig(it, context, false) }
+            .forEach {
+                if (it.allowPopulationByAlias != null) {
+                    config.allowPopulationByAlias = it.allowPopulationByAlias
+                }
+                if (it.allowPopulationByFieldName != null) {
+                    config.allowPopulationByFieldName = it.allowPopulationByFieldName
+                }
+            }
+    pyClass.nestedClasses.firstOrNull { it.name == "Config" }?.let {
+        getAssignedValueFromClassAttribute(it, "allow_population_by_alias", context)
+                ?.let { value -> config.allowPopulationByAlias = value == "True" }
+        getAssignedValueFromClassAttribute(it, "allow_population_by_field_name", context)
+                ?.let { value -> config.allowPopulationByFieldName = value == "True" }
+
+    }
+    if (setDefault) {
+
+        if (config.allowPopulationByAlias == null) {
+            config.allowPopulationByAlias = DEFAULT_CONFIG.allowPopulationByAlias
+
+        }
+        if (config.allowPopulationByFieldName == null) {
+            config.allowPopulationByFieldName = DEFAULT_CONFIG.allowPopulationByFieldName
+        }
+    }
+    return config
 }

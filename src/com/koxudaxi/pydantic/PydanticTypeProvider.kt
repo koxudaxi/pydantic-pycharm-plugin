@@ -149,8 +149,23 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             getTypeForParameter(field, context)
         }
 
-
-        return PyCallableParameterImpl.nonPsi(getAliasedFieldName(field, context, pydanticVersion), typeForParameter, defaultValue)
+        val config = getConfig(pyClass, context, true)
+        val versionZero = pydanticVersion?.major == 0
+        val filedName: String?
+        filedName = if (versionZero){
+            if(config.allowPopulationByAlias!!) {
+                field.name
+            } else {
+                getAliasedFieldName(field, context, pydanticVersion)
+            }
+        } else{
+            if(config.allowPopulationByFieldName!!) {
+                field.name
+            } else {
+                getAliasedFieldName(field, context, pydanticVersion)
+            }
+        }
+        return PyCallableParameterImpl.nonPsi(filedName, typeForParameter, defaultValue)
     }
 
     private fun getTypeForParameter(field: PyTargetExpression,
