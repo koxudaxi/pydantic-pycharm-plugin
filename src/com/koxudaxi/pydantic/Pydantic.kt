@@ -102,7 +102,7 @@ internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequ
             .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
 }
 
-internal fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String? {
+private fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String? {
     val fieldName = field.name
     val assignedValue = field.findAssignedValue() ?: return fieldName
     val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return fieldName
@@ -212,6 +212,7 @@ private fun getAssignedValueFromClassAttribute(pyClass: PyClass, name: String, c
 internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): Config {
     val config = Config()
     pyClass.getAncestorClasses(context)
+            .reversed()
             .filter { isPydanticModel(it) }
             .map { getConfig(it, context, false) }
             .forEach {
@@ -240,4 +241,24 @@ internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: B
         }
     }
     return config
+}
+
+internal fun getFieldName(field: PyTargetExpression,
+                          context: TypeEvalContext,
+                          config: Config,
+                          pydanticVersion: KotlinVersion?): String?{
+
+    return if (pydanticVersion?.major == 0){
+        if(config.allowPopulationByAlias!!) {
+            field.name
+        } else {
+            getAliasedFieldName(field, context, pydanticVersion)
+        }
+    } else{
+        if(config.allowPopulationByFieldName!!) {
+            field.name
+        } else {
+            getAliasedFieldName(field, context, pydanticVersion)
+        }
+    }
 }
