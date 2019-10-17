@@ -62,9 +62,9 @@ class PydanticCompletionContributor : CompletionContributor() {
         private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
                                     typeEvalContext: TypeEvalContext,
                                     ellipsis: PyNoneLiteralExpression,
+                                    config: Config,
                                     excludes: HashSet<String>?) {
             val pydanticVersion = getPydanticVersion(pyClass.project, typeEvalContext)
-            val config = getConfig(pyClass, typeEvalContext, true)
             getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
                     .filter {isValidFieldName(it.name!!)}
@@ -84,15 +84,16 @@ class PydanticCompletionContributor : CompletionContributor() {
         protected fun addAllFieldElement(parameters: CompletionParameters, result: CompletionResultSet,
                                          pyClass: PyClass, typeEvalContext: TypeEvalContext,
                                          ellipsis: PyNoneLiteralExpression,
+                                         config: Config,
                                          excludes: HashSet<String>? = null) {
 
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
 
             pyClass.getAncestorClasses(typeEvalContext)
                     .filter { isPydanticModel(it) }
-                    .forEach { addFieldElement(it, newElements, typeEvalContext, ellipsis, excludes) }
+                    .forEach { addFieldElement(it, newElements, typeEvalContext, ellipsis, config, excludes) }
 
-            addFieldElement(pyClass, newElements, typeEvalContext, ellipsis, excludes)
+            addFieldElement(pyClass, newElements, typeEvalContext, ellipsis, config, excludes)
 
             result.runRemainingContributors(parameters)
             { completionResult ->
@@ -157,8 +158,9 @@ class PydanticCompletionContributor : CompletionContributor() {
                     .mapNotNull { (it as? PyKeywordArgument)?.name }
                     .map { "${it}=" }
                     .toHashSet()
+            val config = getConfig(pyClassType.pyClass, typeEvalContext, true)
             val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
-            addAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, ellipsis, definedSet)
+            addAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, ellipsis, config, definedSet)
         }
     }
 
@@ -178,8 +180,9 @@ class PydanticCompletionContributor : CompletionContributor() {
                 removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields)
                 return
             }
+            val config = getConfig(pyClassType.pyClass, typeEvalContext, true)
             val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
-            addAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, ellipsis)
+            addAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, ellipsis, config)
         }
     }
 }
