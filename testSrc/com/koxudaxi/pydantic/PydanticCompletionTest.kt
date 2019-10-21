@@ -556,6 +556,15 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testkeywordArgumentAllowPopulationByFieldNameMultipleInheritance() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str C"),
+                        Pair("cde=", "str C")
+                )
+        )
+    }
+
     fun testkeywordArgumentAllowPopulationByFieldNameFalse() {
         doFieldTest(
                 listOf(
