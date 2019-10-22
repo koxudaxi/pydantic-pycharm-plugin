@@ -529,4 +529,48 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testkeywordArgumentAllowPopulationByFieldName() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str A")
+                )
+        )
+    }
+
+    fun testkeywordArgumentAllowPopulationByFieldNameChild() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str A")
+                )
+        )
+    }
+
+    fun testkeywordArgumentAllowPopulationByFieldNameParent() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str B"),
+                        Pair("cde=", "str B")
+                )
+        )
+    }
+
+    fun testkeywordArgumentAllowPopulationByFieldNameMultipleInheritance() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str C"),
+                        Pair("cde=", "str C")
+                )
+        )
+    }
+
+    fun testkeywordArgumentAllowPopulationByFieldNameFalse() {
+        doFieldTest(
+                listOf(
+                        Pair("ABC=", "str A"),
+                        Pair("CDE=", "str A")
+                )
+        )
+    }
 }

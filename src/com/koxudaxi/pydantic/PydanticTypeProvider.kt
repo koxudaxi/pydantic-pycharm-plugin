@@ -60,8 +60,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getRefTypeFromField(pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
                                     context: TypeEvalContext, pyClass: PyClass,
                                     pydanticVersion: KotlinVersion?): Ref<PyType>? {
-
-        fieldToParameter(pyTargetExpression, ellipsis, context, pyClass, pydanticVersion)
+        val config = getConfig(pyClass, context, true)
+        fieldToParameter(pyTargetExpression, ellipsis, context, pyClass, pydanticVersion, config)
                 ?.let { parameter ->
                     return Ref.create(parameter.getType(context))
                 }
@@ -109,6 +109,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val collected = linkedMapOf<String, PyCallableParameter>()
         val pydanticVersion = getPydanticVersion(pyClass.project, context)
+        val config = getConfig(pyClass, context, true)
         for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
             if (currentType !is PyClassType) continue
 
@@ -116,7 +117,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             if (!isPydanticModel(current, context)) continue
 
             getClassVariables(current, context)
-                    .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion) }
+                    .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion, config) }
                     .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
                     .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
@@ -131,7 +132,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                   ellipsis: PyNoneLiteralExpression,
                                   context: TypeEvalContext,
                                   pyClass: PyClass,
-                                  pydanticVersion: KotlinVersion?): PyCallableParameter? {
+                                  pydanticVersion: KotlinVersion?,
+                                  config: HashMap<String, String?>): PyCallableParameter? {
         if (field.name == null || ! isValidFieldName(field.name!!)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
@@ -149,8 +151,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             getTypeForParameter(field, context)
         }
 
-
-        return PyCallableParameterImpl.nonPsi(getAliasedFieldName(field, context, pydanticVersion), typeForParameter, defaultValue)
+        return PyCallableParameterImpl.nonPsi(
+                getFieldName(field, context, config, pydanticVersion),
+                typeForParameter,
+                defaultValue
+        )
     }
 
     private fun getTypeForParameter(field: PyTargetExpression,

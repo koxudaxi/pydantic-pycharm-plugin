@@ -14,7 +14,10 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
-import com.jetbrains.python.psi.types.*
+import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyType
+import com.jetbrains.python.psi.types.PyUnionType
+import com.jetbrains.python.psi.types.TypeEvalContext
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
@@ -25,7 +28,7 @@ const val VALIDATOR_Q_NAME = "pydantic.validator"
 const val ROOT_VALIDATOR_Q_NAME = "pydantic.root_validator"
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.fields.Field"
-const val DEPRECATED_SCHEMA_Q_NAME= "pydantic.fields.Schema"
+const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 
@@ -35,6 +38,10 @@ val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
 
 val pydanticVersionCache: HashMap<String, KotlinVersion> = hashMapOf()
 
+val DEFAULT_CONFIG = mapOf(
+        "allow_population_by_alias" to "False",
+        "allow_population_by_field_name" to "False"
+)
 
 internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
     val callee = pyCallExpression.callee ?: return null
@@ -99,7 +106,7 @@ internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequ
             .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
 }
 
-internal fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String? {
+private fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String? {
     val fieldName = field.name
     val assignedValue = field.findAssignedValue() ?: return fieldName
     val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return fieldName
@@ -153,7 +160,7 @@ internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
 
 internal fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeEvalContext): Boolean {
     PsiTreeUtil.getContextOfType(psiElement, PyClass::class.java)
-            ?.let {return isPydanticSchema(it, context) }
+            ?.let { return isPydanticSchema(it, context) }
     return false
 }
 
@@ -161,7 +168,7 @@ internal fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
     when (psiElement) {
         is PyFunction -> return isPydanticField(psiElement)
         else -> PsiTreeUtil.getContextOfType(psiElement, PyFunction::class.java)
-                ?.let {return isPydanticField(it) }
+                ?.let { return isPydanticField(it) }
     }
     return false
 }
@@ -170,16 +177,18 @@ internal fun getPydanticVersion(project: Project, context: TypeEvalContext): Kot
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
     val contextAnchor = ModuleBasedContextAnchor(module)
-    val version = VERSION_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyTargetExpressionImpl ?: return null
-    val versionString = (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue ?: return null
+    val version = VERSION_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyTargetExpressionImpl
+            ?: return null
+    val versionString = (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue
+            ?: return null
     return pydanticVersionCache.getOrElse(versionString, {
-    val versionList = versionString.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
+        val versionList = versionString.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
         val pydanticVersion = when {
-                    versionList.size == 1 -> KotlinVersion(versionList[0], 0)
-                    versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
-                    versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
-                    else ->  null
-                }  ?: KotlinVersion(0, 0)
+            versionList.size == 1 -> KotlinVersion(versionList[0], 0)
+            versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
+            versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
+            else -> null
+        } ?: KotlinVersion(0, 0)
         pydanticVersionCache[versionString] = pydanticVersion
         pydanticVersion
     })
@@ -187,4 +196,56 @@ internal fun getPydanticVersion(project: Project, context: TypeEvalContext): Kot
 
 internal fun isValidFieldName(name: String): Boolean {
     return name.first() != '_'
+}
+
+
+internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): HashMap<String, String?> {
+    val config = hashMapOf<String, String?>()
+    pyClass.getAncestorClasses(context)
+            .reversed()
+            .filter { isPydanticModel(it) }
+            .map { getConfig(it, context, false) }
+            .forEach {
+                it.entries.forEach { entry ->
+                    if (entry.value != null) {
+                        config[entry.key] = entry.value
+                    }
+                }
+            }
+    pyClass.nestedClasses.firstOrNull { it.name == "Config" }?.let {
+        it.classAttributes.forEach { attribute ->
+            attribute.findAssignedValue()?.text?.let { value ->
+                attribute.name?.let { name -> config[name] = value }
+            }
+        }
+    }
+
+    if (setDefault) {
+        DEFAULT_CONFIG.forEach { (key, value) ->
+            if (!config.containsKey(key)) {
+                config[key] = value
+            }
+        }
+    }
+    return config
+}
+
+internal fun getFieldName(field: PyTargetExpression,
+                          context: TypeEvalContext,
+                          config: HashMap<String, String?>,
+                          pydanticVersion: KotlinVersion?): String? {
+
+    return if (pydanticVersion?.major == 0) {
+        if (config["allow_population_by_alias"] == "True") {
+            field.name
+        } else {
+            getAliasedFieldName(field, context, pydanticVersion)
+        }
+    } else {
+        if (config["allow_population_by_field_name"] == "True") {
+            field.name
+        } else {
+            getAliasedFieldName(field, context, pydanticVersion)
+        }
+    }
 }
