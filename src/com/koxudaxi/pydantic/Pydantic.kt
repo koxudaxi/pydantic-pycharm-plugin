@@ -31,8 +31,11 @@ const val FIELD_Q_NAME = "pydantic.fields.Field"
 const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
+const val BASE_CONFIG_Q_NAME = "pydantic.BaseConfig"
 
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
+
+val BASE_CONFIG_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_CONFIG_Q_NAME)
 
 val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
 
@@ -97,6 +100,10 @@ internal fun isPydanticField(pyFunction: PyFunction): Boolean {
 
 internal fun isValidatorMethod(pyFunction: PyFunction): Boolean {
     return hasDecorator(pyFunction, VALIDATOR_Q_NAME) || hasDecorator(pyFunction, ROOT_VALIDATOR_Q_NAME)
+}
+
+internal fun isConfigClass(pyClass: PyClass): Boolean {
+    return pyClass.name == "Config"
 }
 
 internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
@@ -212,7 +219,7 @@ internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: B
                     }
                 }
             }
-    pyClass.nestedClasses.firstOrNull { it.name == "Config" }?.let {
+    pyClass.nestedClasses.firstOrNull { isConfigClass(it) }?.let {
         it.classAttributes.forEach { attribute ->
             attribute.findAssignedValue()?.text?.let { value ->
                 attribute.name?.let { name -> config[name] = value }
@@ -248,4 +255,12 @@ internal fun getFieldName(field: PyTargetExpression,
             getAliasedFieldName(field, context, pydanticVersion)
         }
     }
+}
+
+
+internal fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? {
+    val module = project.modules.firstOrNull() ?: return null
+    val pythonSdk = module.pythonSdk
+    val contextAnchor = ModuleBasedContextAnchor(module)
+    return BASE_CONFIG_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyClass
 }

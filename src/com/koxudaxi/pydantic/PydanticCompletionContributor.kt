@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.project.Project
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyTokenTypes
@@ -28,6 +29,15 @@ class PydanticCompletionContributor : CompletionContributor() {
                         .afterLeaf(psiElement(PyTokenTypes.DOT))
                         .withParent(psiElement(PyReferenceExpression::class.java)),
                 FieldCompletionProvider)
+        extend(CompletionType.BASIC,
+                psiElement(PyTokenTypes.IDENTIFIER).withParents(
+                        PyReferenceExpression::class.java,
+                        PyExpressionStatement::class.java,
+                        PyStatementList::class.java,
+                        PyClass::class.java,
+                        PyStatementList::class.java,
+                        PyClass::class.java),
+                ConfigCompletionProvider)
     }
 
     private abstract class PydanticCompletionProvider : CompletionProvider<CompletionParameters>() {
@@ -185,4 +195,58 @@ class PydanticCompletionContributor : CompletionContributor() {
             addAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, ellipsis, config)
         }
     }
+
+    private object ConfigCompletionProvider : PydanticCompletionProvider() {
+        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, String?>): String {
+            return "${getFieldName(field, context, config, pydanticVersion)}="
+        }
+
+        override val icon: Icon = AllIcons.Nodes.Field
+
+        private fun getConfigAttributeAllElements(configClass: PyClass,
+                                    typeEvalContext: TypeEvalContext,
+                                    excludes: HashSet<String>?) : LinkedHashMap<String, LookupElement> {
+
+            val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
+
+            configClass.classAttributes
+                    .asReversed()
+                    .asSequence()
+                    .filter { it.name != null && it.hasAssignedValue() }
+                    .forEach {
+                        val elementName = it.name!!
+                        val assignedValue = it.findAssignedValue()!!
+                        if (excludes == null || !excludes.contains(elementName)) {
+                            val element = PrioritizedLookupElement.withGrouping(
+                                    LookupElementBuilder
+                                            .createWithSmartPointer("$elementName = ${assignedValue.text}", it)
+                                            .withTypeText(configClass.name)
+                                            .withIcon(icon), 1)
+                            newElements[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+                        }
+                    }
+            return newElements
+        }
+
+
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+            val configClass = parameters.position.parent?.parent?.parent?.parent as? PyClass ?: return
+            if (!isConfigClass(configClass)) return
+            val pydanticModel = configClass.parent?.parent as? PyClass ?:return
+            if (!isPydanticModel(pydanticModel)) return
+            val typeEvalContext = parameters.getTypeEvalContext()
+
+            val definedSet = configClass.getClassAttributesInherited(typeEvalContext)
+                    .mapNotNull { it.name }
+                    .toHashSet()
+
+            val project = configClass.project
+            val baseConfig = getPydanticBaseConfig(project, typeEvalContext) ?: return
+
+            val results = getConfigAttributeAllElements(baseConfig, typeEvalContext, definedSet)
+            result.runRemainingContributors(parameters,false)
+            result.addAllElements(results.values)
+        }
+    }
+
 }
