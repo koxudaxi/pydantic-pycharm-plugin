@@ -59,6 +59,11 @@ $ gradlew.bat buildPlugin
 $ ./gradlew runIde
 ```
 
+
+## Contribute
+We are waiting for your contributions to `lpydantic-pycharm-plugin`.
+
+
 ## Links
 ### JetBrains Plugin Page
 [Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic)
