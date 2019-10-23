@@ -236,7 +236,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             if (!isPydanticModel(pydanticModel)) return
             val typeEvalContext = parameters.getTypeEvalContext()
 
-            val definedSet = configClass.getClassAttributesInherited(typeEvalContext)
+            val definedSet = configClass.classAttributes
                     .mapNotNull { it.name }
                     .toHashSet()
 
