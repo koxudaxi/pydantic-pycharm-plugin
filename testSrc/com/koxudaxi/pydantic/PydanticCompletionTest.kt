@@ -118,10 +118,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testInstanceBroken() {
         doFieldTest(
                 listOf(
-                    Pair("abc", "str A"),
-                    Pair("cde", "str=s A"),
-                    Pair("efg", "Any A"),
-                    Pair("___slots__", "BaseModel")
+                        Pair("abc", "str A"),
+                        Pair("cde", "str=s A"),
+                        Pair("efg", "Any A"),
+                        Pair("___slots__", "BaseModel")
                 )
         )
     }
@@ -321,6 +321,60 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testConfig() {
+        doFieldTest(
+                listOf(
+                        Pair("alias_generator = None", "BaseConfig"),
+                        Pair("allow_mutation = True", "BaseConfig"),
+                        Pair("allow_population_by_field_name = False", "BaseConfig"),
+                        Pair("anystr_strip_whitespace = False", "BaseConfig"),
+                        Pair("arbitrary_types_allowed = False", "BaseConfig"),
+                        Pair("error_msg_templates = {}", "BaseConfig"),
+                        Pair("extra = Extra.ignore", "BaseConfig"),
+                        Pair("fields = {}", "BaseConfig"),
+                        Pair("getter_dict = GetterDict", "BaseConfig"),
+                        Pair("json_dumps = json.dumps", "BaseConfig"),
+                        Pair("json_encoders = {}", "BaseConfig"),
+                        Pair("json_loads = json.loads", "BaseConfig"),
+                        Pair("keep_untouched = ()", "BaseConfig"),
+                        Pair("max_anystr_length = None", "BaseConfig"),
+                        Pair("min_anystr_length = None", "BaseConfig"),
+                        Pair("orm_mode = False", "BaseConfig"),
+                        Pair("schema_extra = {}", "BaseConfig"),
+                        Pair("title = None", "BaseConfig"),
+                        Pair("use_enum_values = False", "BaseConfig"),
+                        Pair("validate_all = False", "BaseConfig"),
+                        Pair("validate_assignment = False", "BaseConfig")
+                )
+        )
+    }
+
+    fun testConfigDefined() {
+        doFieldTest(
+                listOf(
+                        Pair("alias_generator = None", "BaseConfig"),
+                        Pair("allow_mutation = True", "BaseConfig"),
+                        Pair("anystr_strip_whitespace = False", "BaseConfig"),
+                        Pair("arbitrary_types_allowed = False", "BaseConfig"),
+                        Pair("error_msg_templates = {}", "BaseConfig"),
+                        Pair("extra = Extra.ignore", "BaseConfig"),
+                        Pair("fields = {}", "BaseConfig"),
+                        Pair("getter_dict = GetterDict", "BaseConfig"),
+                        Pair("json_dumps = json.dumps", "BaseConfig"),
+                        Pair("json_encoders = {}", "BaseConfig"),
+                        Pair("json_loads = json.loads", "BaseConfig"),
+                        Pair("keep_untouched = ()", "BaseConfig"),
+                        Pair("min_anystr_length = None", "BaseConfig"),
+                        Pair("orm_mode = False", "BaseConfig"),
+                        Pair("schema_extra = {}", "BaseConfig"),
+                        Pair("title = None", "BaseConfig"),
+                        Pair("use_enum_values = False", "BaseConfig"),
+                        Pair("validate_all = False", "BaseConfig"),
+                        Pair("validate_assignment = False", "BaseConfig")
+                )
+        )
+    }
+
     fun testPythonClass() {
         doFieldTest(
                 listOf(
@@ -384,10 +438,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldSchema() {
         doFieldTest(
                 listOf(
-                        Pair("a_id","str A"),
+                        Pair("a_id", "str A"),
                         Pair("abc", "str A"),
-                        Pair("b_id","str A"),
-                        Pair("c_id","str A"),
+                        Pair("b_id", "str A"),
+                        Pair("c_id", "str A"),
                         Pair("cde", "str=str('abc') A"),
                         Pair("d_id", "str A"),
                         Pair("e_id", "str A"),
@@ -403,10 +457,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldSchemaField() {
         doFieldTest(
                 listOf(
-                        Pair("a_id","str A"),
+                        Pair("a_id", "str A"),
                         Pair("abc", "str A"),
-                        Pair("b_id","str A"),
-                        Pair("c_id","str A"),
+                        Pair("b_id", "str A"),
+                        Pair("c_id", "str A"),
                         Pair("cde", "str=str('abc') A"),
                         Pair("d_id", "str A"),
                         Pair("e_id", "str A"),
@@ -422,10 +476,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldField() {
         doFieldTest(
                 listOf(
-                        Pair("a_id","str A"),
+                        Pair("a_id", "str A"),
                         Pair("abc", "str A"),
-                        Pair("b_id","str A"),
-                        Pair("c_id","str A"),
+                        Pair("b_id", "str A"),
+                        Pair("c_id", "str A"),
                         Pair("cde", "str=str('abc') A"),
                         Pair("d_id", "str A"),
                         Pair("e_id", "str A"),
@@ -481,6 +535,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 )
         )
     }
+
     fun testKeywordArgumentSchemaField() {
         doFieldTest(
                 listOf(
