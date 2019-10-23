@@ -375,6 +375,21 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+//    fun testNestedClass() {
+//        doFieldTest(
+//                listOf(
+//                        Pair("class Config", "null")
+//                )
+//        )
+//    }
+
+    fun testDefinedNestedClass() {
+        doFieldTest(
+                listOf(
+                )
+        )
+    }
+
     fun testPythonClass() {
         doFieldTest(
                 listOf(

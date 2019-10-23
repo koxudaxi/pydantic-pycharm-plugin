@@ -4,9 +4,11 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.editor.EditorModificationUtil
 import com.intellij.openapi.project.Project
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.util.ProcessingContext
+import com.jetbrains.python.PyNames
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHint
@@ -38,6 +40,13 @@ class PydanticCompletionContributor : CompletionContributor() {
                         PyStatementList::class.java,
                         PyClass::class.java),
                 ConfigCompletionProvider)
+        extend(CompletionType.BASIC,
+                psiElement(PyTokenTypes.IDENTIFIER).withParents(
+                        PyReferenceExpression::class.java,
+                        PyExpressionStatement::class.java,
+                        PyStatementList::class.java,
+                        PyClass::class.java),
+                ConfigClassCompletionProvider)
     }
 
     private abstract class PydanticCompletionProvider : CompletionProvider<CompletionParameters>() {
@@ -149,6 +158,11 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
     }
 
+    private abstract class PydanticConfigCompletionProvider : CompletionProvider<CompletionParameters>() {
+
+        abstract val icon: Icon
+  }
+
     private object KeywordArgumentCompletionProvider : PydanticCompletionProvider() {
         override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, String?>): String {
             return "${getFieldName(field, context, config, pydanticVersion)}="
@@ -196,10 +210,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
     }
 
-    private object ConfigCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, String?>): String {
-            return "${getFieldName(field, context, config, pydanticVersion)}="
-        }
+    private object ConfigCompletionProvider : PydanticConfigCompletionProvider() {
 
         override val icon: Icon = AllIcons.Nodes.Field
 
@@ -246,6 +257,22 @@ class PydanticCompletionContributor : CompletionContributor() {
             val results = getConfigAttributeAllElements(baseConfig, typeEvalContext, definedSet)
             result.runRemainingContributors(parameters,false)
             result.addAllElements(results.values)
+        }
+    }
+
+    private object ConfigClassCompletionProvider : PydanticConfigCompletionProvider() {
+
+        override val icon: Icon = AllIcons.Nodes.Class
+
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+            val pydanticModel = parameters.position.parent?.parent?.parent?.parent as? PyClass ?: return
+            if (!isPydanticModel(pydanticModel)) return
+            if (pydanticModel.findNestedClass("Config", false) != null) return
+            val element = PrioritizedLookupElement.withGrouping(
+                    LookupElementBuilder
+                            .create("class Config:")
+                            .withIcon(icon), 1)
+            result.addElement(PrioritizedLookupElement.withPriority(element, 100.0))
         }
     }
 
