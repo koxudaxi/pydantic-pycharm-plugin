@@ -215,7 +215,6 @@ class PydanticCompletionContributor : CompletionContributor() {
         override val icon: Icon = AllIcons.Nodes.Field
 
         private fun getConfigAttributeAllElements(configClass: PyClass,
-                                    typeEvalContext: TypeEvalContext,
                                     excludes: HashSet<String>?) : LinkedHashMap<String, LookupElement> {
 
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
@@ -254,7 +253,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val project = configClass.project
             val baseConfig = getPydanticBaseConfig(project, typeEvalContext) ?: return
 
-            val results = getConfigAttributeAllElements(baseConfig, typeEvalContext, definedSet)
+            val results = getConfigAttributeAllElements(baseConfig, definedSet)
             result.runRemainingContributors(parameters,false)
             result.addAllElements(results.values)
         }
