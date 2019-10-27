@@ -43,7 +43,8 @@ val pydanticVersionCache: HashMap<String, KotlinVersion> = hashMapOf()
 
 val DEFAULT_CONFIG = mapOf(
         "allow_population_by_alias" to "False",
-        "allow_population_by_field_name" to "False"
+        "allow_population_by_field_name" to "False",
+        "orm_mode" to "False"
 )
 
 internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {

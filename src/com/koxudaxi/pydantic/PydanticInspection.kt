@@ -47,7 +47,7 @@ class PydanticInspection : PyInspection() {
             if (node == null) return
 
             inspectPydanticModelCallableExpression(node)
-
+            inspectFromOrm(node)
 
         }
 
@@ -61,6 +61,18 @@ class PydanticInspection : PyInspection() {
                         registerProblem(it,
                                 "class '${pyClass.name}' accepts only keyword arguments")
                     }
+        }
+
+        private fun inspectFromOrm(pyCallExpression: PyCallExpression) {
+            if (pyCallExpression.callee?.name != "from_orm") return
+            val pyType = myTypeEvalContext.getType(pyCallExpression) ?: return
+            val pyClass = getPyClassTypeByPyTypes(pyType).firstOrNull().let { it?.pyClass } ?: return
+            if (!isPydanticModel(pyClass)) return
+            val config = getConfig(pyClass, myTypeEvalContext, true)
+            val ormMode = config["orm_mode"] ?: "False"
+            if (ormMode != "True") {
+                registerProblem(pyCallExpression,"\"${pyClass.name}\" does not have orm_mode=True")
+            }
         }
     }
 }
