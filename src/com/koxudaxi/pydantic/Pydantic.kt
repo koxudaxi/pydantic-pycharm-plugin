@@ -41,10 +41,16 @@ val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
 
 val pydanticVersionCache: HashMap<String, KotlinVersion> = hashMapOf()
 
-val DEFAULT_CONFIG = mapOf(
-        "allow_population_by_alias" to "False",
-        "allow_population_by_field_name" to "False",
-        "orm_mode" to "False"
+val DEFAULT_CONFIG = mapOf<String, Any?>(
+        "allow_population_by_alias" to false,
+        "allow_population_by_field_name" to false,
+        "orm_mode" to false
+)
+
+val CONFIG_TYPES = mapOf(
+        "allow_population_by_alias" to Boolean,
+        "allow_population_by_field_name" to Boolean,
+        "orm_mode" to Boolean
 )
 
 internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
@@ -206,9 +212,26 @@ internal fun isValidFieldName(name: String): Boolean {
     return name.first() != '_'
 }
 
+internal fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
+    if (value is PyReferenceExpression) {
+        val resolveResults = getResolveElements(value, context)
+        val targetExpression = PyUtil.filterTopPriorityResults(resolveResults).firstOrNull() ?: return null
+        val assignedValue = (targetExpression as? PyTargetExpression)?.findAssignedValue() ?: return null
+        return getConfigValue(name, assignedValue, context)
+    }
+    when (CONFIG_TYPES[name]) {
+        Boolean ->
+            when (value) {
+                is PyBoolLiteralExpression -> return value.value
+                is Boolean -> return value
+            }
 
-internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): HashMap<String, String?> {
-    val config = hashMapOf<String, String?>()
+    }
+    return null
+}
+
+internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): HashMap<String, Any?> {
+    val config = hashMapOf<String, Any?>()
     pyClass.getAncestorClasses(context)
             .reversed()
             .filter { isPydanticModel(it) }
@@ -216,14 +239,16 @@ internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: B
             .forEach {
                 it.entries.forEach { entry ->
                     if (entry.value != null) {
-                        config[entry.key] = entry.value
+                        config[entry.key] = getConfigValue(entry.key, entry.value, context)
                     }
                 }
             }
     pyClass.nestedClasses.firstOrNull { isConfigClass(it) }?.let {
         it.classAttributes.forEach { attribute ->
-            attribute.findAssignedValue()?.text?.let { value ->
-                attribute.name?.let { name -> config[name] = value }
+            attribute.findAssignedValue()?.let { value ->
+                attribute.name?.let { name ->
+                    config[name] = getConfigValue(name, value, context)
+                }
             }
         }
     }
@@ -231,7 +256,7 @@ internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: B
     if (setDefault) {
         DEFAULT_CONFIG.forEach { (key, value) ->
             if (!config.containsKey(key)) {
-                config[key] = value
+                config[key] = getConfigValue(key, value, context)
             }
         }
     }
@@ -240,17 +265,17 @@ internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: B
 
 internal fun getFieldName(field: PyTargetExpression,
                           context: TypeEvalContext,
-                          config: HashMap<String, String?>,
+                          config: HashMap<String, Any?>,
                           pydanticVersion: KotlinVersion?): String? {
 
     return if (pydanticVersion?.major == 0) {
-        if (config["allow_population_by_alias"] == "True") {
+        if (config["allow_population_by_alias"] == true) {
             field.name
         } else {
             getAliasedFieldName(field, context, pydanticVersion)
         }
     } else {
-        if (config["allow_population_by_field_name"] == "True") {
+        if (config["allow_population_by_field_name"] == true) {
             field.name
         } else {
             getAliasedFieldName(field, context, pydanticVersion)

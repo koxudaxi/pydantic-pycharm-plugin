@@ -41,4 +41,8 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     fun testRootValidatorSelf() {
         doTest()
     }
+
+    fun testFromOrm() {
+        doTest()
+    }
 }

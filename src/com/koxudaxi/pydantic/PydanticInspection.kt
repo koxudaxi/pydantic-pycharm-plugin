@@ -69,8 +69,7 @@ class PydanticInspection : PyInspection() {
             val pyClass = getPyClassTypeByPyTypes(pyType).firstOrNull().let { it?.pyClass } ?: return
             if (!isPydanticModel(pyClass)) return
             val config = getConfig(pyClass, myTypeEvalContext, true)
-            val ormMode = config["orm_mode"] ?: "False"
-            if (ormMode != "True") {
+            if (config["orm_mode"] != true) {
                 registerProblem(pyCallExpression,
                         "You must have the config attribute orm_mode=True to use from_orm",
                         ProblemHighlightType.GENERIC_ERROR)
