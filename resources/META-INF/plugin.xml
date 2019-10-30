@@ -1,9 +1,15 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.25</version>
+    <version>0.0.26</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.0.26</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support to inspect from_orm [#85] </li>
+        <li>Improve to handle Config  [#85] </li>
+    </ul>
     <h2>version 0.0.25</h2>
     <p>Features</p>
     <ul>
