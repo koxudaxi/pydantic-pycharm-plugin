@@ -4,6 +4,9 @@ class BaseModel:
 
     ___slots__ = ()
 
+    @classmethod
+    def from_orm(cls, obj):
+        pass
 
 class Extra(str):
     allow = 'allow'

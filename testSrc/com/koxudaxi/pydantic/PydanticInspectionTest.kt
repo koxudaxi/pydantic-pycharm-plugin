@@ -42,7 +42,7 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
-    fun testFromOrm() {
+    fun testOrmMode() {
         doTest()
     }
 }
