@@ -53,7 +53,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         abstract val icon: Icon
 
-        abstract fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, String?>): String
+        abstract fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, Any?>): String
 
         val typeProvider: PydanticTypeProvider = PydanticTypeProvider()
 
@@ -63,7 +63,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                                 pyTargetExpression: PyTargetExpression,
                                 ellipsis: PyNoneLiteralExpression,
                                 pydanticVersion: KotlinVersion?,
-                                config: HashMap<String, String?>): String {
+                                config: HashMap<String, Any?>): String {
 
             val parameter = typeProvider.fieldToParameter(pyTargetExpression, ellipsis, typeEvalContext, pyClass, pydanticVersion, config)
             val defaultValue = parameter?.defaultValue?.let {
@@ -81,7 +81,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         private fun addFieldElement(pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
                                     typeEvalContext: TypeEvalContext,
                                     ellipsis: PyNoneLiteralExpression,
-                                    config: HashMap<String, String?>,
+                                    config: HashMap<String, Any?>,
                                     excludes: HashSet<String>?) {
             val pydanticVersion = getPydanticVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
@@ -103,7 +103,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         protected fun addAllFieldElement(parameters: CompletionParameters, result: CompletionResultSet,
                                          pyClass: PyClass, typeEvalContext: TypeEvalContext,
                                          ellipsis: PyNoneLiteralExpression,
-                                         config: HashMap<String, String?>,
+                                         config: HashMap<String, Any?>,
                                          excludes: HashSet<String>? = null) {
 
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
@@ -164,7 +164,7 @@ class PydanticCompletionContributor : CompletionContributor() {
   }
 
     private object KeywordArgumentCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, String?>): String {
+        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, Any?>): String {
             return "${getFieldName(field, context, config, pydanticVersion)}="
         }
 
@@ -189,7 +189,7 @@ class PydanticCompletionContributor : CompletionContributor() {
     }
 
     private object FieldCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, String?>): String {
+        override fun getLookupNameFromFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?, config: HashMap<String, Any?>): String {
             return field.name!!
         }
 

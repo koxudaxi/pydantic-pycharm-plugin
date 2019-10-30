@@ -133,7 +133,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                   context: TypeEvalContext,
                                   pyClass: PyClass,
                                   pydanticVersion: KotlinVersion?,
-                                  config: HashMap<String, String?>): PyCallableParameter? {
+                                  config: HashMap<String, Any?>): PyCallableParameter? {
         if (field.name == null || ! isValidFieldName(field.name!!)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 

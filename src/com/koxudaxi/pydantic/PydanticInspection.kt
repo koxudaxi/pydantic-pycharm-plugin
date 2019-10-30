@@ -12,6 +12,8 @@ import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.impl.PyStarArgumentImpl
+import com.jetbrains.python.psi.resolve.PyResolveContext
+import com.jetbrains.python.psi.types.PyClassType
 
 class PydanticInspection : PyInspection() {
 
@@ -47,11 +49,11 @@ class PydanticInspection : PyInspection() {
             if (node == null) return
 
             inspectPydanticModelCallableExpression(node)
-
+            inspectFromOrm(node)
 
         }
 
-        private fun inspectPydanticModelCallableExpression(pyCallExpression :PyCallExpression) {
+        private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
             val pyClass = getPyClassByPyCallExpression(pyCallExpression, myTypeEvalContext) ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext)) return
             if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
@@ -61,6 +63,26 @@ class PydanticInspection : PyInspection() {
                         registerProblem(it,
                                 "class '${pyClass.name}' accepts only keyword arguments")
                     }
+        }
+
+        private fun inspectFromOrm(pyCallExpression: PyCallExpression) {
+            if (!pyCallExpression.isCalleeText("from_orm")) return
+            val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(myTypeEvalContext)
+            val pyCallable = pyCallExpression.multiResolveCalleeFunction(resolveContext).firstOrNull() ?: return
+            if (pyCallable.asMethod()?.qualifiedName != "pydantic.main.BaseModel.from_orm") return
+            val typedElement = pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyTypedElement ?: return
+            val pyClass = when (val type = myTypeEvalContext.getType(typedElement)) {
+                is PyClass -> type
+                is PyClassType -> getPyClassTypeByPyTypes(type).firstOrNull { isPydanticModel(it.pyClass) }?.pyClass
+                else -> null
+            } ?: return
+            if (!isPydanticModel(pyClass)) return
+            val config = getConfig(pyClass, myTypeEvalContext, true)
+            if (config["orm_mode"] != true) {
+                registerProblem(pyCallExpression,
+                        "You must have the config attribute orm_mode=True to use from_orm",
+                        ProblemHighlightType.GENERIC_ERROR)
+            }
         }
     }
 }
