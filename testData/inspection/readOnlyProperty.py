@@ -39,3 +39,17 @@ class F(D):
         allow_mutation=False
 F.abc = '456'
 <error descr="Property \"abc\" defined in \"F\" is read-only">F().abc = '456'</error>
+
+
+class G(BaseModel):
+    class Config:
+        allow_mutation=False
+G.abc =<EOLError descr="Expression expected"></EOLError>
+G.abc.lower()
+<error descr="Can't assign to function call">G.abc.lower()</error> = 'efg'
+
+
+class H:
+    class Config:
+        allow_mutation=False
+H.abc = '123'
