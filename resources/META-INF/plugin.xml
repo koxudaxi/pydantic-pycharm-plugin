@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.26</version>
+    <version>0.0.27</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.0.27</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support to inspect read-only property [#86] </li>
+    </ul>
     <h2>version 0.0.26</h2>
     <p>Features</p>
     <ul>
