@@ -45,4 +45,8 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     fun testOrmMode() {
         doTest()
     }
+
+    fun testReadOnlyProperty() {
+        doTest()
+    }
 }
