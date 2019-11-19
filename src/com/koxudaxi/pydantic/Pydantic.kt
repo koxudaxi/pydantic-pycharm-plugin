@@ -44,13 +44,15 @@ val pydanticVersionCache: HashMap<String, KotlinVersion> = hashMapOf()
 val DEFAULT_CONFIG = mapOf<String, Any?>(
         "allow_population_by_alias" to false,
         "allow_population_by_field_name" to false,
-        "orm_mode" to false
+        "orm_mode" to false,
+        "allow_mutation" to true
 )
 
 val CONFIG_TYPES = mapOf(
         "allow_population_by_alias" to Boolean,
         "allow_population_by_field_name" to Boolean,
-        "orm_mode" to Boolean
+        "orm_mode" to Boolean,
+        "allow_mutation" to Boolean
 )
 
 internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
