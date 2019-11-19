@@ -12,8 +12,10 @@ import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.impl.PyStarArgumentImpl
+import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyClassTypeImpl
 
 class PydanticInspection : PyInspection() {
 
@@ -53,6 +55,15 @@ class PydanticInspection : PyInspection() {
 
         }
 
+        override fun visitPyAssignmentStatement(node: PyAssignmentStatement?) {
+            super.visitPyAssignmentStatement(node)
+
+            if (node == null) return
+
+            inspectReadOnlyProperty(node)
+
+        }
+
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
             val pyClass = getPyClassByPyCallExpression(pyCallExpression, myTypeEvalContext) ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext)) return
@@ -83,6 +94,21 @@ class PydanticInspection : PyInspection() {
                         "You must have the config attribute orm_mode=True to use from_orm",
                         ProblemHighlightType.GENERIC_ERROR)
             }
+        }
+
+        private fun inspectReadOnlyProperty(node: PyAssignmentStatement){
+            val pyTypedElement = node.leftHandSideExpression?.firstChild as? PyTypedElement ?: return
+            val pyType = myTypeEvalContext.getType(pyTypedElement) ?: return
+            if ((pyType as? PyClassTypeImpl)?.isDefinition == true) return
+            val pyClass = getPyClassTypeByPyTypes(pyType).firstOrNull()?.pyClass ?: return
+            if (!isPydanticModel(pyClass, myTypeEvalContext)) return
+            val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return
+            val config = getConfig(pyClass, myTypeEvalContext, true)
+            if (config["allow_mutation"] != false) return
+            registerProblem(node,
+                    "Property \"${attributeName}\" defined in \"${pyClass.name}\" is read-only",
+                    ProblemHighlightType.GENERIC_ERROR)
+
         }
     }
 }
