@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
 
 
 class A(BaseModel):
@@ -6,3 +7,11 @@ class A(BaseModel):
 
 
 A(<warning descr="class 'A' accepts only keyword arguments">*['a']</warning>)
+
+
+@dataclass
+class B:
+    a: str
+
+
+B(*['a'])

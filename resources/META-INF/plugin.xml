@@ -5,8 +5,9 @@
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
     <h2>version 0.0.28</h2>
-        <p>BugFixes</p>
+    <p>Features, BugFixes</p>
     <ul>
+        <li>Support positional arguments for dataclasses [#91] </li>
         <li>Fix field names treated with incorrect scope [#90] </li>
     </ul>
     <h2>version 0.0.27</h2>
