@@ -19,7 +19,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     override fun getReferenceType(referenceTarget: PsiElement, context: TypeEvalContext, anchor: PsiElement?): Ref<PyType>? {
         if (referenceTarget is PyTargetExpression) {
-            val pyClass = referenceTarget.containingClass ?: return null
+            val pyClass = referenceTarget.parent?.parent?.parent as? PyClass ?: return null
             if (!isPydanticModel(pyClass, context)) return null
             val name = referenceTarget.name ?: return null
             getRefTypeFromFieldName(name, context, pyClass)?.let { return it }
