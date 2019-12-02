@@ -147,10 +147,16 @@
                                 implementationClass="com.koxudaxi.pydantic.PydanticCompletionContributor"/>
         <typedHandler implementation="com.koxudaxi.pydantic.PydanticTypedValidatorMethodHandler"
                       id="pydanticTypedValidatorMethodHandler" order="before pyMethodNameTypedHandler"/>
+        <projectService
+                        serviceImplementation="com.koxudaxi.pydantic.PydanticConfigService"/>
+
+        <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
+
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
         <inspectionExtension implementation="com.koxudaxi.pydantic.PydanticIgnoreInspection"/>
+
     </extensions>
 
 </idea-plugin>
