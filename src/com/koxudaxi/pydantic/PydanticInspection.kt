@@ -19,16 +19,17 @@ import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.PyClassTypeImpl
 import javax.swing.JComponent
 
-class PydanticInspection : PyInspection() {
-    var warnUntypedFields = false
+var defaultWarnUntypedFields = false
 
+class PydanticInspection : PyInspection() {
+    var warnUntypedFields = defaultWarnUntypedFields
 
     override fun buildVisitor(holder: ProblemsHolder,
                               isOnTheFly: Boolean,
                               session: LocalInspectionToolSession): PsiElementVisitor = Visitor(holder, session)
 
     inner class Visitor(holder: ProblemsHolder, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
-
+        
         override fun visitPyFunction(node: PyFunction?) {
             super.visitPyFunction(node)
 
