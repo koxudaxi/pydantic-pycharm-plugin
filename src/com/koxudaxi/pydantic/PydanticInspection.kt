@@ -3,6 +3,7 @@ package com.koxudaxi.pydantic
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.codeInspection.ui.MultipleCheckboxOptionsPanel
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.PyBundle
 import com.jetbrains.python.PyNames
@@ -16,14 +17,17 @@ import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.PyClassTypeImpl
+import javax.swing.JComponent
 
 class PydanticInspection : PyInspection() {
+    var warnUntypedFields = false
+
 
     override fun buildVisitor(holder: ProblemsHolder,
                               isOnTheFly: Boolean,
                               session: LocalInspectionToolSession): PsiElementVisitor = Visitor(holder, session)
 
-    private class Visitor(holder: ProblemsHolder, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
+    inner class Visitor(holder: ProblemsHolder, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
 
         override fun visitPyFunction(node: PyFunction?) {
             super.visitPyFunction(node)
@@ -49,7 +53,6 @@ class PydanticInspection : PyInspection() {
             super.visitPyCallExpression(node)
 
             if (node == null) return
-
             inspectPydanticModelCallableExpression(node)
             inspectFromOrm(node)
 
@@ -59,9 +62,10 @@ class PydanticInspection : PyInspection() {
             super.visitPyAssignmentStatement(node)
 
             if (node == null) return
-
+            if (this@PydanticInspection.warnUntypedFields) {
+                inspectWarnUntypedFields(node)
+            }
             inspectReadOnlyProperty(node)
-
         }
 
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
@@ -110,5 +114,21 @@ class PydanticInspection : PyInspection() {
                     ProblemHighlightType.GENERIC_ERROR)
 
         }
+
+        private fun inspectWarnUntypedFields(node: PyAssignmentStatement){
+            val pyClass = node.parent?.parent as? PyClass ?: return
+            if (!isPydanticModel(pyClass, myTypeEvalContext)) return
+            if (node.annotation != null) return
+
+            registerProblem(node,
+                    "Untyped fields disallowed", ProblemHighlightType.WARNING)
+
+        }
+    }
+
+    override fun createOptionsPanel(): JComponent? {
+        val panel = MultipleCheckboxOptionsPanel(this)
+        panel.addCheckbox( "Warning untyped fields", "warnUntypedFields")
+        return panel
     }
 }
