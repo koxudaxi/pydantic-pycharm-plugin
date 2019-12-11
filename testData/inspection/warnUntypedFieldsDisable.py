@@ -6,4 +6,4 @@ class A(BaseModel):
 
 
 class B(BaseModel):
-    b = '123'
+    b: str = '123'

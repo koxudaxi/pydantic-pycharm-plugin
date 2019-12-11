@@ -5,4 +5,4 @@ class A(BaseModel):
     <warning descr="Untyped fields disallowed">a = '123'</warning>
 
 class B(BaseModel):
-    b = '123'
+    b: str = '123'
