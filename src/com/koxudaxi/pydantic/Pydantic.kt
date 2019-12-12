@@ -292,3 +292,7 @@ fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? 
     val contextAnchor = ModuleBasedContextAnchor(module)
     return BASE_CONFIG_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyClass
 }
+
+fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
+    return pyPsiElement?.parent?.parent as? PyClass
+}

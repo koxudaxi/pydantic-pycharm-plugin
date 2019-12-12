@@ -29,11 +29,12 @@ class PydanticInspection : PyInspection() {
                               session: LocalInspectionToolSession): PsiElementVisitor = Visitor(holder, session)
 
     inner class Visitor(holder: ProblemsHolder, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
-        
+
         override fun visitPyFunction(node: PyFunction?) {
             super.visitPyFunction(node)
 
-            val pyClass = node?.parent?.parent as? PyClass ?: return
+            if (node == null) return
+            val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext) || !isValidatorMethod(node)) return
             val paramList = node.parameterList
             val params = paramList.parameters
@@ -117,7 +118,7 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectWarnUntypedFields(node: PyAssignmentStatement){
-            val pyClass = node.parent?.parent as? PyClass ?: return
+            val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext)) return
             if (node.annotation != null) return
 

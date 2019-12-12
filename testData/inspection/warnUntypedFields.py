@@ -14,3 +14,8 @@ class C:
 
 class D:
     d
+
+def e():
+    ee = '123'
+
+f = '123'
