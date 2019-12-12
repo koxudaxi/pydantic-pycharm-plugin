@@ -7,3 +7,11 @@ class A(BaseModel):
 
 class B(BaseModel):
     b: str = '123'
+
+
+class C:
+    c = '123'
+
+
+class D:
+    d
