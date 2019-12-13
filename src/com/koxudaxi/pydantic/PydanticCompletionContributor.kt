@@ -240,9 +240,9 @@ class PydanticCompletionContributor : CompletionContributor() {
 
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-            val configClass = parameters.position.parent?.parent?.parent?.parent as? PyClass ?: return
+            val configClass = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
             if (!isConfigClass(configClass)) return
-            val pydanticModel = configClass.parent?.parent as? PyClass ?:return
+            val pydanticModel = getPyClassByAttribute(configClass) ?:return
             if (!isPydanticModel(pydanticModel)) return
             val typeEvalContext = parameters.getTypeEvalContext()
 
@@ -264,7 +264,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         override val icon: Icon = AllIcons.Nodes.Class
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-            val pydanticModel = parameters.position.parent?.parent?.parent?.parent as? PyClass ?: return
+            val pydanticModel = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
             if (!isPydanticModel(pydanticModel)) return
             if (pydanticModel.findNestedClass("Config", false) != null) return
             val element = PrioritizedLookupElement.withGrouping(

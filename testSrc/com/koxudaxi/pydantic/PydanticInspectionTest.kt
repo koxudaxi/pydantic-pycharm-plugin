@@ -49,4 +49,17 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     fun testReadOnlyProperty() {
         doTest()
     }
+
+    fun testWarnUntypedFieldsDisable() {
+        doTest()
+    }
+
+    fun testWarnUntypedFields() {
+        try {
+            defaultWarnUntypedFields = true
+            doTest()
+        } finally {
+            defaultWarnUntypedFields = false
+        }
+    }
 }

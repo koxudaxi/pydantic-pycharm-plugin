@@ -55,7 +55,7 @@ val CONFIG_TYPES = mapOf(
         "allow_mutation" to Boolean
 )
 
-internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
+fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
     val callee = pyCallExpression.callee ?: return null
     val pyType = when (val type = context.getType(callee)) {
         is PyClass -> return type
@@ -65,16 +65,16 @@ internal fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, co
     return getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass) }?.pyClass
 }
 
-internal fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
+fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
     return getPyClassByPyCallExpression(pyCallExpression, context)
 }
 
-internal fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
+fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
     return (isSubClassOfPydanticBaseModel(pyClass, context) || isPydanticDataclass(pyClass)) && !isPydanticBaseModel(pyClass)
 }
 
-internal fun isPydanticBaseModel(pyClass: PyClass): Boolean {
+fun isPydanticBaseModel(pyClass: PyClass): Boolean {
     return pyClass.qualifiedName == BASE_MODEL_Q_NAME
 }
 
@@ -154,13 +154,13 @@ private fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalCont
 }
 
 
-internal fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
+fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
     val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
     return referenceExpression.getReference(resolveContext).multiResolve(false)
 
 }
 
-internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
+fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
     return when (pyType) {
         is PyUnionType ->
             pyType.members
@@ -174,13 +174,13 @@ internal fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
 }
 
 
-internal fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeEvalContext): Boolean {
+fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeEvalContext): Boolean {
     PsiTreeUtil.getContextOfType(psiElement, PyClass::class.java)
             ?.let { return isPydanticSchema(it, context) }
     return false
 }
 
-internal fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
+fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
     when (psiElement) {
         is PyFunction -> return isPydanticField(psiElement)
         else -> PsiTreeUtil.getContextOfType(psiElement, PyFunction::class.java)
@@ -189,7 +189,7 @@ internal fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
     return false
 }
 
-internal fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
+fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
     val contextAnchor = ModuleBasedContextAnchor(module)
@@ -210,11 +210,11 @@ internal fun getPydanticVersion(project: Project, context: TypeEvalContext): Kot
     })
 }
 
-internal fun isValidFieldName(name: String): Boolean {
+fun isValidFieldName(name: String): Boolean {
     return name.first() != '_'
 }
 
-internal fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
+fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
         val resolveResults = getResolveElements(value, context)
         val targetExpression = PyUtil.filterTopPriorityResults(resolveResults).firstOrNull() ?: return null
@@ -232,7 +232,7 @@ internal fun getConfigValue(name: String, value: Any?, context: TypeEvalContext)
     return null
 }
 
-internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): HashMap<String, Any?> {
+fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): HashMap<String, Any?> {
     val config = hashMapOf<String, Any?>()
     pyClass.getAncestorClasses(context)
             .reversed()
@@ -265,7 +265,7 @@ internal fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: B
     return config
 }
 
-internal fun getFieldName(field: PyTargetExpression,
+fun getFieldName(field: PyTargetExpression,
                           context: TypeEvalContext,
                           config: HashMap<String, Any?>,
                           pydanticVersion: KotlinVersion?): String? {
@@ -286,9 +286,13 @@ internal fun getFieldName(field: PyTargetExpression,
 }
 
 
-internal fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? {
+fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? {
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
     val contextAnchor = ModuleBasedContextAnchor(module)
     return BASE_CONFIG_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyClass
+}
+
+fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
+    return pyPsiElement?.parent?.parent as? PyClass
 }
