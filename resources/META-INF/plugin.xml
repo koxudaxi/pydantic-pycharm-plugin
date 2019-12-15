@@ -5,9 +5,10 @@
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
     <h2>version 0.0.29</h2>
-    <p>Features, BugFixes</p>
+    <p>Features</p>
     <ul>
         <li>Inspect untyped fields [#93] </li>
+        <li>Add config panel [#92] </li>
     </ul>
     <h2>version 0.0.28</h2>
     <p>Features, BugFixes</p>
