@@ -8,10 +8,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 @State(name = "PydanticConfigService", storages = [Storage("pydantic.xml")])
-class PydanticConfigService : PersistentStateComponent<PydanticConfigService?> {
-    var PydanticConfigFilePath = ""
+class PydanticConfigService : PersistentStateComponent<PydanticConfigService> {
+    var initTyped = true
+    var warnUntypedFields = false
 
-    override fun getState(): PydanticConfigService? {
+    override fun getState(): PydanticConfigService {
         return this
     }
 
@@ -20,7 +21,7 @@ class PydanticConfigService : PersistentStateComponent<PydanticConfigService?> {
     }
 
     companion object {
-        fun getInstance(project: Project?): PydanticConfigService? {
+        fun getInstance(project: Project?): PydanticConfigService {
             return ServiceManager.getService(project!!, PydanticConfigService::class.java)
         }
     }

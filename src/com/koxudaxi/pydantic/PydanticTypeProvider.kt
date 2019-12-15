@@ -8,10 +8,10 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyCallExpressionNavigator
 import com.jetbrains.python.psi.impl.PySubscriptionExpressionImpl
 import com.jetbrains.python.psi.types.*
+import com.koxudaxi.pydantic.PydanticConfigService.Companion.getInstance
 import one.util.streamex.StreamEx
 
 class PydanticTypeProvider : PyTypeProviderBase() {
-
 
     override fun getReferenceExpressionType(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
         return getPydanticTypeForCallee(referenceExpression, context)
@@ -77,7 +77,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .asSequence()
                 .map {
                     when {
-                        it is PyClass -> getPydanticTypeForClass(it, context)
+                        it is PyClass -> getPydanticTypeForClass(it, context, true)
                         it is PyParameter && it.isSelf -> {
                             PsiTreeUtil.getParentOfType(it, PyFunction::class.java)
                                     ?.takeIf { it.modifier == PyFunction.Modifier.CLASSMETHOD }
@@ -86,14 +86,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         it is PyNamedParameter -> it.getArgumentType(context)?.let { pyType ->
                             getPyClassTypeByPyTypes(pyType).filter { pyClassType ->
                                 pyClassType.isDefinition
-                            }.map { filteredPyClassType -> getPydanticTypeForClass(filteredPyClassType.pyClass, context) }.firstOrNull()
+                            }.map { filteredPyClassType -> getPydanticTypeForClass(filteredPyClassType.pyClass, context, true) }.firstOrNull()
                         }
                         it is PyTargetExpression -> (it as? PyTypedElement)?.let { pyTypedElement ->
                             context.getType(pyTypedElement)
                                     ?.let { pyType -> getPyClassTypeByPyTypes(pyType) }
                                     ?.filter { pyClassType -> pyClassType.isDefinition }
                                     ?.map { filteredPyClassType ->
-                                        getPydanticTypeForClass(filteredPyClassType.pyClass, context)
+                                        getPydanticTypeForClass(filteredPyClassType.pyClass, context, true)
                                     }?.firstOrNull()
                         }
                         else -> null
@@ -102,11 +102,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .firstOrNull { it != null }
     }
 
-    private fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext): PyCallableType? {
+    private fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
         if (!isPydanticModel(pyClass, context)) return null
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
+        val typed = !init || getInstance(pyClass.project).initTyped
         val collected = linkedMapOf<String, PyCallableParameter>()
         val pydanticVersion = getPydanticVersion(pyClass.project, context)
         val config = getConfig(pyClass, context, true)
@@ -117,7 +118,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             if (!isPydanticModel(current, context)) continue
 
             getClassVariables(current, context)
-                    .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion, config) }
+                    .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion, config, typed) }
                     .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
                     .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
@@ -133,7 +134,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                   context: TypeEvalContext,
                                   pyClass: PyClass,
                                   pydanticVersion: KotlinVersion?,
-                                  config: HashMap<String, Any?>): PyCallableParameter? {
+                                  config: HashMap<String, Any?>,
+                                  typed: Boolean = true): PyCallableParameter? {
         if (field.name == null || ! isValidFieldName(field.name!!)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
@@ -143,12 +145,16 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             else -> defaultValueFromField
         }
 
-        val typeForParameter = if (!hasAnnotationValue(field) && defaultValueFromField is PyTypedElement) {
-            // get type from default value
-            context.getType(defaultValueFromField)
-        } else {
-            // get type from annotation
-            getTypeForParameter(field, context)
+        val typeForParameter = when {
+            !typed -> null
+            !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> {
+                // get type from default value
+                context.getType(defaultValueFromField)
+            }
+            else -> {
+                // get type from annotation
+                getTypeForParameter(field, context)
+            }
         }
 
         return PyCallableParameterImpl.nonPsi(

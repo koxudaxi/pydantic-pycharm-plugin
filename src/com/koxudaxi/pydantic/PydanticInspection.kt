@@ -19,16 +19,15 @@ import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.PyClassTypeImpl
 import javax.swing.JComponent
 
-var defaultWarnUntypedFields = false
-
 class PydanticInspection : PyInspection() {
-    var warnUntypedFields = defaultWarnUntypedFields
 
     override fun buildVisitor(holder: ProblemsHolder,
                               isOnTheFly: Boolean,
                               session: LocalInspectionToolSession): PsiElementVisitor = Visitor(holder, session)
 
     inner class Visitor(holder: ProblemsHolder, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
+
+        val pydanticConfigService = PydanticConfigService.getInstance(holder.project)
 
         override fun visitPyFunction(node: PyFunction?) {
             super.visitPyFunction(node)
@@ -64,7 +63,7 @@ class PydanticInspection : PyInspection() {
             super.visitPyAssignmentStatement(node)
 
             if (node == null) return
-            if (this@PydanticInspection.warnUntypedFields) {
+             if (pydanticConfigService.warnUntypedFields) {
                 inspectWarnUntypedFields(node)
             }
             inspectReadOnlyProperty(node)
@@ -121,16 +120,15 @@ class PydanticInspection : PyInspection() {
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext)) return
             if (node.annotation != null) return
-
             registerProblem(node,
                     "Untyped fields disallowed", ProblemHighlightType.WARNING)
 
         }
     }
 
-    override fun createOptionsPanel(): JComponent? {
-        val panel = MultipleCheckboxOptionsPanel(this)
-        panel.addCheckbox( "Warning untyped fields", "warnUntypedFields")
-        return panel
-    }
+//    override fun createOptionsPanel(): JComponent? {
+//        val panel = MultipleCheckboxOptionsPanel(this)
+//        panel.addCheckbox( "Warning untyped fields", "warnUntypedFields")
+//        return panel
+//    }
 }
