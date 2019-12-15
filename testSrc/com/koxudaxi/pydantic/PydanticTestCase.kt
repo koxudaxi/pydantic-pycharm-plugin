@@ -64,7 +64,6 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
         packageDir = myFixture!!.findFileInTempDir("package")
         addSourceRoot(myFixture!!.module, packageDir!!)
 
-
         PythonDialectsTokenSetProvider.reset()
         setLanguageLevel(LanguageLevel.PYTHON37)
     }

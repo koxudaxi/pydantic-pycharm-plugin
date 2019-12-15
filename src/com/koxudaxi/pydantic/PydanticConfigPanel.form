@@ -37,6 +37,7 @@
             </constraints>
             <properties>
               <editable value="false"/>
+              <opaque value="false"/>
               <text value="If enabled, include the field types as type hints in the generated signature for the __init__ method. This means that you'll get mypy errors if you pass an argument that is not already the right type to __init__, even if parsing could safely convert the type."/>
             </properties>
           </component>
@@ -57,6 +58,7 @@
             </constraints>
             <properties>
               <editable value="false"/>
+              <opaque value="false"/>
               <text value="If enabled, raise a mypy error whenever a field is declared on a model without explicitly specifying its type."/>
             </properties>
           </component>

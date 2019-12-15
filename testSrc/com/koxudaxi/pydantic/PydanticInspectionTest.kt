@@ -55,11 +55,8 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     }
 
     fun testWarnUntypedFields() {
-        try {
-            defaultWarnUntypedFields = true
-            doTest()
-        } finally {
-            defaultWarnUntypedFields = false
-        }
+        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+        pydanticConfigService.warnUntypedFields = true
+        doTest()
     }
 }

@@ -21,7 +21,6 @@ public class PydanticConfigPanel {
     private JTextPane ifEnabledRaiseATextPane;
 
     public Boolean getInitTyped() {
-
         return initTypedCheckBox.isSelected();
     }
 
