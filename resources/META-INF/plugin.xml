@@ -5,9 +5,10 @@
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
     <h2>version 0.0.29</h2>
-    <p>Features, BugFixes</p>
+    <p>Features</p>
     <ul>
         <li>Inspect untyped fields [#93] </li>
+        <li>Add config panel [#92] </li>
     </ul>
     <h2>version 0.0.28</h2>
     <p>Features, BugFixes</p>
@@ -152,10 +153,16 @@
                                 implementationClass="com.koxudaxi.pydantic.PydanticCompletionContributor"/>
         <typedHandler implementation="com.koxudaxi.pydantic.PydanticTypedValidatorMethodHandler"
                       id="pydanticTypedValidatorMethodHandler" order="before pyMethodNameTypedHandler"/>
+        <projectService
+                        serviceImplementation="com.koxudaxi.pydantic.PydanticConfigService"/>
+
+        <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
+
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
         <inspectionExtension implementation="com.koxudaxi.pydantic.PydanticIgnoreInspection"/>
+
     </extensions>
 
 </idea-plugin>
