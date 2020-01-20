@@ -120,6 +120,7 @@ class PydanticInspection : PyInspection() {
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, myTypeEvalContext)) return
             if (node.annotation != null) return
+            if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.startsWith("_") == true) return
             registerProblem(node,
                     "Untyped fields disallowed", ProblemHighlightType.WARNING)
 
