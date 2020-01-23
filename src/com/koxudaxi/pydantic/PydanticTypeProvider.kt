@@ -145,7 +145,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             else -> defaultValueFromField
         }
 
-        val typeForParameter = when {
+        var typeForParameter = when {
             !typed -> null
             !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> {
                 // get type from default value
@@ -154,6 +154,23 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             else -> {
                 // get type from annotation
                 getTypeForParameter(field, context)
+            }
+        }
+
+        if (typeForParameter is PyClassTypeImpl) {
+            val classQName: String? = if (typeForParameter.isBuiltin){
+                typeForParameter.classQName
+            } else {
+                "builtins." + typeForParameter.classQName
+            }
+
+            VIRTUAL_UNION_MAPS[classQName]?.let { virtualUnionMap ->
+                val types = mutableListOf(typeForParameter as PyType)
+                virtualUnionMap.mapNotNull {
+                    createPyClassTypeImpl(it, pyClass.project, context)
+                }.toCollection(types)
+
+                typeForParameter = PyUnionType.union(types)
             }
         }
 

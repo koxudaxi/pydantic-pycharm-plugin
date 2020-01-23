@@ -14,10 +14,7 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
-import com.jetbrains.python.psi.types.PyClassType
-import com.jetbrains.python.psi.types.PyType
-import com.jetbrains.python.psi.types.PyUnionType
-import com.jetbrains.python.psi.types.TypeEvalContext
+import com.jetbrains.python.psi.types.*
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
@@ -53,6 +50,11 @@ val CONFIG_TYPES = mapOf(
         "allow_population_by_field_name" to Boolean,
         "orm_mode" to Boolean,
         "allow_mutation" to Boolean
+)
+
+val VIRTUAL_UNION_MAPS = mapOf<String, List<String>>(
+        "str" to listOf("builtins.str", "builtins.float", "builtins.int")
+
 )
 
 fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
@@ -189,11 +191,15 @@ fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
     return false
 }
 
-fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
+fun getPsiElementByQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PsiElement? {
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
     val contextAnchor = ModuleBasedContextAnchor(module)
-    val version = VERSION_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyTargetExpressionImpl
+    return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
+}
+
+fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
+    val version = getPsiElementByQualifiedName(VERSION_QUALIFIED_NAME, project, context) as? PyTargetExpression
             ?: return null
     val versionString = (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue
             ?: return null
@@ -295,4 +301,9 @@ fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? 
 
 fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
     return pyPsiElement?.parent?.parent as? PyClass
+}
+
+fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext): PyClassTypeImpl? {
+    val psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(qualifiedName), project, context) ?: return null
+    return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
