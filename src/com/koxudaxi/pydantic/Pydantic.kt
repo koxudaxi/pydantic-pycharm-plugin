@@ -5,9 +5,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
-import com.jetbrains.extenstions.ModuleBasedContextAnchor
-import com.jetbrains.extenstions.QNameResolveContext
-import com.jetbrains.extenstions.resolveToElement
+import com.jetbrains.extensions.ModuleBasedContextAnchor
+import com.jetbrains.extensions.QNameResolveContext
+import com.jetbrains.extensions.resolveToElement
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
@@ -156,7 +156,7 @@ private fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalCont
 
 
 fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
-    val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
+    val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(context)
     return referenceExpression.getReference(resolveContext).multiResolve(false)
 
 }
@@ -193,7 +193,7 @@ fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
 fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
-    val contextAnchor = ModuleBasedContextAnchor(module)
+    val contextAnchor =  ModuleBasedContextAnchor(module)
     val version = VERSION_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyTargetExpressionImpl
             ?: return null
     val versionString = (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue
