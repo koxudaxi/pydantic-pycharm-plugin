@@ -19,7 +19,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                 element.name
                         ?.let { elementName ->
                             getPyClassByPyKeywordArgument(element, TypeEvalContext.userInitiated(element.project, element.containingFile))
-                                    ?.takeIf { pyClass -> isPydanticModel(pyClass) }
+                                    ?.takeIf { pyClass -> isPydanticModel(pyClass, true) }
                                     ?.let { pyClass -> searchDirectReferenceField(pyClass, elementName, consumer) }
                         }
             }
@@ -27,7 +27,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                 element.name
                         ?.let { elementName ->
                             element.containingClass
-                                    ?.takeIf { pyClass -> isPydanticModel(pyClass) }
+                                    ?.takeIf { pyClass -> isPydanticModel(pyClass, true) }
                                     ?.let { pyClass -> searchAllElementReference(pyClass, elementName, mutableSetOf(), consumer) }
                         }
             }
@@ -35,7 +35,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     }
 
     private fun searchField(pyClass: PyClass, elementName: String, consumer: Processor<in PsiReference>): Boolean {
-        if (!isPydanticModel(pyClass)) return false
+        if (!isPydanticModel(pyClass, true)) return false
         val pyTargetExpression = pyClass.findClassAttribute(elementName, false, null) ?: return false
         consumer.process(pyTargetExpression.reference)
         return true
@@ -59,7 +59,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                                 psiReference.element.containingFile))
                                 ?.let { pyType ->
                                     getPyClassTypeByPyTypes(pyType)
-                                            .firstOrNull { pyClassType -> isPydanticModel(pyClassType.pyClass) }
+                                            .firstOrNull { pyClassType -> isPydanticModel(pyClassType.pyClass, true) }
                                             ?.let {
                                                 ReferencesSearch.search(param as PsiElement).forEach {
                                                     searchKeywordArgumentByPsiReference(it, elementName, consumer)
@@ -76,7 +76,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         if (searchField(pyClass, elementName, consumer)) return true
 
         return pyClass.getAncestorClasses(null)
-                .firstOrNull { isPydanticModel(it) && searchDirectReferenceField(it, elementName, consumer) } != null
+                .firstOrNull { isPydanticModel(it, true) && searchDirectReferenceField(it, elementName, consumer) } != null
     }
 
     private fun searchAllElementReference(pyClass: PyClass, elementName: String, added: MutableSet<PyClass>, consumer: Processor<in PsiReference>) {

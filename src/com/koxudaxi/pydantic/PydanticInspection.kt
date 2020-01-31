@@ -34,7 +34,7 @@ class PydanticInspection : PyInspection() {
 
             if (node == null) return
             val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, myTypeEvalContext) || !isValidatorMethod(node)) return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext) || !isValidatorMethod(node)) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
@@ -70,7 +70,7 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
-            val pyClass = getPyClassByPyCallExpression(pyCallExpression, myTypeEvalContext) ?: return
+            val pyClass = getPyClassByPyCallExpression(pyCallExpression, false, myTypeEvalContext) ?: return
             if (!isSubClassOfPydanticBaseModel(pyClass, myTypeEvalContext) || isPydanticBaseModel(pyClass)) return
             if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
             pyCallExpression.arguments
@@ -83,16 +83,16 @@ class PydanticInspection : PyInspection() {
 
         private fun inspectFromOrm(pyCallExpression: PyCallExpression) {
             if (!pyCallExpression.isCalleeText("from_orm")) return
-            val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(myTypeEvalContext)
+            val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(myTypeEvalContext)
             val pyCallable = pyCallExpression.multiResolveCalleeFunction(resolveContext).firstOrNull() ?: return
             if (pyCallable.asMethod()?.qualifiedName != "pydantic.main.BaseModel.from_orm") return
             val typedElement = pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyTypedElement ?: return
             val pyClass = when (val type = myTypeEvalContext.getType(typedElement)) {
                 is PyClass -> type
-                is PyClassType -> getPyClassTypeByPyTypes(type).firstOrNull { isPydanticModel(it.pyClass) }?.pyClass
+                is PyClassType -> getPyClassTypeByPyTypes(type).firstOrNull { isPydanticModel(it.pyClass, false) }?.pyClass
                 else -> null
             } ?: return
-            if (!isPydanticModel(pyClass)) return
+            if (!isPydanticModel(pyClass, false)) return
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["orm_mode"] != true) {
                 registerProblem(pyCallExpression,
@@ -106,7 +106,7 @@ class PydanticInspection : PyInspection() {
             val pyType = myTypeEvalContext.getType(pyTypedElement) ?: return
             if ((pyType as? PyClassTypeImpl)?.isDefinition == true) return
             val pyClass = getPyClassTypeByPyTypes(pyType).firstOrNull()?.pyClass ?: return
-            if (!isPydanticModel(pyClass, myTypeEvalContext)) return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["allow_mutation"] != false) return
@@ -118,7 +118,7 @@ class PydanticInspection : PyInspection() {
 
         private fun inspectWarnUntypedFields(node: PyAssignmentStatement){
             val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, myTypeEvalContext)) return
+            if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             if (node.annotation != null) return
             if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.startsWith("_") == true) return
             registerProblem(node,

@@ -55,23 +55,23 @@ val CONFIG_TYPES = mapOf(
         "allow_mutation" to Boolean
 )
 
-fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
+fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, includeDataclass: Boolean, context: TypeEvalContext): PyClass? {
     val callee = pyCallExpression.callee ?: return null
     val pyType = when (val type = context.getType(callee)) {
         is PyClass -> return type
         is PyClassType -> type
         else -> (callee.reference?.resolve() as? PyTypedElement)?.let { context.getType(it) } ?: return null
     }
-    return getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass) }?.pyClass
+    return getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, includeDataclass) }?.pyClass
 }
 
 fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
-    return getPyClassByPyCallExpression(pyCallExpression, context)
+    return getPyClassByPyCallExpression(pyCallExpression, true, context)
 }
 
-fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
-    return (isSubClassOfPydanticBaseModel(pyClass, context) || isPydanticDataclass(pyClass)) && !isPydanticBaseModel(pyClass)
+fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext? = null): Boolean {
+    return (isSubClassOfPydanticBaseModel(pyClass, context) || (includeDataclass && isPydanticDataclass(pyClass))) && !isPydanticBaseModel(pyClass)
 }
 
 fun isPydanticBaseModel(pyClass: PyClass): Boolean {
@@ -96,8 +96,7 @@ internal fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolea
 }
 
 internal fun isPydanticDataclass(pyClass: PyClass): Boolean {
-    return false
-//    return hasDecorator(pyClass, DATA_CLASS_Q_NAME)
+    return hasDecorator(pyClass, DATA_CLASS_Q_NAME)
 }
 
 internal fun isPydanticSchema(pyClass: PyClass, context: TypeEvalContext): Boolean {
@@ -237,7 +236,7 @@ fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): 
     val config = hashMapOf<String, Any?>()
     pyClass.getAncestorClasses(context)
             .reversed()
-            .filter { isPydanticModel(it) }
+            .filter { isPydanticModel(it, false) }
             .map { getConfig(it, context, false) }
             .forEach {
                 it.entries.forEach { entry ->
