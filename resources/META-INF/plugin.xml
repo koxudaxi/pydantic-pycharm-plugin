@@ -172,7 +172,7 @@
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
         <inspectionExtension implementation="com.koxudaxi.pydantic.PydanticIgnoreInspection"/>
-
+        <pyDataclassParametersProvider implementation="com.koxudaxi.pydantic.PydanticParametersProvider"/>
     </extensions>
 
 </idea-plugin>
