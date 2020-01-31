@@ -20,9 +20,13 @@ intellij {
     pluginName project.name
     version "201.3803.71-EAP-SNAPSHOT"
     type "IC"
-    updateSinceUntilBuild false
     downloadSources true
     plugins "java", "Kotlin", "PythonCore:$python_core_version"
+
+}
+
+patchPluginXml {
+    sinceBuild "201"
 }
 
 allprojects {
