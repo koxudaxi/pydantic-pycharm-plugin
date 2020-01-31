@@ -96,7 +96,8 @@ internal fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolea
 }
 
 internal fun isPydanticDataclass(pyClass: PyClass): Boolean {
-    return hasDecorator(pyClass, DATA_CLASS_Q_NAME)
+    return false
+//    return hasDecorator(pyClass, DATA_CLASS_Q_NAME)
 }
 
 internal fun isPydanticSchema(pyClass: PyClass, context: TypeEvalContext): Boolean {
