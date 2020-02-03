@@ -25,10 +25,6 @@ intellij {
 
 }
 
-patchPluginXml {
-    sinceBuild "201"
-}
-
 allprojects {
     apply plugin: "org.jetbrains.intellij"
     apply plugin: "java"

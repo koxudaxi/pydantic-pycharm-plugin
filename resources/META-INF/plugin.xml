@@ -147,14 +147,14 @@
     </ul>
     ]]></description>
 
-    <idea-version since-build="192.0"/>
+    <idea-version since-build="201.0"/>
 
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.python</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <localInspection language="Python" shortName="PydanticInspection" suppressId="Pydantic"
-                         displayName="Pydantic definition and usages" groupKey="INSP.GROUP.python"
+                         displayName="Pydantic definition and usages"
                          enabledByDefault="true" level="WARNING"
                          implementationClass="com.koxudaxi.pydantic.PydanticInspection"/>
         <automaticRenamerFactory implementation="com.koxudaxi.pydantic.PydanticFieldRenameFactory"/>
@@ -175,5 +175,6 @@
         <pyDataclassParametersProvider implementation="com.koxudaxi.pydantic.PydanticParametersProvider"/>
     </extensions>
 
+    <resource-bundle/>
 </idea-plugin>
 
