@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlin_version = "1.3.61"
-    ext.python_core_version = "201.3803.74"
+    ext.python_core_version = "201.4865.17"
     repositories {
         mavenCentral()
     }
@@ -18,7 +18,7 @@ plugins {
 
 intellij {
     pluginName project.name
-    version "201.3803.71-EAP-SNAPSHOT"
+    version "201.4865.12-EAP-SNAPSHOT"
     type "IC"
     downloadSources true
     plugins "java", "Kotlin", "PythonCore:$python_core_version"
