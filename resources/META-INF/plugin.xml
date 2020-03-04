@@ -137,7 +137,7 @@
     </ul>
     ]]></description>
 
-    <idea-version since-build="192.0"/>
+    <idea-version since-build="192.5728"/>
 
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.python</depends>
@@ -157,7 +157,7 @@
                         serviceImplementation="com.koxudaxi.pydantic.PydanticConfigService"/>
 
         <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
-
+            <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer"/>
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>

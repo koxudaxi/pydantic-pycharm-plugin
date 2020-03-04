@@ -11,6 +11,8 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 class PydanticConfigService : PersistentStateComponent<PydanticConfigService> {
     var initTyped = true
     var warnUntypedFields = false
+    var pyprojectToml: String? = null
+    var virtualUnionMap = mutableMapOf<String, List<String>>()
 
     override fun getState(): PydanticConfigService {
         return this

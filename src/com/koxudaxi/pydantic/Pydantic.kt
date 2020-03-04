@@ -52,11 +52,6 @@ val CONFIG_TYPES = mapOf(
         "allow_mutation" to Boolean
 )
 
-val VIRTUAL_UNION_MAPS = mapOf<String, List<String>>(
-        "str" to listOf("builtins.str", "builtins.float", "builtins.int")
-
-)
-
 fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
     val callee = pyCallExpression.callee ?: return null
     val pyType = when (val type = context.getType(callee)) {
@@ -304,6 +299,9 @@ fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
 }
 
 fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext): PyClassTypeImpl? {
-    val psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(qualifiedName), project, context) ?: return null
+    var psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(qualifiedName), project, context)
+    if (psiElement == null) {
+        psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString("builtins.$qualifiedName"), project, context)?: return null
+    }
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }

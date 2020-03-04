@@ -158,16 +158,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }
 
         if (typeForParameter is PyClassTypeImpl) {
-            val classQName: String? = if (typeForParameter.isBuiltin){
-                typeForParameter.classQName
-            } else {
-                "builtins." + typeForParameter.classQName
-            }
+            val classQName: String? =  typeForParameter.classQName
 
-            VIRTUAL_UNION_MAPS[classQName]?.let { virtualUnionMap ->
+            getInstance(pyClass.project).virtualUnionMap[classQName]?.let { virtualUnionMap ->
                 val types = mutableListOf(typeForParameter as PyType)
                 virtualUnionMap.mapNotNull {
-                    createPyClassTypeImpl(it, pyClass.project, context)
+                    createPyClassTypeImpl(it, pyClass.project, context) ?: createPyClassTypeImpl(it, pyClass.project, context)
                 }.toCollection(types)
 
                 typeForParameter = PyUnionType.union(types)
