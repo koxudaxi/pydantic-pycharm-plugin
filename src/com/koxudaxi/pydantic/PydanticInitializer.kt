@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import org.apache.tuweni.toml.Toml
+import org.apache.tuweni.toml.TomlArray
 import org.apache.tuweni.toml.TomlParseResult
 
 class PydanticInitializer : StartupActivity {
@@ -58,12 +59,15 @@ class PydanticInitializer : StartupActivity {
         val temporaryVirtualUnionMap = mutableMapOf<String, List<String>>()
 
         val result: TomlParseResult = Toml.parse(config.inputStream)
-        val acceptTypeTable = result.getTableOrEmpty("tool.pydantic-pycharm-plugin.accept-types")
-        acceptTypeTable.keySet().forEach { key ->
+        val acceptTypeTable = result.getTableOrEmpty("tool.pydantic-pycharm-plugin.accept-types").toMap()
+        acceptTypeTable.entries.forEach { (key, value) ->
             run {
-                val castList = acceptTypeTable.getArray(key)?.toList()?.filterIsInstance<String>()
-                if (castList is List<String> && castList.isNotEmpty()) {
-                    temporaryVirtualUnionMap[key] = castList
+                if (value is TomlArray) {
+                    value.toList().filterIsInstance<String>().let {
+                        if (it.isNotEmpty()) {
+                            temporaryVirtualUnionMap[key] = it
+                        }
+                    }
                 }
             }
         }

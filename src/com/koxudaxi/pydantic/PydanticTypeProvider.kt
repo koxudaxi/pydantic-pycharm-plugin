@@ -118,7 +118,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             if (!isPydanticModel(current, context)) continue
 
             getClassVariables(current, context)
-                    .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion, config, typed) }
+                    .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion, config, typed, true) }
                     .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
                     .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
@@ -135,7 +135,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                   pyClass: PyClass,
                                   pydanticVersion: KotlinVersion?,
                                   config: HashMap<String, Any?>,
-                                  typed: Boolean = true): PyCallableParameter? {
+                                  typed: Boolean = true,
+                                  virtualUnion: Boolean = false): PyCallableParameter? {
         if (field.name == null || ! isValidFieldName(field.name!!)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
@@ -157,17 +158,16 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             }
         }
 
-        if (typeForParameter is PyClassTypeImpl) {
-            val classQName: String? =  typeForParameter.classQName
+        if (virtualUnion && typeForParameter is PyType) {
+            val pyTypes: MutableSet<PyType> = mutableSetOf(typeForParameter)
+            getPyClassTypeByPyTypes(typeForParameter).toSet().forEach {type ->
+            val classQName: String? =  type.classQName
 
-            getInstance(pyClass.project).virtualUnionMap[classQName]?.let { virtualUnionMap ->
-                val types = mutableListOf(typeForParameter as PyType)
-                virtualUnionMap.mapNotNull {
+                getInstance(pyClass.project).virtualUnionMap[classQName]?.mapNotNull {
                     createPyClassTypeImpl(it, pyClass.project, context) ?: createPyClassTypeImpl(it, pyClass.project, context)
-                }.toCollection(types)
-
-                typeForParameter = PyUnionType.union(types)
+                }?.toCollection(pyTypes)
             }
+            typeForParameter = PyUnionType.union(pyTypes)
         }
 
         return PyCallableParameterImpl.nonPsi(
