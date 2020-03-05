@@ -31,6 +31,7 @@ class PydanticInitializer : StartupActivity {
                 { events ->
                     object : AsyncFileListener.ChangeApplier {
                         override fun afterVfsChange() {
+                            if(project.isDisposed) return
                             val configFile = events
                                 .asSequence()
                                 .filter {
