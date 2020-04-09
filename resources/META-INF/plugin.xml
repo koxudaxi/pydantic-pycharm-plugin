@@ -147,7 +147,7 @@
     </ul>
     ]]></description>
 
-    <idea-version since-build="201.0"/>
+    <idea-version since-build="2020.1"/>
 
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.python</depends>
