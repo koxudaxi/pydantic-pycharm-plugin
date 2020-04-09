@@ -22,12 +22,13 @@
 * Search related-fields by class attributes and keyword arguments of `__init__` with `Ctrl+B` and `Cmd+B`
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
+  * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
 
 ## How to install:
 ### MarketPlace 
-The plugin is in Jetbrains repositry ([Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic))
+The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic))
 
-You can install the stable version on PyCharm's `marketpale` (Preference -> Plugins -> Marketplace) [Offical Document](https://www.jetbrains.com/help/idea/managing-plugins.html)
+You can install the stable version on PyCharm's `Marketplace` (Preference -> Plugins -> Marketplace) [Offical Document](https://www.jetbrains.com/help/idea/managing-plugins.html)
 
 ### Complied binary
 The releases section of this repository contains a compiled version of the plugin: [pydantic-pycharm-plugin.zip(latest)](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/latest/download/pydantic-pycharm-plugin.zip)

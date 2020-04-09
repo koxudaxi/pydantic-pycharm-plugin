@@ -109,7 +109,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
 
             pyClass.getAncestorClasses(typeEvalContext)
-                    .filter { isPydanticModel(it) }
+                    .filter { isPydanticModel(it, true) }
                     .forEach { addFieldElement(it, newElements, typeEvalContext, ellipsis, config, excludes) }
 
             addFieldElement(pyClass, newElements, typeEvalContext, ellipsis, config, excludes)
@@ -127,12 +127,12 @@ class PydanticCompletionContributor : CompletionContributor() {
                                             pyClass: PyClass, typeEvalContext: TypeEvalContext,
                                             excludes: HashSet<String>) {
 
-            if (!isPydanticModel(pyClass)) return
+            if (!isPydanticModel(pyClass, true)) return
 
             val fieldElements: HashSet<String> = HashSet()
 
             pyClass.getAncestorClasses(typeEvalContext)
-                    .filter { isPydanticModel(it) }
+                    .filter { isPydanticModel(it, true) }
                     .forEach { fieldElements.addAll(it.classAttributes
                             .filter {attribute
                                 -> attribute.name?.let { name -> isValidFieldName(name)} ?: false}
@@ -176,7 +176,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pyClassType = (pyArgumentList.parent as? PyCallExpression)?.let{typeEvalContext.getType(it)} as? PyClassType
                     ?: return
 
-            if (!isPydanticModel(pyClassType.pyClass, typeEvalContext)) return
+            if (!isPydanticModel(pyClassType.pyClass, true, typeEvalContext)) return
 
             val definedSet = pyArgumentList.children
                     .mapNotNull { (it as? PyKeywordArgument)?.name }
@@ -199,7 +199,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val typeEvalContext = parameters.getTypeEvalContext()
             val pyType = (parameters.position.parent?.firstChild as? PyTypedElement)?.let { typeEvalContext.getType(it)} ?: return
 
-            val pyClassType = getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass) } ?: return
+            val pyClassType = getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, true) } ?: return
             if (pyClassType.isDefinition) { // class
                 removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields)
                 return
@@ -243,7 +243,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val configClass = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
             if (!isConfigClass(configClass)) return
             val pydanticModel = getPyClassByAttribute(configClass) ?:return
-            if (!isPydanticModel(pydanticModel)) return
+            if (!isPydanticModel(pydanticModel, true)) return
             val typeEvalContext = parameters.getTypeEvalContext()
 
             val definedSet = configClass.classAttributes
@@ -265,7 +265,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
             val pydanticModel = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
-            if (!isPydanticModel(pydanticModel)) return
+            if (!isPydanticModel(pydanticModel, true)) return
             if (pydanticModel.findNestedClass("Config", false) != null) return
             val element = PrioritizedLookupElement.withGrouping(
                     LookupElementBuilder

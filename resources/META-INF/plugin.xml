@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.0.30</version>
+    <version>0.1.0</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.1.0</h2>
+    <p>Features</p>
+    <ul>
+        <li> PyCharm treats pydantic.dataclasses.dataclass as third-party dataclass. [#98] </li>
+    </ul>
     <h2>version 0.0.30</h2>
     <p>BugFixes</p>
     <ul>
@@ -142,14 +147,14 @@
     </ul>
     ]]></description>
 
-    <idea-version since-build="192.0"/>
+    <idea-version since-build="2020.1"/>
 
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.python</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <localInspection language="Python" shortName="PydanticInspection" suppressId="Pydantic"
-                         displayName="Pydantic definition and usages" groupKey="INSP.GROUP.python"
+                         displayName="Pydantic definition and usages"
                          enabledByDefault="true" level="WARNING"
                          implementationClass="com.koxudaxi.pydantic.PydanticInspection"/>
         <automaticRenamerFactory implementation="com.koxudaxi.pydantic.PydanticFieldRenameFactory"/>
@@ -167,8 +172,9 @@
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
         <inspectionExtension implementation="com.koxudaxi.pydantic.PydanticIgnoreInspection"/>
-
+        <pyDataclassParametersProvider implementation="com.koxudaxi.pydantic.PydanticParametersProvider"/>
     </extensions>
 
+    <resource-bundle/>
 </idea-plugin>
 
