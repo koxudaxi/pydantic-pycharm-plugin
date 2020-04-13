@@ -44,7 +44,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
     }
 
     private fun configureByFileName(fileName: String) {
-        myFixture!!.configureByFile("${myFixture!!.testDataPath}/${fileName}")
+        myFixture!!.configureByFile(fileName)
     }
 
     @Throws(Exception::class)

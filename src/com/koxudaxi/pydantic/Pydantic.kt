@@ -5,9 +5,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
-import com.jetbrains.extenstions.ModuleBasedContextAnchor
-import com.jetbrains.extenstions.QNameResolveContext
-import com.jetbrains.extenstions.resolveToElement
+import com.jetbrains.extensions.ModuleBasedContextAnchor
+import com.jetbrains.extensions.QNameResolveContext
+import com.jetbrains.extensions.resolveToElement
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
@@ -52,23 +52,23 @@ val CONFIG_TYPES = mapOf(
         "allow_mutation" to Boolean
 )
 
-fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
+fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, includeDataclass: Boolean, context: TypeEvalContext): PyClass? {
     val callee = pyCallExpression.callee ?: return null
     val pyType = when (val type = context.getType(callee)) {
         is PyClass -> return type
         is PyClassType -> type
         else -> (callee.reference?.resolve() as? PyTypedElement)?.let { context.getType(it) } ?: return null
     }
-    return getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass) }?.pyClass
+    return getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, includeDataclass) }?.pyClass
 }
 
 fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
-    return getPyClassByPyCallExpression(pyCallExpression, context)
+    return getPyClassByPyCallExpression(pyCallExpression, true, context)
 }
 
-fun isPydanticModel(pyClass: PyClass, context: TypeEvalContext? = null): Boolean {
-    return (isSubClassOfPydanticBaseModel(pyClass, context) || isPydanticDataclass(pyClass)) && !isPydanticBaseModel(pyClass)
+fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext? = null): Boolean {
+    return (isSubClassOfPydanticBaseModel(pyClass, context) || (includeDataclass && isPydanticDataclass(pyClass))) && !isPydanticBaseModel(pyClass)
 }
 
 fun isPydanticBaseModel(pyClass: PyClass): Boolean {
@@ -152,7 +152,7 @@ private fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalCont
 
 
 fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
-    val resolveContext = PyResolveContext.noImplicits().withTypeEvalContext(context)
+    val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(context)
     return referenceExpression.getReference(resolveContext).multiResolve(false)
 
 }
@@ -237,7 +237,7 @@ fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): 
     val config = hashMapOf<String, Any?>()
     pyClass.getAncestorClasses(context)
             .reversed()
-            .filter { isPydanticModel(it) }
+            .filter { isPydanticModel(it, false) }
             .map { getConfig(it, context, false) }
             .forEach {
                 it.entries.forEach { entry ->
