@@ -168,6 +168,7 @@
 
         <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
             <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer"/>
+        <localInspection language="Python" shortName="PydanticTypeCheckerInspection" suppressId="PydanticTypeChecker" bundle="messages.PyPsiBundle" displayName="PydanticTypeCheckerInspection" groupKey="INSP.GROUP.python" enabledByDefault="false"  level="WARNING" implementationClass="com.koxudaxi.pydantic.PydanticTypeCheckerInspection"/>
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
