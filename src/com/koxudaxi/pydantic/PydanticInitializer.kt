@@ -1,8 +1,5 @@
 package com.koxudaxi.pydantic
 
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.startup.StartupActivity
@@ -20,12 +17,11 @@ import org.apache.tuweni.toml.TomlParseResult
 class PydanticInitializer : StartupActivity {
 
     private fun getDefaultPyProjectTomlPathPath(project: Project): String {
-//        Notifications.Bus.notify(Notification("pydantic", "Success", project.basePath + "", NotificationType.INFORMATION))
-        return project.basePath + "/pyproject.toml"
+       return project.basePath + "/pyproject.toml"
     }
 
 
-    private fun initializeVirtualUnionMap(project: Project, configService: PydanticConfigService) {
+    private fun initializeParsableTypeMap(project: Project, configService: PydanticConfigService) {
         val pyprojectTomlDefault = configService.pyprojectToml ?: getDefaultPyProjectTomlPathPath(project)
         VirtualFileManager.getInstance().addAsyncFileListener(
                 { events ->
@@ -52,34 +48,33 @@ class PydanticInitializer : StartupActivity {
         if (configFile is VirtualFile) {
             loadPyprojecToml(configFile, configService)
         } else {
-            configService.virtualUnionMap.clear()
+            configService.parsableTypeMap.clear()
         }
     }
 
     private fun loadPyprojecToml(config: VirtualFile, configService: PydanticConfigService) {
-        val temporaryVirtualUnionMap = mutableMapOf<String, List<String>>()
+        val temporaryParsableTypeMap = mutableMapOf<String, List<String>>()
 
         val result: TomlParseResult = Toml.parse(config.inputStream)
-        val acceptTypeTable = result.getTableOrEmpty("tool.pydantic-pycharm-plugin.accept-types").toMap()
-        acceptTypeTable.entries.forEach { (key, value) ->
+        val parsableTypeTable = result.getTableOrEmpty("tool.pydantic-pycharm-plugin.parsable-types").toMap()
+        parsableTypeTable.entries.forEach { (key, value) ->
             run {
                 if (value is TomlArray) {
                     value.toList().filterIsInstance<String>().let {
                         if (it.isNotEmpty()) {
-                            temporaryVirtualUnionMap[key] = it
+                            temporaryParsableTypeMap[key] = it
                         }
                     }
                 }
             }
         }
-        if (configService.virtualUnionMap != temporaryVirtualUnionMap) {
-            configService.virtualUnionMap = temporaryVirtualUnionMap
-//            Notifications.Bus.notify(Notification("pydantic", "Success", "Update accept-types", NotificationType.INFORMATION))
+        if (configService.parsableTypeMap != temporaryParsableTypeMap) {
+            configService.parsableTypeMap = temporaryParsableTypeMap
         }
     }
 
     override fun runActivity(project: Project) {
         val configService = PydanticConfigService.getInstance(project)
-        initializeVirtualUnionMap(project, configService)
+        initializeParsableTypeMap(project, configService)
     }
 }

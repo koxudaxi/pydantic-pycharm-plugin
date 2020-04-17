@@ -25,7 +25,6 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
     }
 
     class Visitor(holder: ProblemsHolder?, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
-        // TODO: Visit decorators with arguments
         override fun visitPyCallExpression(node: PyCallExpression) {
             val pyClass = getPyClassByPyCallExpression(node, true, myTypeEvalContext)
             getPyClassByPyCallExpression(node, true, myTypeEvalContext)
@@ -50,7 +49,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             getPyClassTypeByPyTypes(typeForParameter).toSet().forEach { type ->
                 val classQName: String? = type.classQName
 
-                PydanticConfigService.getInstance(project).virtualUnionMap[classQName]?.mapNotNull {
+                PydanticConfigService.getInstance(project).parsableTypeMap[classQName]?.mapNotNull {
                     createPyClassTypeImpl(it, project, myTypeEvalContext)
                             ?: createPyClassTypeImpl(it, project, myTypeEvalContext)
                 }?.toCollection(pyTypes)
