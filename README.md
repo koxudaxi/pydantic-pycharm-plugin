@@ -12,7 +12,7 @@
 ## Example:
 ![type check1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/typecheck1.png)
 
-## Features
+##  Features
 ### Implemented
 #### pydantic.BaseModel
 * Model-specific `__init__`-signature inspection and autocompletion for subclasses of `pydantic.BaseModel`
@@ -20,9 +20,46 @@
 * Refactor support for renaming fields for subclasses of `BaseModel`
   * (If the field name is refactored from the model definition or `__init__` call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.
 * Search related-fields by class attributes and keyword arguments of `__init__` with `Ctrl+B` and `Cmd+B`
+* Provide an inspection for type-checking which is compatible with pydantic. the inspection supports `parsable-type`. the detail is at [Inspection for type-checking section](#inspection-for-type-checking)
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
+
+### Inspection for type-checking
+This plugin provides an inspection for type-checking, which is compatible with pydantic.
+
+You can use the inspection on PyCharm's Settings (Preference -> Editor -> Inspections -> `Type checker compatible with Pydantic`) 
+
+This inspection inherits from PyCharm's built-in type checker (aka `Type checker`).
+
+Please disable `Type checker` when you enable `Type checker compatible with Pydantic.`
+
+Don't use this type checker with a builtin type checker same time.
+
+### Parsable Type
+Pydantic has lots of support for coercing types. However, PyCharm  gives a message saying only `Expected type "x," got "y" instead:`
+
+When you set parsable-type on a type, then the message will be changed to `Field is of type "x", "y" may not be parsable to "x"`
+
+#### Set parsable-type in pyproject.toml
+You should create `pyproject.toml` in your project root.
+And, you define parsable-type like a example.
+
+exapmle:
+
+```toml
+[tool.pydantic-pycharm-plugin.parsable-types]
+
+# str field may parse int and float
+str = ["int", "float"]
+
+# datetime.datetime field may parse int
+datetime.datetime = [ "int" ]
+```
+
+#### Related issues
+- [reflect pydantic's type leniency #36](https://github.com/koxudaxi/pydantic-pycharm-plugin/issues/36)
+- [Checking type with Enum, HttpUrl, conlist #99](https://github.com/koxudaxi/pydantic-pycharm-plugin/issues/99)
 
 ## How to install:
 ### MarketPlace 
