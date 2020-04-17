@@ -53,24 +53,32 @@ class PydanticInitializer : StartupActivity {
     }
 
     private fun loadPyprojecToml(config: VirtualFile, configService: PydanticConfigService) {
-        val temporaryParsableTypeMap = mutableMapOf<String, List<String>>()
-
         val result: TomlParseResult = Toml.parse(config.inputStream)
-        val parsableTypeTable = result.getTableOrEmpty("tool.pydantic-pycharm-plugin.parsable-types").toMap()
+
+
+        val temporaryParsableTypeMap = getTypeMap("tool.pydantic-pycharm-plugin.parsable-types", result)
+        if (configService.parsableTypeMap != temporaryParsableTypeMap) {
+            configService.parsableTypeMap = temporaryParsableTypeMap
+        }
+    }
+
+    private fun getTypeMap(path: String, tomlParseResult: TomlParseResult): MutableMap<String, List<String>> {
+
+        val temporaryTypeMap = mutableMapOf<String, List<String>>()
+
+        val parsableTypeTable = tomlParseResult.getTableOrEmpty(path).toMap()
         parsableTypeTable.entries.forEach { (key, value) ->
             run {
                 if (value is TomlArray) {
                     value.toList().filterIsInstance<String>().let {
                         if (it.isNotEmpty()) {
-                            temporaryParsableTypeMap[key] = it
+                            temporaryTypeMap[key] = it
                         }
                     }
                 }
             }
         }
-        if (configService.parsableTypeMap != temporaryParsableTypeMap) {
-            configService.parsableTypeMap = temporaryParsableTypeMap
-        }
+        return temporaryTypeMap
     }
 
     override fun runActivity(project: Project) {
