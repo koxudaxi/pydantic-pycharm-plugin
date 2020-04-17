@@ -27,18 +27,13 @@
 
 ### Inspection for type-checking
 This plugin provides an inspection for type-checking, which is compatible with pydantic.
-
 You can use the inspection on PyCharm's Settings (Preference -> Editor -> Inspections -> `Type checker compatible with Pydantic`) 
-
 This inspection inherits from PyCharm's built-in type checker (aka `Type checker`).
-
 Please disable `Type checker` when you enable `Type checker compatible with Pydantic.`
-
 Don't use this type checker with a builtin type checker same time.
 
 ### Parsable Type
 Pydantic has lots of support for coercing types. However, PyCharm  gives a message saying only `Expected type "x," got "y" instead:`
-
 When you set parsable-type on a type, then the message will be changed to `Field is of type "x", "y" may not be parsable to "x"`
 
 #### Set parsable-type in pyproject.toml
