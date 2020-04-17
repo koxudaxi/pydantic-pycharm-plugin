@@ -32,9 +32,13 @@ This inspection inherits from PyCharm's built-in type checker (aka `Type checker
 Please disable `Type checker` when you enable `Type checker compatible with Pydantic.`
 Don't use this type checker with a builtin type checker same time.
 
+![inspection 1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/inspection1.png)
+
 ### Parsable Type
 Pydantic has lots of support for coercing types. However, PyCharm  gives a message saying only `Expected type "x," got "y" instead:`
 When you set parsable-type on a type, then the message will be changed to `Field is of type "x", "y" may not be parsable to "x"`
+
+![parsable type1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/parsable-type1.png)
 
 #### Set parsable-type in pyproject.toml
 You should create `pyproject.toml` in your project root.
