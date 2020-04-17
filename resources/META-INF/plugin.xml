@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.1.2</h2>
+    <p>BugFixes</p>
+    <ul>
+        <li>Fix plugin build settings [#100] </li>
+    </ul>
     <h2>version 0.1.1</h2>
     <p>Features</p>
     <ul>
@@ -152,7 +157,7 @@
     </ul>
     ]]></description>
 
-    <idea-version since-build="2020.1"/>
+    <idea-version since-build="201.6668.115"/>
 
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.python</depends>
