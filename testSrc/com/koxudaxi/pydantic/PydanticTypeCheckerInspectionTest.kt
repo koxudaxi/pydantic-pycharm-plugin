@@ -16,7 +16,7 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
     }
     fun testParsableTypeInvalid() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("int")
         doTest()
     }
 }
