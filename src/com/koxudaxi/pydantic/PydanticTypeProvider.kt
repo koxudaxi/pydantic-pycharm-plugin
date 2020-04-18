@@ -4,9 +4,7 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.PyCallExpressionImpl
-import com.jetbrains.python.psi.impl.PyCallExpressionNavigator
-import com.jetbrains.python.psi.impl.PySubscriptionExpressionImpl
+import com.jetbrains.python.psi.impl.*
 import com.jetbrains.python.psi.types.*
 import com.koxudaxi.pydantic.PydanticConfigService.Companion.getInstance
 import one.util.streamex.StreamEx
@@ -177,19 +175,29 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         when (val value = field.findAssignedValue()) {
             null -> {
-                val annotation = (field.annotation?.value as? PySubscriptionExpressionImpl) ?: return null
-
-                when {
-                    annotation.qualifier == null -> return value
-                    annotation.qualifier!!.text == "Optional" -> return ellipsis
-                    annotation.qualifier!!.text == "Union" -> annotation.children
-                            .filterIsInstance<PyTupleExpression>()
-                            .forEach {
-                                it.children
-                                        .forEach { type -> if (type is PyNoneLiteralExpression) return ellipsis }
-                            }
+                when (val annotation = field.annotation?.value) {
+                    is PySubscriptionExpressionImpl -> {
+                        when {
+                            annotation.qualifier == null -> return value
+                            annotation.qualifier!!.text == "Optional" -> return ellipsis
+                            annotation.qualifier!!.text == "Union" -> annotation.children
+                                    .filterIsInstance<PyTupleExpression>()
+                                    .forEach {
+                                        it.children
+                                                .forEach { type -> if (type is PyNoneLiteralExpression) return ellipsis }
+                                    }
+                        }
+                        return value
+                    }
+                    is PyReferenceExpressionImpl -> {
+                        return if (annotation.text == "Any") {
+                            ellipsis
+                        } else null
+                    }
+                    else -> {
+                        return null
+                    }
                 }
-                return value
             }
             else -> return getDefaultValueByAssignedValue(field, ellipsis, context, pydanticVersion)
         }

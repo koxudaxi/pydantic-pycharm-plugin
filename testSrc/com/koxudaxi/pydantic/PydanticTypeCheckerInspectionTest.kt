@@ -19,4 +19,8 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
         pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("int")
         doTest()
     }
+
+    fun testField() {
+        doTest()
+    }
 }
