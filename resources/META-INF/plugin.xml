@@ -8,6 +8,7 @@
     <p>BugFixes</p>
     <ul>
         <li>Fix plugin build settings [#100] </li>
+        <li>Fix an invalid warning when a field type is any [#101] </li>
     </ul>
     <h2>version 0.1.1</h2>
     <p>Features</p>
