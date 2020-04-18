@@ -1,6 +1,7 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.LocalInspectionToolSession
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
@@ -24,6 +25,9 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
     }
 
     class Visitor(holder: ProblemsHolder?, session: LocalInspectionToolSession) : PyTypeCheckerInspection.Visitor(holder, session) {
+
+        val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
+
         override fun visitPyCallExpression(node: PyCallExpression) {
             val pyClass = getPyClassByPyCallExpression(node, true, myTypeEvalContext)
             getPyClassByPyCallExpression(node, true, myTypeEvalContext)
@@ -73,10 +77,13 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                     val parsableMatched = matchParameterAndArgument(parsableType, actual, argument, substitutions)
                     val parsableResult = AnalyzeArgumentResult(argument, parsableType, substituteGenerics(parsableType, substitutions), actual, parsableMatched)
                     if (parsableResult.isMatched) {
-                        registerProblem(argument, String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
-                                expectedType,
-                                actualType,
-                                expectedType)
+                        registerProblem(
+                                argument,
+                                String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
+                                        expectedType,
+                                        actualType,
+                                        expectedType),
+                                pydanticConfigService.parsableTypeHighlightType
                         )
                     } else {
                         registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
