@@ -7,7 +7,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.codeInsight.typing.matchingProtocolDefinitions
 import com.jetbrains.python.documentation.PythonDocumentationProvider
-import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.PyTypeCheckerInspection
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.PyCallExpression.PyArgumentsMapping
@@ -24,7 +23,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         return Visitor(holder, session)
     }
 
-    class Visitor(holder: ProblemsHolder?, session: LocalInspectionToolSession) : PyInspectionVisitor(holder, session) {
+    class Visitor(holder: ProblemsHolder?, session: LocalInspectionToolSession) : PyTypeCheckerInspection.Visitor(holder, session) {
         override fun visitPyCallExpression(node: PyCallExpression) {
             val pyClass = getPyClassByPyCallExpression(node, true, myTypeEvalContext)
             getPyClassByPyCallExpression(node, true, myTypeEvalContext)

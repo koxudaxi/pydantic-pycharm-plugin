@@ -23,4 +23,8 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
     fun testField() {
         doTest()
     }
+
+    fun testClass() {
+        doTest()
+    }
 }
