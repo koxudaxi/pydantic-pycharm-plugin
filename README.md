@@ -26,6 +26,8 @@
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
 
 ### Inspection for type-checking
+**In version 0.1.1, This feature is broken. Please use it in 0.1.2 or later.** 
+
 This plugin provides an inspection for type-checking, which is compatible with pydantic.
 You can use the inspection on PyCharm's Settings (Preference -> Editor -> Inspections -> `Type checker compatible with Pydantic`) 
 This inspection inherits from PyCharm's built-in type checker (aka `Type checker`).
