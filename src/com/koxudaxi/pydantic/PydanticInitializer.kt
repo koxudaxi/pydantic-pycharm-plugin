@@ -50,19 +50,34 @@ class PydanticInitializer : StartupActivity {
         if (configFile is VirtualFile) {
             loadPyprojecToml(configFile, configService)
         } else {
-            configService.parsableTypeMap.clear()
-            configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
-            configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
+            clear(configService)
         }
+    }
+
+    private fun clear(configService: PydanticConfigService) {
+        configService.parsableTypeMap.clear()
+        configService.acceptableTypeMap.clear()
+        configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
+        configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
     }
 
     private fun loadPyprojecToml(config: VirtualFile, configService: PydanticConfigService) {
         val result: TomlParseResult = Toml.parse(config.inputStream)
 
-        val table = result.getTableOrEmpty("tool.pydantic-pycharm-plugin") ?: return
+        val table = result.getTableOrEmpty("tool.pydantic-pycharm-plugin")
+        if (table.isEmpty) {
+            clear(configService)
+            return
+        }
+
         val temporaryParsableTypeMap = getTypeMap("parsable-types", table)
         if (configService.parsableTypeMap != temporaryParsableTypeMap) {
             configService.parsableTypeMap = temporaryParsableTypeMap
+        }
+
+        val temporaryAcceptableTypeMap = getTypeMap("acceptable-types", table)
+        if (configService.acceptableTypeMap != temporaryAcceptableTypeMap) {
+            configService.acceptableTypeMap = temporaryAcceptableTypeMap
         }
 
         configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
