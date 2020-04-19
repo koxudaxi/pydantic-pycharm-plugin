@@ -30,7 +30,7 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
 
     fun testParsableTypeInvalid() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("int")
+        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("builtins.int")
         doTest()
     }
 
@@ -54,7 +54,7 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
 
     fun testAcceptableTypeInvalid() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("int")
+        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("builtins.int")
         doTest()
     }
     fun testField() {

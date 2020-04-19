@@ -95,48 +95,50 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                 if (!strictResult.isMatched) {
                     val expectedType = PythonDocumentationProvider.getTypeName(strictResult.expectedType, myTypeEvalContext)
                     val actualType = PythonDocumentationProvider.getTypeName(strictResult.actualType, myTypeEvalContext)
-                    val parsableType = expected?.let { getParsableTypeFromTypeMap(it, cachedParsableTypeMap) }
-                    if (parsableType != null) {
-                        val parsableMatched = matchParameterAndArgument(parsableType, actual, argument, substitutions)
-                        val parsableResult = AnalyzeArgumentResult(argument, parsableType, substituteGenerics(parsableType, substitutions), actual, parsableMatched)
-                        if (parsableResult.isMatched) {
-                            registerProblem(
-                                    argument,
-                                    String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
-                                            expectedType,
-                                            actualType,
-                                            expectedType),
-                                    pydanticConfigService.parsableTypeHighlightType
-                            )
-                            continue
-                        } else {
-                            registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
-                                    expectedType,
-                                    actualType)
-                            )
-                            continue
+                    if (expected is PyType) {
+                        val parsableType = getParsableTypeFromTypeMap(expected, cachedParsableTypeMap)
+                        if (parsableType != null) {
+                            val parsableMatched = matchParameterAndArgument(parsableType, actual, argument, substitutions)
+                            val parsableResult = AnalyzeArgumentResult(argument, parsableType, substituteGenerics(parsableType, substitutions), actual, parsableMatched)
+                            if (parsableResult.isMatched) {
+                                registerProblem(
+                                        argument,
+                                        String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
+                                                expectedType,
+                                                actualType,
+                                                expectedType),
+                                        pydanticConfigService.parsableTypeHighlightType
+                                )
+                                continue
+                            } else {
+                                registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
+                                        expectedType,
+                                        actualType)
+                                )
+                                continue
+                            }
                         }
-                    }
-                    val acceptableType = expected?.let { getAcceptableTypeFromTypeMap(it, cachedAcceptableTypeMap) }
-                    if (acceptableType != null) {
-                        val acceptableMatched = matchParameterAndArgument(acceptableType, actual, argument, substitutions)
-                        val acceptableResult = AnalyzeArgumentResult(argument, acceptableType, substituteGenerics(acceptableType, substitutions), actual, acceptableMatched)
-                        if (acceptableResult.isMatched) {
-                            registerProblem(
-                                    argument,
-                                    String.format("Field is of type '%s', '%s' is set as an acceptable type in pyproject.toml",
-                                            expectedType,
-                                            actualType,
-                                            expectedType),
-                                    pydanticConfigService.acceptableTypeHighlightType
-                            )
-                            continue
-                        } else {
-                            registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
-                                    expectedType,
-                                    actualType)
-                            )
-                            continue
+                        val acceptableType = getAcceptableTypeFromTypeMap(expected, cachedAcceptableTypeMap)
+                        if (acceptableType != null) {
+                            val acceptableMatched = matchParameterAndArgument(acceptableType, actual, argument, substitutions)
+                            val acceptableResult = AnalyzeArgumentResult(argument, acceptableType, substituteGenerics(acceptableType, substitutions), actual, acceptableMatched)
+                            if (acceptableResult.isMatched) {
+                                registerProblem(
+                                        argument,
+                                        String.format("Field is of type '%s', '%s' is set as an acceptable type in pyproject.toml",
+                                                expectedType,
+                                                actualType,
+                                                expectedType),
+                                        pydanticConfigService.acceptableTypeHighlightType
+                                )
+                                continue
+                            } else {
+                                registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
+                                        expectedType,
+                                        actualType)
+                                )
+                                continue
+                            }
                         }
                     }
                     registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
