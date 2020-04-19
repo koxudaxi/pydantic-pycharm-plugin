@@ -15,6 +15,9 @@ class PydanticConfigService : PersistentStateComponent<PydanticConfigService> {
     var pyprojectToml: String? = null
     var parsableTypeMap = mutableMapOf<String, List<String>>()
     var parsableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WARNING
+    var acceptableTypeMap = mutableMapOf<String, List<String>>()
+    var acceptableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WEAK_WARNING
+
     override fun getState(): PydanticConfigService {
         return this
     }

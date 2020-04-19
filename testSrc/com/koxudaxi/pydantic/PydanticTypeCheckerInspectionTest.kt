@@ -34,6 +34,29 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
+    fun testAcceptableType() {
+        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        doTest()
+    }
+    fun testAcceptableTypeWarning() {
+        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.acceptableTypeHighlightType = ProblemHighlightType.WARNING
+        doTest()
+    }
+    fun testAcceptableTypeDisable() {
+        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.acceptableTypeHighlightType = ProblemHighlightType.INFORMATION
+        doTest()
+    }
+
+    fun testAcceptableTypeInvalid() {
+        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("int")
+        doTest()
+    }
     fun testField() {
         doTest()
     }

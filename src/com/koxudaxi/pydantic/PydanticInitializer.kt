@@ -52,6 +52,7 @@ class PydanticInitializer : StartupActivity {
         } else {
             configService.parsableTypeMap.clear()
             configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
+            configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
         }
     }
 
@@ -64,11 +65,15 @@ class PydanticInitializer : StartupActivity {
             configService.parsableTypeMap = temporaryParsableTypeMap
         }
 
-        configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight")
+        configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
+        configService.acceptableTypeHighlightType = getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)
     }
 
-    private fun getHighlightLevel(table: TomlTable, path: String): ProblemHighlightType {
+    private fun getHighlightLevel(table: TomlTable, path: String, default: ProblemHighlightType): ProblemHighlightType {
         return when (table.get(path) as? String) {
+            "warning" -> {
+                ProblemHighlightType.WARNING
+            }
             "weak_warning" -> {
                 ProblemHighlightType.WEAK_WARNING
             }
@@ -76,7 +81,7 @@ class PydanticInitializer : StartupActivity {
                 ProblemHighlightType.INFORMATION
             }
             else -> {
-                ProblemHighlightType.WARNING
+                default
             }
         }
     }
