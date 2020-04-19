@@ -1,14 +1,18 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.1.3</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support parsable type highlight level [#103] </li>
+    </ul>
     <h2>version 0.1.2</h2>
     <p>BugFixes</p>
     <ul>
         <li>Fix type checker [#102] </li>
-        <li>Fix an invalid warning when a field type is any [#101] </li>
         <li>Fix an invalid warning when a field type is any [#101] </li>
         <li>Fix plugin build settings [#100] </li>
     </ul>
