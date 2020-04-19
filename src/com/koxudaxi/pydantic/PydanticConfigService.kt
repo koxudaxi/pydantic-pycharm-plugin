@@ -1,5 +1,6 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
@@ -13,7 +14,7 @@ class PydanticConfigService : PersistentStateComponent<PydanticConfigService> {
     var warnUntypedFields = false
     var pyprojectToml: String? = null
     var parsableTypeMap = mutableMapOf<String, List<String>>()
-
+    var parsableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WARNING
     override fun getState(): PydanticConfigService {
         return this
     }

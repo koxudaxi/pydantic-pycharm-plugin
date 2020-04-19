@@ -1,5 +1,6 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.startup.StartupActivity
@@ -13,11 +14,12 @@ import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import org.apache.tuweni.toml.Toml
 import org.apache.tuweni.toml.TomlArray
 import org.apache.tuweni.toml.TomlParseResult
+import org.apache.tuweni.toml.TomlTable
 
 class PydanticInitializer : StartupActivity {
 
     private fun getDefaultPyProjectTomlPathPath(project: Project): String {
-       return project.basePath + "/pyproject.toml"
+        return project.basePath + "/pyproject.toml"
     }
 
 
@@ -27,16 +29,16 @@ class PydanticInitializer : StartupActivity {
                 { events ->
                     object : AsyncFileListener.ChangeApplier {
                         override fun afterVfsChange() {
-                            if(project.isDisposed) return
+                            if (project.isDisposed) return
                             val configFile = events
-                                .asSequence()
-                                .filter {
-                                    it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent
-                                }
-                                .mapNotNull { it.file }
-                                .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
-                                .filter { it.path == configService.pyprojectToml ?: pyprojectTomlDefault }
-                                .lastOrNull() ?: return
+                                    .asSequence()
+                                    .filter {
+                                        it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent
+                                    }
+                                    .mapNotNull { it.file }
+                                    .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
+                                    .filter { it.path == configService.pyprojectToml ?: pyprojectTomlDefault }
+                                    .lastOrNull() ?: return
                             loadPyprojecToml(configFile, configService)
                         }
                     }
@@ -49,24 +51,41 @@ class PydanticInitializer : StartupActivity {
             loadPyprojecToml(configFile, configService)
         } else {
             configService.parsableTypeMap.clear()
+            configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
         }
     }
 
     private fun loadPyprojecToml(config: VirtualFile, configService: PydanticConfigService) {
         val result: TomlParseResult = Toml.parse(config.inputStream)
 
-
-        val temporaryParsableTypeMap = getTypeMap("tool.pydantic-pycharm-plugin.parsable-types", result)
+        val table = result.getTableOrEmpty("tool.pydantic-pycharm-plugin") ?: return
+        val temporaryParsableTypeMap = getTypeMap("parsable-types", table)
         if (configService.parsableTypeMap != temporaryParsableTypeMap) {
             configService.parsableTypeMap = temporaryParsableTypeMap
         }
+
+        configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight")
     }
 
-    private fun getTypeMap(path: String, tomlParseResult: TomlParseResult): MutableMap<String, List<String>> {
+    private fun getHighlightLevel(table: TomlTable, path: String): ProblemHighlightType {
+        return when (table.get(path) as? String) {
+            "weak_warning" -> {
+                ProblemHighlightType.WEAK_WARNING
+            }
+            "disable" -> {
+                ProblemHighlightType.INFORMATION
+            }
+            else -> {
+                ProblemHighlightType.WARNING
+            }
+        }
+    }
+
+    private fun getTypeMap(path: String, table: TomlTable): MutableMap<String, List<String>> {
 
         val temporaryTypeMap = mutableMapOf<String, List<String>>()
 
-        val parsableTypeTable = tomlParseResult.getTableOrEmpty(path).toMap()
+        val parsableTypeTable = table.getTableOrEmpty(path).toMap()
         parsableTypeTable.entries.forEach { (key, value) ->
             run {
                 if (value is TomlArray) {
