@@ -55,7 +55,7 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    fun loadPyprojecToml(config: VirtualFile, configService: PydanticConfigService) {
+    private fun loadPyprojecToml(config: VirtualFile, configService: PydanticConfigService) {
         val result: TomlParseResult = Toml.parse(config.inputStream)
 
         val table = result.getTableOrEmpty("tool.pydantic-pycharm-plugin") ?: return
@@ -67,7 +67,7 @@ class PydanticInitializer : StartupActivity {
         configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight")
     }
 
-    fun getHighlightLevel(table: TomlTable, path: String): ProblemHighlightType {
+    private fun getHighlightLevel(table: TomlTable, path: String): ProblemHighlightType {
         return when (table.get(path) as? String) {
             "weak_warning" -> {
                 ProblemHighlightType.WEAK_WARNING
@@ -81,7 +81,7 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    fun getTypeMap(path: String, table: TomlTable): MutableMap<String, List<String>> {
+    private fun getTypeMap(path: String, table: TomlTable): MutableMap<String, List<String>> {
 
         val temporaryTypeMap = mutableMapOf<String, List<String>>()
 
