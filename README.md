@@ -55,7 +55,7 @@ exapmle:
 str = ["int", "float"]
 
 # datetime.datetime field may parse int
-datetime.datetime = [ "int" ]
+"datetime.datetime" = [ "int" ]
 ```
 
 #### Related issues
