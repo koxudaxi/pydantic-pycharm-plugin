@@ -99,8 +99,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                         val parsableType = getParsableTypeFromTypeMap(expected, cachedParsableTypeMap)
                         if (parsableType != null) {
                             val parsableMatched = matchParameterAndArgument(parsableType, actual, argument, substitutions)
-                            val parsableResult = AnalyzeArgumentResult(argument, parsableType, substituteGenerics(parsableType, substitutions), actual, parsableMatched)
-                            if (parsableResult.isMatched) {
+                            if (AnalyzeArgumentResult(argument, parsableType, substituteGenerics(parsableType, substitutions), actual, parsableMatched).isMatched)
                                 registerProblem(
                                         argument,
                                         String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
@@ -109,20 +108,12 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                                                 expectedType),
                                         pydanticConfigService.parsableTypeHighlightType
                                 )
-                                continue
-                            } else {
-                                registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
-                                        expectedType,
-                                        actualType)
-                                )
-                                continue
-                            }
+                            continue
                         }
                         val acceptableType = getAcceptableTypeFromTypeMap(expected, cachedAcceptableTypeMap)
                         if (acceptableType != null) {
                             val acceptableMatched = matchParameterAndArgument(acceptableType, actual, argument, substitutions)
-                            val acceptableResult = AnalyzeArgumentResult(argument, acceptableType, substituteGenerics(acceptableType, substitutions), actual, acceptableMatched)
-                            if (acceptableResult.isMatched) {
+                            if (AnalyzeArgumentResult(argument, acceptableType, substituteGenerics(acceptableType, substitutions), actual, acceptableMatched).isMatched)
                                 registerProblem(
                                         argument,
                                         String.format("Field is of type '%s', '%s' is set as an acceptable type in pyproject.toml",
@@ -131,14 +122,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                                                 expectedType),
                                         pydanticConfigService.acceptableTypeHighlightType
                                 )
-                                continue
-                            } else {
-                                registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
-                                        expectedType,
-                                        actualType)
-                                )
-                                continue
-                            }
+                            continue
                         }
                     }
                     registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
