@@ -66,7 +66,8 @@ acceptable-type-highlight = "warning"
 ```
 
 ### Acceptable Type (Experimental)
-This feature is in version 0.1.3 or later.
+**This feature is in version [0.1.3](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.3) or later.**
+
 Pydantic can always parse a few types to other types. For example, `int` to `str.` It always succeeds.
 You can set it as an acceptable type. The message is `Field is of type 'x', 'y' is set as an acceptable type in pyproject.toml`.
 Also, you would disable the message to set "disable" on `acceptable-type-highlight`.
