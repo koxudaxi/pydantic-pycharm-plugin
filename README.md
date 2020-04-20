@@ -60,6 +60,7 @@ str = ["int", "float"]
 # your_module.your_type field may parse str
 "your_module.your_type" = [ "str" ]
 
+[tool.pydantic-pycharm-plugin]
 # You can set higlith level (default is "warning")
 # You can select it from "warning",  "weak_warning", "disable" 
 parsable-type-highlight = "warning" 
@@ -87,6 +88,7 @@ str = ["int", "float"]
 # datetime.datetime field may parse int
 "datetime.datetime" = [ "int" ]
 
+[tool.pydantic-pycharm-plugin]
 # You can set higlith level (default is "weak_warning")
 # You can select it from "warning",  "weak_warning", "disable" 
 acceptable-type-highlight = "disable" 
