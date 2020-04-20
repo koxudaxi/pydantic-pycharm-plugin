@@ -8,7 +8,8 @@
 
 [A JetBrains PyCharm plugin](https://plugins.jetbrains.com/plugin/12861-pydantic) for [`pydantic`](https://github.com/samuelcolvin/pydantic).
 
-(See [Auto-completion when instantiating BaseModel objects #650](https://github.com/samuelcolvin/pydantic/issues/650) for motivation.)
+## Help
+See [documentation](https://koxudaxi.github.io/pydantic-pycharm-plugin/) for more details.
 
 ## Quick Installation
 The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic))
@@ -28,7 +29,7 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
 * Refactor support for renaming fields for subclasses of `BaseModel`
   * (If the field name is refactored from the model definition or `__init__` call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.
 * Search related-fields by class attributes and keyword arguments of `__init__` with `Ctrl+B` and `Cmd+B`
-* Provide an inspection for type-checking which is compatible with pydantic. the inspection supports `parsable-type`. the detail is at [Inspection for type-checking section](#inspection-for-type-checking)
+* Provide an inspection for type-checking which is compatible with pydantic. the inspection supports `parsable-type`. the detail is at [Inspection for type-checking section](https://koxudaxi.github.io/pydantic-pycharm-plugin/type-checking/)
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
@@ -40,5 +41,8 @@ We are waiting for your contributions to `pydantic-pycharm-plugin`.
 ## Links
 ### JetBrains Plugin Page
 [Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic)
+
+### Motivation
+[Auto-completion when instantiating BaseModel objects #650](https://github.com/samuelcolvin/pydantic/issues/650)
 
 ## This project is currently in an experimental phase
