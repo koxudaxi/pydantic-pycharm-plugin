@@ -64,6 +64,9 @@ str = ["int", "float"]
 # You can set higlith level (default is "warning")
 # You can select it from "warning",  "weak_warning", "disable" 
 parsable-type-highlight = "warning" 
+
+## If you set acceptable-type-highlight then, you have to set it at same depth.
+acceptable-type-highlight = "disable" 
 ```
 
 ### Acceptable Type (Experimental)
@@ -92,6 +95,9 @@ str = ["int", "float"]
 # You can set higlith level (default is "weak_warning")
 # You can select it from "warning",  "weak_warning", "disable" 
 acceptable-type-highlight = "disable" 
+
+# If you set parsable-type-highlight then, you have to set it at same depth.
+parsable-type-highlight = "warning" 
 ```
 
 #### Related issues
