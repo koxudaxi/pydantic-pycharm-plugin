@@ -38,3 +38,5 @@ hs_err_pid*
 .gradle
 /out/
 /pydantic-pycahrm-plugin/out/
+/venv/
+/site

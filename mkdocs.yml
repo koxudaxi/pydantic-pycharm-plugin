@@ -1,0 +1,29 @@
+site_name: Pydantic PyCharm Plugin
+site_description: A JetBrains PyCharm plugin for pydantic.
+
+theme:
+    name: 'material'
+    palette:
+      primary: 'light blue'
+      accent: 'light blue'
+
+markdown_extensions:
+  - codehilite
+
+repo_name: koxudaxi/pydantic-pycharm-plugin
+repo_url: https://github.com/koxudaxi/pydantic-pycharm-plugin
+
+google_analytics:
+    - 'UA-142130505-1'
+    - 'auto'
+
+nav:
+    - Overview: index.md
+    - Install: install.md
+    - Usage:
+        - Inspection for type-checking: type-checking.md
+    - Development: development.md
+
+
+plugins:
+  - search

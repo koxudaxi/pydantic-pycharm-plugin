@@ -11,15 +11,14 @@
 (See [Auto-completion when instantiating BaseModel objects #650](https://github.com/samuelcolvin/pydantic/issues/650) for motivation.)
 
 ## Quick Installation
-
 The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic))
 
 You can install the stable version on PyCharm's `Marketplace` (Preference -> Plugins -> Marketplace) [Offical Document](https://www.jetbrains.com/help/idea/managing-plugins.html)
 
-![search plugin](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/search_plugin.png)
+![search plugin](search_plugin.png)
 
 ## Example:
-![type check1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/typecheck1.png)
+![type check1](typecheck1.png)
 
 ##  Features
 ### Implemented
@@ -35,10 +34,8 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
 
 
-
 ## Contribute
 We are waiting for your contributions to `pydantic-pycharm-plugin`.
-
 
 ## Links
 ### JetBrains Plugin Page
