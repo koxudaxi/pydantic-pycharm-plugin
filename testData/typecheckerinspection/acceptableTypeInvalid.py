@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 class A(BaseModel):
     a: str
-    b: str
 
-A(a=str('123'), b=str('123'))
-A(a=int(123), b=int(123))
+A(a=str('123'))
+A(<warning descr="Expected type 'str', got 'bytes' instead">a=bytes(123)</warning>)
