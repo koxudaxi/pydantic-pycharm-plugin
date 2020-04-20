@@ -1,4 +1,5 @@
-### Inspection for type-checking (Experimental)
+### Inspection for type-checking
+**Experimental**
 **In version 0.1.1, This feature is broken. Please use it in [0.1.2](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.2) or later.** 
 
 This plugin provides an inspection for type-checking, which is compatible with pydantic.
@@ -13,7 +14,7 @@ Don't use this type checker with a builtin type checker same time.
 
 ![inspection 1](inspection1.png)
 
-### Parsable Type (Experimental)
+### Parsable Type
 Pydantic has lots of support for coercing types. However, PyCharm  gives a message saying only `Expected type "x," got "y" instead:`
 When you set parsable-type on a type, then the message will be changed to `Field is of type "x", "y" may not be parsable to "x"`
 
@@ -47,7 +48,7 @@ parsable-type-highlight = "warning"
 acceptable-type-highlight = "disable" 
 ```
 
-### Acceptable Type (Experimental)
+### Acceptable Type
 **This feature is in version [0.1.3](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.3) or later.**
 
 Pydantic can always parse a few types to other types. For example, `int` to `str`. It always succeeds.
