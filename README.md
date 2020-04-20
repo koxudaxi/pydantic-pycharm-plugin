@@ -62,7 +62,7 @@ str = ["int", "float"]
 
 # You can set higlith level (default is "warning")
 # You can select it from "warning",  "weak_warning", "disable" 
-acceptable-type-highlight = "warning" 
+parsable-type-highlight = "warning" 
 ```
 
 ### Acceptable Type (Experimental)
@@ -79,7 +79,7 @@ And, you define acceptable-type like a example.
 exapmle:
 
 ```toml
-[tool.pydantic-pycharm-plugin.parsable-types]
+[tool.pydantic-pycharm-plugin.acceptable-types]
 
 # str field accepts to parse int and float
 str = ["int", "float"]
