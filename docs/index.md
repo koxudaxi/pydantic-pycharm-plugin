@@ -8,9 +8,6 @@
 
 [A JetBrains PyCharm plugin](https://plugins.jetbrains.com/plugin/12861-pydantic) for [`pydantic`](https://github.com/samuelcolvin/pydantic).
 
-## Example:
-![type check1](typecheck1.png)
-
 ##  Features
 ### Implemented
 #### pydantic.BaseModel
@@ -23,6 +20,9 @@
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
+
+## Example:
+![type check1](typecheck1.png)
 
 ## Quick Installation
 The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic))
