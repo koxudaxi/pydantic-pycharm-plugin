@@ -71,11 +71,11 @@
               </grid>
             </constraints>
             <properties>
-              <contentType value="text/html"/>
+              <contentType value="text/plain"/>
               <editable value="false"/>
               <font/>
               <opaque value="false"/>
-              <text value="&lt;html&gt;&#10;  &lt;head&gt;&#10;&#10;  &lt;/head&gt;&#10;  &lt;body&gt;&#10;    &lt;p&gt;&#10;      &#10;    &lt;/p&gt;&#10;  &lt;/body&gt;&#10;&lt;/html&gt;&#10;"/>
+              <text value=""/>
             </properties>
           </component>
         </children>
