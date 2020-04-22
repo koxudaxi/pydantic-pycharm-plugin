@@ -7,6 +7,7 @@
     <h2>version 0.1.3</h2>
     <p>Features</p>
     <ul>
+        <li>Add documents and link to documents [#105, #106, #107] </li>
         <li>Support acceptable type [#104] </li>
         <li>Support parsable type highlight level [#103] </li>
     </ul>
