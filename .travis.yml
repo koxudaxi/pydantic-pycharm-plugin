@@ -15,6 +15,7 @@ install:
 
 script:
   - travis_wait ./gradlew buildPlugin test jacocoTestReport
+  - python scripts/build_changelog.py
   - mkdocs build --verbose --clean --strict
 before_cache:
 - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock

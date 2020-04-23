@@ -9,6 +9,7 @@ theme:
 
 markdown_extensions:
   - codehilite
+  - admonition
 
 repo_name: koxudaxi/pydantic-pycharm-plugin
 repo_url: https://github.com/koxudaxi/pydantic-pycharm-plugin
@@ -23,7 +24,7 @@ nav:
     - Usage:
         - Inspection for type-checking: type-checking.md
     - Development: development.md
-
+    - Changelog: changelog.md
 
 plugins:
   - search
