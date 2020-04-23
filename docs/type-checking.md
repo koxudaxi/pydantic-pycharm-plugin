@@ -1,7 +1,9 @@
 ### Inspection for type-checking
-**Experimental**
-
-**In version 0.1.1, This feature is broken. Please use it in [0.1.2](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.2) or later.** 
+!!! warning
+    **Experimental feature**
+    
+!!! info    
+    **In version 0.1.1, This feature is broken. Please use it in [0.1.2](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.2) or later.** 
 
 This plugin provides an inspection for type-checking, which is compatible with pydantic.
 
@@ -50,7 +52,8 @@ acceptable-type-highlight = "disable"
 ```
 
 ### Acceptable Type
-**This feature is in version [0.1.3](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.3) or later.**
+!!! info    
+    **This feature is in version [0.1.3](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.3) or later.**
 
 Pydantic can always parse a few types to other types. For example, `int` to `str`. It always succeeds.
 You can set it as an acceptable type. The message is `Field is of type 'x', 'y' is set as an acceptable type in pyproject.toml`.

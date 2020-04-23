@@ -40,3 +40,4 @@ hs_err_pid*
 /pydantic-pycahrm-plugin/out/
 /venv/
 /site
+/docs/changelog.md
