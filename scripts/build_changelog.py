@@ -37,8 +37,7 @@ class HistoryHTMLParser(HTMLParser):
         self.current_tag = Tag(tag)
 
     def handle_endtag(self, tag):
-        if Tag(tag) == Tag.ChangeBody:
-            print()
+        pass
 
     def handle_data(self, data: str):
         if not data.strip():
