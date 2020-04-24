@@ -63,7 +63,7 @@ class PydanticInspection : PyInspection() {
             super.visitPyAssignmentStatement(node)
 
             if (node == null) return
-             if (pydanticConfigService.warnUntypedFields) {
+             if (pydanticConfigService.currentWarnUntypedFields) {
                 inspectWarnUntypedFields(node)
             }
             inspectReadOnlyProperty(node)

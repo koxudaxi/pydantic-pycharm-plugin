@@ -105,7 +105,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
-        val typed = !init || getInstance(pyClass.project).initTyped
+        val typed = !init ||  getInstance(pyClass.project).currentInitTyped
         val collected = linkedMapOf<String, PyCallableParameter>()
         val pydanticVersion = getPydanticVersion(pyClass.project, context)
         val config = getConfig(pyClass, context, true)
