@@ -22,18 +22,16 @@ open class PydanticInitializerTest : PydanticTestCase() {
         try {
             runnable()
         } finally {
-
             PsiTestUtil.removeSourceRoot(myFixture!!.module, pyProjectToml)
         }
     }
 
     private fun setUpMypyIni(runnable: () -> Unit) {
         pydanticConfigService.mypyIni = "/src/${testMethodName}"
-        val mypyIni = myFixture!!.copyFileToProject("${testDataMethodPath}/mypyini", testMethodName)
+        val mypyIni = myFixture!!.copyFileToProject("${testDataMethodPath}/mypy.ini", testMethodName)
         try {
             runnable()
         } finally {
-
             PsiTestUtil.removeSourceRoot(myFixture!!.module, mypyIni)
         }
     }
@@ -47,7 +45,13 @@ open class PydanticInitializerTest : PydanticTestCase() {
         }
     }
 
-    fun testemptypyprojecttoml() {
+    fun testpyprojecttomldisable() {
+        setUpPyProjectToml {
+            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.INFORMATION)
+            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
+        }
+    }
+    fun testpyprojecttomlempty() {
         setUpPyProjectToml {
             assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
             assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
@@ -56,17 +60,35 @@ open class PydanticInitializerTest : PydanticTestCase() {
         }
     }
 
+    fun testnothingpyprojecttoml() {
+        assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
+        assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
+        assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
+        assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+    }
+
     fun testmypyini() {
         setUpMypyIni {
             assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, true)
-            assertEquals(this.pydanticConfigService.mypyInitTyped, true)
+            assertEquals(this.pydanticConfigService.mypyInitTyped, false)
         }
     }
 
-    fun testemptymypyini() {
+    fun testmypyiniempty() {
         setUpMypyIni {
             assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
             assertEquals(this.pydanticConfigService.mypyInitTyped, null)
         }
+    }
+
+    fun testmypyinibroken() {
+        setUpMypyIni {
+            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
+            assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+        }
+    }
+    fun testnothingmypyini() {
+        assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
+        assertEquals(this.pydanticConfigService.mypyInitTyped, null)
     }
 }
