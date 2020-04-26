@@ -13,7 +13,6 @@ import javax.swing.text.EditorKit;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 
-import static com.intellij.util.ui.JBUI.CurrentTheme.NewClassDialog.panelBackground;
 
 public class PydanticConfigPanel {
 
@@ -22,6 +21,14 @@ public class PydanticConfigPanel {
 
         this.initTypedCheckBox.setSelected(pydanticConfigService.getInitTyped());
         this.warnUntypedFieldsCheckBox.setSelected(pydanticConfigService.getWarnUntypedFields());
+
+        boolean enableInitTypedCheckBox = pydanticConfigService.getMypyInitTyped() == null;
+        this.initTypedCheckBox.setEnabled(enableInitTypedCheckBox);
+        this.ifEnabledIncludeTheTextPane.setEnabled(enableInitTypedCheckBox);
+
+        boolean warnUntypedFieldsCheckBox = pydanticConfigService.getMypyWarnUntypedFields() == null;
+        this.warnUntypedFieldsCheckBox.setEnabled(warnUntypedFieldsCheckBox);
+        this.ifEnabledRaiseATextPane.setEnabled(warnUntypedFieldsCheckBox);
 
         setHyperlinkHtml(this.textPane1, "See <a href=\"https://koxudaxi.github.io/pydantic-pycharm-plugin/\">documentation</a> for more details.</p>");
     }

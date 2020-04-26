@@ -25,7 +25,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
     private var packageDir: VirtualFile? = null
 
-    private val testClassName: String
+    protected val testClassName: String
         get() {
             return this.javaClass.simpleName.replace("Pydantic", "").replace("Test", "").toLowerCase()
         }

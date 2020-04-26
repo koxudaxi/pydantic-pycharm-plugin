@@ -80,5 +80,6 @@ sourceSets {
     }
     test {
         java.srcDir 'testSrc'
+        resources.srcDir 'testData'
     }
 }

@@ -17,6 +17,7 @@ import org.apache.tuweni.toml.TomlParseResult
 import org.apache.tuweni.toml.TomlTable
 import org.ini4j.Ini
 import org.ini4j.IniPreferences
+import java.io.StringReader
 
 
 class PydanticInitializer : StartupActivity {
@@ -32,31 +33,6 @@ class PydanticInitializer : StartupActivity {
     private fun initializeFileLoader(project: Project, configService: PydanticConfigService) {
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
-        VirtualFileManager.getInstance().addAsyncFileListener(
-                { events ->
-                    object : AsyncFileListener.ChangeApplier {
-                        override fun afterVfsChange() {
-                            if (project.isDisposed) return
-                            events
-                                    .asSequence()
-                                    .filter {
-                                        it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent
-                                    }
-                                    .mapNotNull { it.file }
-                                    .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
-                                    .forEach {
-                                        when (it.path) {
-                                            configService.pyprojectToml
-                                                    ?: defaultPyProjectToml -> loadPyprojecToml(it, configService)
-                                            configService.mypyIni ?: defaultMypyIni -> loadMypyIni(it, configService)
-                                        }
-                                    }
-                        }
-                    }
-                },
-                {}
-        )
-
         when (val pyprojectToml = LocalFileSystem.getInstance()
                 .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
             ) {
@@ -70,6 +46,32 @@ class PydanticInitializer : StartupActivity {
             is VirtualFile -> loadMypyIni(mypyIni, configService)
             else -> clearMypyIniConfig(configService)
         }
+        VirtualFileManager.getInstance().addAsyncFileListener(
+                { events ->
+                    object : AsyncFileListener.ChangeApplier {
+                        override fun afterVfsChange() {
+                            if (project.isDisposed) return
+                            val projectFiles = events
+                                    .asSequence()
+                                    .filter {
+                                        it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent
+                                    }
+                                    .mapNotNull { it.file }
+                                    .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
+                            if (projectFiles.count() == 0) return
+                            val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
+                            val mypyIni = configService.mypyIni ?: defaultMypyIni
+                            projectFiles.forEach {
+                                when (it.path) {
+                                    pyprojectToml -> loadPyprojecToml(it, configService)
+                                    mypyIni -> loadMypyIni(it, configService)
+                                }
+                            }
+                        }
+                    }
+                },
+                {}
+        )
     }
 
     private fun clearMypyIniConfig(configService: PydanticConfigService) {
@@ -84,7 +86,7 @@ class PydanticInitializer : StartupActivity {
         configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
     }
 
-    private fun fromIniBoolean(text: String): Boolean? {
+    private fun fromIniBoolean(text: String?): Boolean? {
         return when (text) {
             "True" -> true
             "False" -> false
