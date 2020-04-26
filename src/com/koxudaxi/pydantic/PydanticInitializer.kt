@@ -115,15 +115,8 @@ class PydanticInitializer : StartupActivity {
             return
         }
 
-        val temporaryParsableTypeMap = getTypeMap("parsable-types", table)
-        if (configService.parsableTypeMap != temporaryParsableTypeMap) {
-            configService.parsableTypeMap = temporaryParsableTypeMap
-        }
-
-        val temporaryAcceptableTypeMap = getTypeMap("acceptable-types", table)
-        if (configService.acceptableTypeMap != temporaryAcceptableTypeMap) {
-            configService.acceptableTypeMap = temporaryAcceptableTypeMap
-        }
+        configService.parsableTypeMap = getTypeMap("parsable-types", table)
+        configService.acceptableTypeMap = getTypeMap("acceptable-types", table)
 
         configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
         configService.acceptableTypeHighlightType = getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)

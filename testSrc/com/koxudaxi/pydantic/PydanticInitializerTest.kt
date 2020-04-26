@@ -47,7 +47,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
 
     fun testpyprojecttomldisable() {
         setUpPyProjectToml {
-            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.INFORMATION)
+            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
             assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
         }
     }
@@ -71,6 +71,8 @@ open class PydanticInitializerTest : PydanticTestCase() {
         setUpMypyIni {
             assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, true)
             assertEquals(this.pydanticConfigService.mypyInitTyped, false)
+            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, true)
+            assertEquals(this.pydanticConfigService.currentInitTyped, false)
         }
     }
 
@@ -78,6 +80,8 @@ open class PydanticInitializerTest : PydanticTestCase() {
         setUpMypyIni {
             assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
             assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+            assertEquals(this.pydanticConfigService.currentInitTyped, true)
+            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
         }
     }
 
@@ -85,10 +89,14 @@ open class PydanticInitializerTest : PydanticTestCase() {
         setUpMypyIni {
             assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
             assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+            assertEquals(this.pydanticConfigService.currentInitTyped, true)
+            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
         }
     }
     fun testnothingmypyini() {
         assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
         assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+        assertEquals(this.pydanticConfigService.currentInitTyped, true)
+        assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
     }
 }
