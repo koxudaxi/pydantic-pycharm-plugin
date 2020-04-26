@@ -12,11 +12,19 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 class PydanticConfigService : PersistentStateComponent<PydanticConfigService> {
     var initTyped = true
     var warnUntypedFields = false
+    var mypyInitTyped: Boolean? = null
+    var mypyWarnUntypedFields: Boolean? = null
     var pyprojectToml: String? = null
+    var mypyIni: String? = null
     var parsableTypeMap = mutableMapOf<String, List<String>>()
     var parsableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WARNING
     var acceptableTypeMap = mutableMapOf<String, List<String>>()
     var acceptableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WEAK_WARNING
+
+    val currentInitTyped: Boolean
+        get() = this.mypyInitTyped ?: this.initTyped
+    val currentWarnUntypedFields: Boolean
+        get() = this.mypyWarnUntypedFields ?: this.warnUntypedFields
 
     override fun getState(): PydanticConfigService {
         return this

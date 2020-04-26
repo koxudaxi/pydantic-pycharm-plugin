@@ -15,50 +15,95 @@ import org.apache.tuweni.toml.Toml
 import org.apache.tuweni.toml.TomlArray
 import org.apache.tuweni.toml.TomlParseResult
 import org.apache.tuweni.toml.TomlTable
+import org.ini4j.Ini
+import org.ini4j.IniPreferences
+import java.io.StringReader
+
 
 class PydanticInitializer : StartupActivity {
 
-    private fun getDefaultPyProjectTomlPathPath(project: Project): String {
+    private fun getDefaultPyProjectTomlPath(project: Project): String {
         return project.basePath + "/pyproject.toml"
     }
 
+    private fun getDefaultMypyIniPath(project: Project): String {
+        return project.basePath + "/mypy.ini"
+    }
 
-    private fun initializeParsableTypeMap(project: Project, configService: PydanticConfigService) {
-        val pyprojectTomlDefault = configService.pyprojectToml ?: getDefaultPyProjectTomlPathPath(project)
+    private fun initializeFileLoader(project: Project, configService: PydanticConfigService) {
+        val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
+        val defaultMypyIni = getDefaultMypyIniPath(project)
+        when (val pyprojectToml = LocalFileSystem.getInstance()
+                .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
+            ) {
+            is VirtualFile -> loadPyprojecToml(pyprojectToml, configService)
+            else -> clearPyProjectTomlConfig(configService)
+        }
+
+        when (val mypyIni = LocalFileSystem.getInstance()
+                .findFileByPath(configService.mypyIni ?: defaultMypyIni)
+            ) {
+            is VirtualFile -> loadMypyIni(mypyIni, configService)
+            else -> clearMypyIniConfig(configService)
+        }
         VirtualFileManager.getInstance().addAsyncFileListener(
                 { events ->
                     object : AsyncFileListener.ChangeApplier {
                         override fun afterVfsChange() {
                             if (project.isDisposed) return
-                            val configFile = events
+                            val projectFiles = events
                                     .asSequence()
                                     .filter {
                                         it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent
                                     }
                                     .mapNotNull { it.file }
                                     .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
-                                    .filter { it.path == configService.pyprojectToml ?: pyprojectTomlDefault }
-                                    .lastOrNull() ?: return
-                            loadPyprojecToml(configFile, configService)
+                            if (projectFiles.count() == 0) return
+                            val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
+                            val mypyIni = configService.mypyIni ?: defaultMypyIni
+                            projectFiles.forEach {
+                                when (it.path) {
+                                    pyprojectToml -> loadPyprojecToml(it, configService)
+                                    mypyIni -> loadMypyIni(it, configService)
+                                }
+                            }
                         }
                     }
                 },
                 {}
         )
-        val configFile = LocalFileSystem.getInstance()
-                .findFileByPath(configService.pyprojectToml ?: pyprojectTomlDefault)
-        if (configFile is VirtualFile) {
-            loadPyprojecToml(configFile, configService)
-        } else {
-            clear(configService)
-        }
     }
 
-    private fun clear(configService: PydanticConfigService) {
+    private fun clearMypyIniConfig(configService: PydanticConfigService) {
+        configService.mypyInitTyped = null
+        configService.mypyWarnUntypedFields = null
+    }
+
+    private fun clearPyProjectTomlConfig(configService: PydanticConfigService) {
         configService.parsableTypeMap.clear()
         configService.acceptableTypeMap.clear()
         configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
         configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
+    }
+
+    private fun fromIniBoolean(text: String?): Boolean? {
+        return when (text) {
+            "True" -> true
+            "False" -> false
+            else -> null
+        }
+    }
+
+    private fun loadMypyIni(config: VirtualFile, configService: PydanticConfigService) {
+        try {
+            val ini = Ini(config.inputStream)
+            val prefs = IniPreferences(ini)
+            val pydanticMypy = prefs.node("pydantic-mypy")
+            configService.mypyInitTyped = fromIniBoolean(pydanticMypy["init_typed", null])
+            configService.mypyWarnUntypedFields = fromIniBoolean(pydanticMypy["warn_untyped_fields", null])
+        } catch (t: Throwable) {
+            clearMypyIniConfig(configService)
+        }
     }
 
     private fun loadPyprojecToml(config: VirtualFile, configService: PydanticConfigService) {
@@ -66,19 +111,12 @@ class PydanticInitializer : StartupActivity {
 
         val table = result.getTableOrEmpty("tool.pydantic-pycharm-plugin")
         if (table.isEmpty) {
-            clear(configService)
+            clearPyProjectTomlConfig(configService)
             return
         }
 
-        val temporaryParsableTypeMap = getTypeMap("parsable-types", table)
-        if (configService.parsableTypeMap != temporaryParsableTypeMap) {
-            configService.parsableTypeMap = temporaryParsableTypeMap
-        }
-
-        val temporaryAcceptableTypeMap = getTypeMap("acceptable-types", table)
-        if (configService.acceptableTypeMap != temporaryAcceptableTypeMap) {
-            configService.acceptableTypeMap = temporaryAcceptableTypeMap
-        }
+        configService.parsableTypeMap = getTypeMap("parsable-types", table)
+        configService.acceptableTypeMap = getTypeMap("acceptable-types", table)
 
         configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
         configService.acceptableTypeHighlightType = getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)
@@ -122,6 +160,6 @@ class PydanticInitializer : StartupActivity {
 
     override fun runActivity(project: Project) {
         val configService = PydanticConfigService.getInstance(project)
-        initializeParsableTypeMap(project, configService)
+        initializeFileLoader(project, configService)
     }
 }
