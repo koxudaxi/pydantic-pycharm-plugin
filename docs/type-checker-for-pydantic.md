@@ -1,15 +1,19 @@
-# Inspection for type-checking
+# Type checker for pydnatic
 !!! warning
     **Experimental feature**
     
 !!! info    
     **In version 0.1.1, This feature is broken. Please use it in [0.1.2](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.2) or later.** 
 
-This plugin provides an inspection for type-checking, which is compatible with pydantic.
+!!! tips
+    **This plugin supports type-checking to pydantic with a built-in type checker.
+      Plus, this type-checker supplies a special feature to pydnatic. **
+          
+This plugin provides a type-checker for pydantic.
 
-You can use the inspection on PyCharm's Settings (Preference -> Editor -> Inspections -> `Type checker compatible with Pydantic`) 
+You can use the type-checker on PyCharm's Settings (Preference -> Editor -> Inspections -> `Type checker compatible with Pydantic`) 
 
-This inspection inherits from PyCharm's built-in type checker (aka `Type checker`).
+This type-checker inherits from PyCharm's built-in type checker (aka `Type checker`).
 
 Please disable `Type checker` when you enable `Type checker compatible with Pydantic.`
 
