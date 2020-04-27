@@ -18,7 +18,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     override fun getReferenceType(referenceTarget: PsiElement, context: TypeEvalContext, anchor: PsiElement?): Ref<PyType>? {
         if (referenceTarget is PyTargetExpression) {
             val pyClass = getPyClassByAttribute(referenceTarget.parent) ?: return null
-            if (!isPydanticModel(pyClass, true, context)) return null
+            if (!isPydanticModel(pyClass, false, context)) return null
             val name = referenceTarget.name ?: return null
             getRefTypeFromFieldName(name, context, pyClass)?.let { return it }
         }
@@ -29,13 +29,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return when {
             !param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == "__init__" -> {
                 val pyClass = func.containingClass ?: return null
-                if (!isPydanticModel(pyClass, true, context)) return null
+                if (!isPydanticModel(pyClass, false, context)) return null
                 val name = param.name ?: return null
-                getRefTypeFromFieldName(name, context, pyClass)?.let { it }
+                getRefTypeFromFieldName(name, context, pyClass)
             }
             param.isSelf && isValidatorMethod(func) -> {
                 val pyClass = func.containingClass ?: return null
-                if (!isPydanticModel(pyClass, true, context)) return null
+                if (!isPydanticModel(pyClass, false, context)) return null
                 Ref.create(context.getType(pyClass))
             }
             else -> null
@@ -101,7 +101,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
-        if (!isPydanticModel(pyClass, true, context)) return null
+        if (!isPydanticModel(pyClass, false, context)) return null
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
@@ -113,7 +113,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             if (currentType !is PyClassType) continue
 
             val current = currentType.pyClass
-            if (!isPydanticModel(current, true, context)) continue
+            if (!isPydanticModel(current, false, context)) continue
 
             getClassVariables(current, context)
                     .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion, config, typed) }
