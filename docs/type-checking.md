@@ -1,4 +1,4 @@
-### Inspection for type-checking
+# Inspection for type-checking
 !!! warning
     **Experimental feature**
     
@@ -17,14 +17,14 @@ Don't use this type checker with a builtin type checker same time.
 
 ![inspection 1](inspection1.png)
 
-### Parsable Type
+## Parsable Type
 Pydantic has lots of support for coercing types. However, PyCharm  gives a message saying only `Expected type "x," got "y" instead:`
 When you set parsable-type on a type, then the message will be changed to `Field is of type "x", "y" may not be parsable to "x"`
 
 
 ![parsable type1](parsable-type1.png)
 
-#### Set parsable-type in pyproject.toml
+### Set parsable-type in pyproject.toml
 You should create `pyproject.toml` in your project root.
 And, you define parsable-type like a example.
 
@@ -51,7 +51,7 @@ parsable-type-highlight = "warning"
 acceptable-type-highlight = "disable" 
 ```
 
-### Acceptable Type
+## Acceptable Type
 !!! info    
     **This feature is in version [0.1.3](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.3) or later.**
 
@@ -59,7 +59,7 @@ Pydantic can always parse a few types to other types. For example, `int` to `str
 You can set it as an acceptable type. The message is `Field is of type 'x', 'y' is set as an acceptable type in pyproject.toml`.
 Also,You may want to disable the message.You can do it, by setting "disable" on `acceptable-type-highlight`.
 
-#### Set acceptable-type in pyproject.toml
+### Set acceptable-type in pyproject.toml
 You should create `pyproject.toml` in your project root.
 And, you define acceptable-type like a example.
 

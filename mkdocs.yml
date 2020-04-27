@@ -23,6 +23,7 @@ nav:
     - Install: install.md
     - Usage:
         - Inspection for type-checking: type-checking.md
+        - Mypy compatible: mypy-compatible.md
     - Development: development.md
     - Changelog: changelog.md
 
