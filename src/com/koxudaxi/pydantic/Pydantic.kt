@@ -25,10 +25,12 @@ const val VALIDATOR_Q_NAME = "pydantic.validator"
 const val ROOT_VALIDATOR_Q_NAME = "pydantic.root_validator"
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.fields.Field"
+const val DATACLASS_FIELD_Q_NAME = "dataclasses.field"
 const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 const val BASE_CONFIG_Q_NAME = "pydantic.BaseConfig"
+const val DATACLASS_MISSING = "dataclasses.MISSING"
 
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
@@ -104,6 +106,14 @@ internal fun isPydanticField(pyFunction: PyFunction): Boolean {
     return pyFunction.qualifiedName == FIELD_Q_NAME || pyFunction.qualifiedName == DEPRECATED_SCHEMA_Q_NAME
 }
 
+internal fun isDataclassField(pyFunction: PyFunction): Boolean {
+    return pyFunction.qualifiedName == DATACLASS_FIELD_Q_NAME
+}
+
+internal fun isDataclassMissing(pyTargetExpression: PyTargetExpression): Boolean {
+    return pyTargetExpression.qualifiedName == DATACLASS_MISSING
+}
+
 internal fun isValidatorMethod(pyFunction: PyFunction): Boolean {
     return hasDecorator(pyFunction, VALIDATOR_Q_NAME) || hasDecorator(pyFunction, ROOT_VALIDATOR_Q_NAME)
 }
@@ -177,13 +187,25 @@ fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeEvalContex
     return false
 }
 
-fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
-    when (psiElement) {
-        is PyFunction -> return isPydanticField(psiElement)
-        else -> PsiTreeUtil.getContextOfType(psiElement, PyFunction::class.java)
-                ?.let { return isPydanticField(it) }
+inline fun <reified T : PsiElement> validatePsiElementByFunction(psiElement: PsiElement, validator: (T) -> Boolean): Boolean {
+    if (T::class.java.isInstance(psiElement)) {
+        return validator(psiElement as T)
     }
+    PsiTreeUtil.getContextOfType(psiElement, T::class.java)
+            ?.let { return validator(it) }
     return false
+}
+
+fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
+    return validatePsiElementByFunction(psiElement, ::isPydanticField)
+}
+
+fun isDataclassFieldByPsiElement(psiElement: PsiElement): Boolean {
+    return validatePsiElementByFunction(psiElement, ::isDataclassField)
+}
+
+fun isDataclassMissingByPsiElement(psiElement: PsiElement): Boolean {
+    return validatePsiElementByFunction(psiElement, ::isDataclassMissing)
 }
 
 fun getPsiElementByQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PsiElement? {
@@ -267,9 +289,9 @@ fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): 
 }
 
 fun getFieldName(field: PyTargetExpression,
-                          context: TypeEvalContext,
-                          config: HashMap<String, Any?>,
-                          pydanticVersion: KotlinVersion?): String? {
+                 context: TypeEvalContext,
+                 config: HashMap<String, Any?>,
+                 pydanticVersion: KotlinVersion?): String? {
 
     return if (pydanticVersion?.major == 0) {
         if (config["allow_population_by_alias"] == true) {
@@ -301,7 +323,8 @@ fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
 fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext): PyClassTypeImpl? {
     var psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(qualifiedName), project, context)
     if (psiElement == null) {
-        psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString("builtins.$qualifiedName"), project, context)?: return null
+        psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString("builtins.$qualifiedName"), project, context)
+                ?: return null
     }
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
