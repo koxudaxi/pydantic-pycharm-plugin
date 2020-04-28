@@ -153,9 +153,9 @@ class PydanticInitializer : StartupActivity {
         val parsableTypeTable = table.getTableOrEmpty(path).toMap()
         parsableTypeTable.entries.forEach { (key, value) ->
             val name = when (val psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(key), project, context)) {
-                is PyQualifiedNameOwner -> psiElement.qualifiedName
+                is PyQualifiedNameOwner -> psiElement.qualifiedName!!
                 else -> key
-            } ?: key
+            }
             run {
                 if (value is TomlArray) {
                     value.toList().filterIsInstance<String>().let {
