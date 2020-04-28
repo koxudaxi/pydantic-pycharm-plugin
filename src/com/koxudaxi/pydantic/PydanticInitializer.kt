@@ -1,6 +1,7 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.startup.StartupActivity
@@ -12,11 +13,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.psi.util.QualifiedName
-import com.jetbrains.python.psi.PyClass
-import com.jetbrains.python.psi.PyFunction
 import com.jetbrains.python.psi.PyQualifiedNameOwner
-import com.jetbrains.python.psi.impl.PyClassImpl
-import com.jetbrains.python.psi.impl.PyFunctionImpl
 import com.jetbrains.python.psi.types.TypeEvalContext
 import org.apache.tuweni.toml.Toml
 import org.apache.tuweni.toml.TomlArray
@@ -24,8 +21,7 @@ import org.apache.tuweni.toml.TomlParseResult
 import org.apache.tuweni.toml.TomlTable
 import org.ini4j.Ini
 import org.ini4j.IniPreferences
-import java.io.StringReader
-
+import com.intellij.openapi.project.NoAccessDuringPsiEvents
 
 class PydanticInitializer : StartupActivity {
 
@@ -40,18 +36,20 @@ class PydanticInitializer : StartupActivity {
     private fun initializeFileLoader(project: Project, configService: PydanticConfigService) {
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
-        when (val pyprojectToml = LocalFileSystem.getInstance()
-                .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
-            ) {
-            is VirtualFile -> loadPyprojecToml(project, pyprojectToml, configService)
-            else -> clearPyProjectTomlConfig(configService)
-        }
+        invokeAfterPsiEvents {
+            when (val pyprojectToml = LocalFileSystem.getInstance()
+                    .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
+                ) {
+                is VirtualFile -> loadPyprojecToml(project, pyprojectToml, configService)
+                else -> clearPyProjectTomlConfig(configService)
+            }
 
-        when (val mypyIni = LocalFileSystem.getInstance()
-                .findFileByPath(configService.mypyIni ?: defaultMypyIni)
-            ) {
-            is VirtualFile -> loadMypyIni(mypyIni, configService)
-            else -> clearMypyIniConfig(configService)
+            when (val mypyIni = LocalFileSystem.getInstance()
+                    .findFileByPath(configService.mypyIni ?: defaultMypyIni)
+                ) {
+                is VirtualFile -> loadMypyIni(mypyIni, configService)
+                else -> clearMypyIniConfig(configService)
+            }
         }
         VirtualFileManager.getInstance().addAsyncFileListener(
                 { events ->
@@ -68,10 +66,12 @@ class PydanticInitializer : StartupActivity {
                             if (projectFiles.count() == 0) return
                             val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
                             val mypyIni = configService.mypyIni ?: defaultMypyIni
-                            projectFiles.forEach {
-                                when (it.path) {
-                                    pyprojectToml -> loadPyprojecToml(project, it, configService)
-                                    mypyIni -> loadMypyIni(it, configService)
+                            invokeAfterPsiEvents {
+                                projectFiles.forEach {
+                                    when (it.path) {
+                                        pyprojectToml -> loadPyprojecToml(project, it, configService)
+                                        mypyIni -> loadMypyIni(it, configService)
+                                    }
                                 }
                             }
                         }
@@ -172,5 +172,15 @@ class PydanticInitializer : StartupActivity {
     override fun runActivity(project: Project) {
         val configService = PydanticConfigService.getInstance(project)
         initializeFileLoader(project, configService)
+    }
+
+    private fun invokeAfterPsiEvents(runnable: () -> Unit) {
+        val wrapper = {
+            when {
+                NoAccessDuringPsiEvents.isInsideEventProcessing() -> invokeAfterPsiEvents(runnable)
+                else -> runnable()
+            }
+        }
+        ApplicationManager.getApplication().invokeLater(wrapper, {false})
     }
 }
