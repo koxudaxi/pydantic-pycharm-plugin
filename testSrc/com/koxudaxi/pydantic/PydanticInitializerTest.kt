@@ -38,7 +38,10 @@ open class PydanticInitializerTest : PydanticTestCase() {
 
     fun testpyprojecttoml() {
         setUpPyProjectToml {
-            assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf("datetime.datetime" to listOf("int")))
+            assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf(
+                    "datetime.datetime" to listOf("int"),
+                    "pydantic.networks.HttpUrl" to listOf("str")
+            ))
             assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf("str" to listOf("int", "float")))
             assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
             assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)

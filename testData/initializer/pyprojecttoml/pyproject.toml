@@ -6,7 +6,7 @@ acceptable-type-highlight = "warning"
 [tool.pydantic-pycharm-plugin.parsable-types]
 ## datetime.datetime field may parse int
 "datetime.datetime" = ["int"]
-
+"pydantic.HttpUrl" = ["str"]
 [tool.pydantic-pycharm-plugin.acceptable-types]
 # str field accepts to parse int and float
 str = ["int", "float"]

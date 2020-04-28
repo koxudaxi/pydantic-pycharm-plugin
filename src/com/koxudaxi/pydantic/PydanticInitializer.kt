@@ -11,6 +11,12 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
+import com.intellij.psi.util.QualifiedName
+import com.jetbrains.python.psi.PyClass
+import com.jetbrains.python.psi.PyFunction
+import com.jetbrains.python.psi.impl.PyClassImpl
+import com.jetbrains.python.psi.impl.PyFunctionImpl
+import com.jetbrains.python.psi.types.TypeEvalContext
 import org.apache.tuweni.toml.Toml
 import org.apache.tuweni.toml.TomlArray
 import org.apache.tuweni.toml.TomlParseResult
@@ -36,7 +42,7 @@ class PydanticInitializer : StartupActivity {
         when (val pyprojectToml = LocalFileSystem.getInstance()
                 .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
             ) {
-            is VirtualFile -> loadPyprojecToml(pyprojectToml, configService)
+            is VirtualFile -> loadPyprojecToml(project, pyprojectToml, configService)
             else -> clearPyProjectTomlConfig(configService)
         }
 
@@ -63,7 +69,7 @@ class PydanticInitializer : StartupActivity {
                             val mypyIni = configService.mypyIni ?: defaultMypyIni
                             projectFiles.forEach {
                                 when (it.path) {
-                                    pyprojectToml -> loadPyprojecToml(it, configService)
+                                    pyprojectToml -> loadPyprojecToml(project, it, configService)
                                     mypyIni -> loadMypyIni(it, configService)
                                 }
                             }
@@ -106,7 +112,7 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    private fun loadPyprojecToml(config: VirtualFile, configService: PydanticConfigService) {
+    private fun loadPyprojecToml(project: Project, config: VirtualFile, configService: PydanticConfigService) {
         val result: TomlParseResult = Toml.parse(config.inputStream)
 
         val table = result.getTableOrEmpty("tool.pydantic-pycharm-plugin")
@@ -115,8 +121,9 @@ class PydanticInitializer : StartupActivity {
             return
         }
 
-        configService.parsableTypeMap = getTypeMap("parsable-types", table)
-        configService.acceptableTypeMap = getTypeMap("acceptable-types", table)
+        val context = TypeEvalContext.codeAnalysis(project, null)
+        configService.parsableTypeMap = getTypeMap(project, "parsable-types", table, context)
+        configService.acceptableTypeMap = getTypeMap(project, "acceptable-types", table, context)
 
         configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
         configService.acceptableTypeHighlightType = getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)
@@ -139,17 +146,20 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    private fun getTypeMap(path: String, table: TomlTable): MutableMap<String, List<String>> {
-
+    private fun getTypeMap(project: Project, path: String, table: TomlTable, context: TypeEvalContext): MutableMap<String, List<String>> {
         val temporaryTypeMap = mutableMapOf<String, List<String>>()
 
         val parsableTypeTable = table.getTableOrEmpty(path).toMap()
         parsableTypeTable.entries.forEach { (key, value) ->
+            val name = when (val psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(key), project, context)) {
+                is PyClass -> psiElement.qualifiedName!!
+                else -> key
+            }
             run {
                 if (value is TomlArray) {
                     value.toList().filterIsInstance<String>().let {
                         if (it.isNotEmpty()) {
-                            temporaryTypeMap[key] = it
+                            temporaryTypeMap[name] = it
                         }
                     }
                 }
