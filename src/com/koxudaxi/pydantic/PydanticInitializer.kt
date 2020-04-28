@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyFunction
+import com.jetbrains.python.psi.PyQualifiedNameOwner
 import com.jetbrains.python.psi.impl.PyClassImpl
 import com.jetbrains.python.psi.impl.PyFunctionImpl
 import com.jetbrains.python.psi.types.TypeEvalContext
@@ -152,9 +153,9 @@ class PydanticInitializer : StartupActivity {
         val parsableTypeTable = table.getTableOrEmpty(path).toMap()
         parsableTypeTable.entries.forEach { (key, value) ->
             val name = when (val psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(key), project, context)) {
-                is PyClass -> psiElement.qualifiedName!!
+                is PyQualifiedNameOwner -> psiElement.qualifiedName
                 else -> key
-            }
+            } ?: key
             run {
                 if (value is TomlArray) {
                     value.toList().filterIsInstance<String>().let {
