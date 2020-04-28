@@ -10,6 +10,8 @@ theme:
 markdown_extensions:
   - codehilite
   - admonition
+  - toc:
+      permalink: 🔗
 
 repo_name: koxudaxi/pydantic-pycharm-plugin
 repo_url: https://github.com/koxudaxi/pydantic-pycharm-plugin
