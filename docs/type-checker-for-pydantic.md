@@ -1,4 +1,5 @@
 # Type checker for pydnatic
+
 !!! warning
     **Experimental feature**
     
@@ -56,6 +57,7 @@ acceptable-type-highlight = "disable"
 ```
 
 ## Acceptable Type
+
 !!! info    
     **This feature is in version [0.1.3](https://github.com/koxudaxi/pydantic-pycharm-plugin/releases/tag/0.1.3) or later.**
 
