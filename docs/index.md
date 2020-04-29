@@ -8,6 +8,9 @@
 
 [A JetBrains PyCharm plugin](https://plugins.jetbrains.com/plugin/12861-pydantic) for [`pydantic`](https://github.com/samuelcolvin/pydantic).
 
+## Interview
+I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.jetbrains.com/pycharm/2020/04/interview-koudai-aono-author-of-pydantic-plugin-for-pycharm/).
+
 ##  Features
 ### Implemented
 #### pydantic.BaseModel
