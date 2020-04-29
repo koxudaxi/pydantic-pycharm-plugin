@@ -1,38 +1,41 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PsiTestUtil
-import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.testFramework.waitForProjectLeakingThreads
-import java.util.concurrent.TimeUnit
 
 open class PydanticInitializerTest : PydanticTestCase() {
     lateinit var pydanticConfigService: PydanticConfigService
     lateinit var testMethodName: String
-    override fun setUp() {
-        super.setUp()
-        pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        testMethodName = getTestName(true)
+    private fun setUpConfig() {
+        this.pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+        this.testMethodName = getTestName(true)
     }
 
+
     private fun setUpPyProjectToml(runnable: () -> Unit) {
-        pydanticConfigService.pyprojectToml = "/src/${testMethodName}"
-        val pyProjectToml = myFixture!!.copyFileToProject("${testDataMethodPath}/pyproject.toml", testMethodName)
-        try {
-            runnable()
-        } finally {
-            PsiTestUtil.removeSourceRoot(myFixture!!.module, pyProjectToml)
+        ApplicationManager.getApplication().executeOnPooledThread {
+            setUpConfig()
+            pydanticConfigService.pyprojectToml = "/src/${testMethodName}"
+            val pyProjectToml = myFixture!!.copyFileToProject("${testDataMethodPath}/pyproject.toml", testMethodName)
+            try {
+                runnable()
+            } finally {
+                PsiTestUtil.removeSourceRoot(myFixture!!.module, pyProjectToml)
+            }
         }
     }
 
     private fun setUpMypyIni(runnable: () -> Unit) {
-        pydanticConfigService.mypyIni = "/src/${testMethodName}"
-        val mypyIni = myFixture!!.copyFileToProject("${testDataMethodPath}/mypy.ini", testMethodName)
-        try {
-            runnable()
-        } finally {
-            PsiTestUtil.removeSourceRoot(myFixture!!.module, mypyIni)
+        ApplicationManager.getApplication().executeOnPooledThread {
+            setUpConfig()
+            pydanticConfigService.mypyIni = "/src/${testMethodName}"
+            val mypyIni = myFixture!!.copyFileToProject("${testDataMethodPath}/mypy.ini", testMethodName)
+            try {
+                runnable()
+            } finally {
+                PsiTestUtil.removeSourceRoot(myFixture!!.module, mypyIni)
+            }
         }
     }
 
@@ -54,6 +57,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
             assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
         }
     }
+
     fun testpyprojecttomlempty() {
         setUpPyProjectToml {
             assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
@@ -64,6 +68,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
     }
 
     fun testnothingpyprojecttoml() {
+        setUpConfig()
         assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
         assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
         assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
@@ -96,7 +101,9 @@ open class PydanticInitializerTest : PydanticTestCase() {
             assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
         }
     }
+
     fun testnothingmypyini() {
+        setUpConfig()
         assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
         assertEquals(this.pydanticConfigService.mypyInitTyped, null)
         assertEquals(this.pydanticConfigService.currentInitTyped, true)
