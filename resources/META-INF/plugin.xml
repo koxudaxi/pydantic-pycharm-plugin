@@ -5,12 +5,16 @@
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
     <h2>version 0.1.5</h2>
-    <p>BugFixes<p>
+    <p>Features</p>
+    <ul>
+        <li>Support a collection on parsable-type and acceptable-type [#120] </li>
+    </ul>
+    <p>BugFixes</p>
     <ul>
         <li>Fix type-map edge case for parsable-type and acceptable-type [#118]</li>
     </ul>
     <h2>version 0.1.4</h2>
-    <p>BugFixes<p>
+    <p>BugFixes</p>
     <ul>
         <li>Fix type provider for dataclass [#114] </li>
     </ul>
