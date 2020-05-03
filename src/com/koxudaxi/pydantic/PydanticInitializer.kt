@@ -22,6 +22,7 @@ import org.apache.tuweni.toml.TomlTable
 import org.ini4j.Ini
 import org.ini4j.IniPreferences
 import com.intellij.openapi.project.NoAccessDuringPsiEvents
+import com.intellij.serviceContainer.AlreadyDisposedException
 
 class PydanticInitializer : StartupActivity {
 
@@ -56,23 +57,26 @@ class PydanticInitializer : StartupActivity {
                     object : AsyncFileListener.ChangeApplier {
                         override fun afterVfsChange() {
                             if (project.isDisposed) return
-                            val projectFiles = events
-                                    .asSequence()
-                                    .filter {
-                                        it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent
-                                    }
-                                    .mapNotNull { it.file }
-                                    .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
-                            if (projectFiles.count() == 0) return
-                            val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
-                            val mypyIni = configService.mypyIni ?: defaultMypyIni
-                            invokeAfterPsiEvents {
-                                projectFiles.forEach {
-                                    when (it.path) {
-                                        pyprojectToml -> loadPyprojecToml(project, it, configService)
-                                        mypyIni -> loadMypyIni(it, configService)
+                            try {
+                                val projectFiles = events
+                                        .asSequence()
+                                        .filter {
+                                            it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent
+                                        }
+                                        .mapNotNull { it.file }
+                                        .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
+                                if (projectFiles.count() == 0) return
+                                val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
+                                val mypyIni = configService.mypyIni ?: defaultMypyIni
+                                invokeAfterPsiEvents {
+                                    projectFiles.forEach {
+                                        when (it.path) {
+                                            pyprojectToml -> loadPyprojecToml(project, it, configService)
+                                            mypyIni -> loadMypyIni(it, configService)
+                                        }
                                     }
                                 }
+                            } catch (e: AlreadyDisposedException) {
                             }
                         }
                     }
@@ -181,6 +185,6 @@ class PydanticInitializer : StartupActivity {
                 else -> runnable()
             }
         }
-        ApplicationManager.getApplication().invokeLater(wrapper, {false})
+        ApplicationManager.getApplication().invokeLater(wrapper, { false })
     }
 }

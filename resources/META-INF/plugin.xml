@@ -11,6 +11,7 @@
     </ul>
     <p>BugFixes</p>
     <ul>
+        <li>Fix an error when project is disposed [#121] </li>
         <li>Fix type-map edge case for parsable-type and acceptable-type [#118]</li>
     </ul>
     <h2>version 0.1.4</h2>
