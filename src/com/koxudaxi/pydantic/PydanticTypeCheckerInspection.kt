@@ -62,22 +62,26 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         }
 
         private fun getTypeFromTypeMap(getTypeMap: (project: Project) -> (MutableMap<String, List<String>>), typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
-            return when {
-                cache.containsKey(typeForParameter) -> {
-                    cache[typeForParameter]
-                }
+            if (cache.containsKey(typeForParameter)) {
+                return cache[typeForParameter]
+            }
+
+            val newType = when (typeForParameter) {
+                is PyCollectionType ->
+                    PyCollectionTypeImpl(typeForParameter.pyClass, typeForParameter.isDefinition, typeForParameter.elementTypes.mapNotNull {
+                        getTypeFromTypeMap(getTypeMap, it, cache)
+                    })
                 else -> {
                     val project = holder!!.project
-                    val typeMap = getTypeMap(project)
-                    val unionType = PyUnionType.union(getPyClassTypeByPyTypes(typeForParameter).toSet().flatMap { type ->
-                        typeMap[type.classQName]?.mapNotNull {
+                    PyUnionType.union(getPyClassTypeByPyTypes(typeForParameter).toSet().flatMap { type ->
+                        getTypeMap(project)[type.classQName]?.mapNotNull {
                             createPyClassTypeImpl(it, project, myTypeEvalContext)
                         } as? List<PyType> ?: listOf()
                     })
-                    cache[typeForParameter] = unionType
-                    unionType
                 }
             }
+            cache[typeForParameter] = newType
+            return newType
         }
 
         private fun analyzeCallee(callSite: PyCallSiteExpression, mapping: PyArgumentsMapping) {
