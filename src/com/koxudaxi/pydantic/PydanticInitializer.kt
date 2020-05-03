@@ -2,6 +2,7 @@ package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.startup.StartupActivity
@@ -23,6 +24,8 @@ import org.ini4j.Ini
 import org.ini4j.IniPreferences
 import com.intellij.openapi.project.NoAccessDuringPsiEvents
 import com.intellij.serviceContainer.AlreadyDisposedException
+import com.jetbrains.python.sdk.PythonSdkUtil
+import com.jetbrains.python.sdk.pythonSdk
 
 class PydanticInitializer : StartupActivity {
 
@@ -37,6 +40,8 @@ class PydanticInitializer : StartupActivity {
     private fun initializeFileLoader(project: Project, configService: PydanticConfigService) {
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
+        val pythonStubPath = PythonSdkUtil.findSkeletonsDir(project.pythonSdk!!)
+        val pydanticStubPath = "${pythonStubPath?.canonicalPath}/pydantic"
         invokeAfterPsiEvents {
             when (val pyprojectToml = LocalFileSystem.getInstance()
                     .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
@@ -50,6 +55,9 @@ class PydanticInitializer : StartupActivity {
                 ) {
                 is VirtualFile -> loadMypyIni(mypyIni, configService)
                 else -> clearMypyIniConfig(configService)
+            }
+            runWriteAction {
+                pythonStubPath?.let { it.findChild("pydantic")?.delete(null) }
             }
         }
         VirtualFileManager.getInstance().addAsyncFileListener(
@@ -73,6 +81,7 @@ class PydanticInitializer : StartupActivity {
                                         when (it.path) {
                                             pyprojectToml -> loadPyprojecToml(project, it, configService)
                                             mypyIni -> loadMypyIni(it, configService)
+                                            pydanticStubPath -> runWriteAction { it.delete(null) }
                                         }
                                     }
                                 }
