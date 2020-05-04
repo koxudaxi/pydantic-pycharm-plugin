@@ -211,7 +211,7 @@
                         serviceImplementation="com.koxudaxi.pydantic.PydanticConfigService"/>
 
         <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
-            <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer"/>
+        <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer" order="last"/>
         <localInspection language="Python" shortName="PydanticTypeCheckerInspection" suppressId="PydanticTypeChecker" bundle="messages.PyPsiBundle" displayName="Type checker compatible with Pydantic" groupKey="INSP.GROUP.python" enabledByDefault="false"  level="WARNING" implementationClass="com.koxudaxi.pydantic.PydanticTypeCheckerInspection"/>
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
