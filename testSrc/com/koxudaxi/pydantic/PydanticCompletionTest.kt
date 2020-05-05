@@ -531,7 +531,9 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
                 listOf(
                         Pair("abc", "str A"),
-                        Pair("efg", "str B"),
+                        Pair("efg", "str C"),
+                        Pair("opq", "B"),
+                        Pair("xyz", "B"),
                         Pair("___slots__", "BaseModel")
                 )
         )

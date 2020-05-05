@@ -42,17 +42,20 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }
     }
 
+    private fun getRefTypeFromFieldNameInPyClass(name: String, pyClass: PyClass, context: TypeEvalContext, ellipsis: PyNoneLiteralExpression, pydanticVersion: KotlinVersion?): Ref<PyType>? {
+        return pyClass.findClassAttribute(name, false, context)?.let { return getRefTypeFromField(it, ellipsis, context, pyClass, pydanticVersion) }
+    }
+
     private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
         val pydanticVersion = getPydanticVersion(pyClass.project, context)
-        pyClass.findClassAttribute(name, false, context)
-                ?.let { return getRefTypeFromField(it, ellipsis, context, pyClass, pydanticVersion) }
-        pyClass.getAncestorClasses(context).forEach { ancestor ->
-            ancestor.findClassAttribute(name, false, context)
-                    ?.let { return getRefTypeFromField(it, ellipsis, context, ancestor, pydanticVersion) }
-        }
-        return null
+        return getRefTypeFromFieldNameInPyClass(name, pyClass, context, ellipsis, pydanticVersion)
+                ?: pyClass.getAncestorClasses(context)
+                        .filter {isPydanticModel(it, false, context)  }
+                        .mapNotNull { ancestor ->
+                    getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion)
+                }.firstOrNull()
     }
 
     private fun getRefTypeFromField(pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
@@ -252,7 +255,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getDefaultValue(assignedValue: PyCallExpression): PyExpression? {
-        val defaultValue =  assignedValue.getKeywordArgument("default")
+        val defaultValue = assignedValue.getKeywordArgument("default")
                 ?: assignedValue.getArgument(0, PyExpression::class.java)
         return when {
             defaultValue == null -> null
@@ -262,7 +265,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getDefaultValueForDataclass(assignedValue: PyCallExpression, context: TypeEvalContext, argumentName: String): PyExpression? {
-        val defaultValue =  assignedValue.getKeywordArgument(argumentName)
+        val defaultValue = assignedValue.getKeywordArgument(argumentName)
         return when {
             defaultValue == null -> null
             defaultValue.text == "..." -> null
