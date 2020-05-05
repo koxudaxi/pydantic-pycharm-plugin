@@ -10,14 +10,16 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.jetbrains.python.PythonDialectsTokenSetProvider
+import com.jetbrains.python.fixtures.PyLightProjectDescriptor
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.impl.PythonLanguageLevelPusher
 
 abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
     protected var myFixture: CodeInsightTestFixture? = null
+    private val PYTHON_3_MOCK_SDK = "3.7"
 
-    private val projectDescriptor: LightProjectDescriptor? = LightProjectDescriptor()
+    private val projectDescriptor: PyLightProjectDescriptor? = PyLightProjectDescriptor(PYTHON_3_MOCK_SDK)
     private val testDataPath: String = "testData"
     private val mockPath: String = "mock"
     private val pydanticMockPath: String = "$mockPath/pydantic$version"

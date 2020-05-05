@@ -9,11 +9,15 @@ open class PydanticCompletionTest : PydanticTestCase() {
 
     private fun doFieldTest(fieldNames: List<Pair<String, String>>, additionalModules: List<String>? = null) {
         configureByFile(additionalModules)
-
+        val excludes = listOf(
+                "__annotations__", "__base__", "__bases__", "__basicsize__", "__dict__", "__dictoffset__", "__flags__",
+                "__itemsize__", "__mro__", "__name__", "__qualname__", "__slots__", "__text_signature__",
+                "__weakrefoffset__", "Ellipsis", "EnvironmentError", "IOError", "NotImplemented")
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression
+        }.filterNot {
+            excludes.contains(it!!.lookupString)
         }.mapNotNull {
-
             Pair(it!!.lookupString, LookupElementPresentation.renderElement(it).typeText ?: "null")
         }
         assertEquals(fieldNames, actual)
