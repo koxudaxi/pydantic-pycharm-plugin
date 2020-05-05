@@ -20,3 +20,9 @@ $ gradlew.bat buildPlugin
 ```bash
 $ ./gradlew runIde
 ```
+
+
+## License For testSrc/com/jetbrains
+These files are copied to `testSrc/com/jetbrains` from [IntelliJ IDEA Community Edition](https://github.com/JetBrains/intellij-community)
+The files are licensed under the Apache License, Version 2.0.
+http://www.apache.org/licenses/LICENSE-2.0
