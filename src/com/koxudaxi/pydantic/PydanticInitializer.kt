@@ -15,8 +15,10 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.*
 import com.intellij.psi.util.QualifiedName
 import com.intellij.serviceContainer.AlreadyDisposedException
+import com.jetbrains.python.PyNames
 import com.jetbrains.python.psi.PyQualifiedNameOwner
 import com.jetbrains.python.psi.types.TypeEvalContext
+import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.PythonSdkUtil.*
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
@@ -26,6 +28,7 @@ import org.apache.tuweni.toml.TomlParseResult
 import org.apache.tuweni.toml.TomlTable
 import org.ini4j.Ini
 import org.ini4j.IniPreferences
+import java.io.File
 
 class PydanticInitializer : StartupActivity {
 
@@ -72,6 +75,13 @@ class PydanticInitializer : StartupActivity {
         return project.pythonSdk ?: project.modules.mapNotNull { findPythonSdk(it) }.firstOrNull()
     }
 
+    private fun getSitePackage(sdk: Sdk): VirtualFile? {
+        getSitePackagesDirectory(sdk)?.let { return it }
+        val prefix = sdk.homePath!!.split("/").last()
+        val userSitePath = listOf(getUserSite(), "lib", prefix, PyNames.SITE_PACKAGES).joinToString(File.separator)
+        return LocalFileSystem.getInstance().refreshAndFindFileByPath(userSitePath)
+    }
+
     fun initializeFileLoader(project: Project) {
         val configService = PydanticConfigService.getInstance(project)
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
@@ -91,7 +101,7 @@ class PydanticInitializer : StartupActivity {
             }
             runWriteAction {
                 getSdk(project)?.let { sdk ->
-                    getSitePackagesDirectory(sdk)?.let { sitePackage ->
+                    getSitePackage(sdk)?.let { sitePackage ->
                         sitePackage.findChild("pydantic")?.let {
                             copyPydanticStub(it, findSkeletonsDir(sdk), true)
                         }
@@ -124,7 +134,7 @@ class PydanticInitializer : StartupActivity {
 
                                 val pythonSdk = getSdk(project)
                                 val skeletons = pythonSdk?.let { findSkeletonsDir(it) }
-                                val pydanticPackage = pythonSdk?.let { getSitePackagesDirectory(it)?.findChild("pydantic") }
+                                val pydanticPackage = pythonSdk?.let { getSitePackage(it)?.findChild("pydantic") }
 
                                 invokeAfterPsiEvents {
                                     val libraries = projectFiles.filter {
