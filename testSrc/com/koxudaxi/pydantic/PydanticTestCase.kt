@@ -1,6 +1,10 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.FilePropertyPusher
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.PsiTestUtil.addSourceRoot
@@ -9,10 +13,14 @@ import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
+import com.intellij.testFramework.writeChild
+import com.jetbrains.python.PyNames
 import com.jetbrains.python.PythonDialectsTokenSetProvider
 import com.jetbrains.python.fixtures.PyLightProjectDescriptor
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.impl.PythonLanguageLevelPusher
+import com.jetbrains.python.psi.search.PySearchUtilBase
+import com.jetbrains.python.sdk.PythonSdkUtil
 
 abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
@@ -64,8 +72,18 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
         myFixture!!.copyDirectoryToProject(pydanticMockPath, "package/pydantic")
 
         packageDir = myFixture!!.findFileInTempDir("package")
+
+
         addSourceRoot(myFixture!!.module, packageDir!!)
 
+        runWriteAction {
+            val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
+            myFixture!!.tempDirFixture.findOrCreateDir(PythonSdkUtil.SKELETON_DIR_NAME)
+                    .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
+            val libDir = myFixture!!.tempDirFixture.findOrCreateDir("Lib")
+                    .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
+            libDir.createChildDirectory(null, PyNames.SITE_PACKAGES)
+        }
         PythonDialectsTokenSetProvider.reset()
         setLanguageLevel(LanguageLevel.PYTHON37)
     }

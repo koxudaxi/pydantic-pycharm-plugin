@@ -5,6 +5,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.NoAccessDuringPsiEvents
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.AsyncFileListener
@@ -16,8 +17,9 @@ import com.intellij.psi.util.QualifiedName
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.jetbrains.python.psi.PyQualifiedNameOwner
 import com.jetbrains.python.psi.types.TypeEvalContext
-import com.jetbrains.python.sdk.PythonSdkUtil
+import com.jetbrains.python.sdk.PythonSdkUtil.*
 import com.jetbrains.python.sdk.pythonSdk
+import com.jetbrains.python.statistics.modules
 import org.apache.tuweni.toml.Toml
 import org.apache.tuweni.toml.TomlArray
 import org.apache.tuweni.toml.TomlParseResult
@@ -53,10 +55,9 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    private fun copyPydanticStub(source: VirtualFile, skeletonsPath: String?, walk: Boolean) {
-        skeletonsPath?.let {
-            val skeltions = LocalFileSystem.getInstance().refreshAndFindFileByPath(it)!!
-            val pydanticStub = skeltions.findChild("pydantic") ?: skeltions.createChildDirectory(null, "pydantic")
+    private fun copyPydanticStub(source: VirtualFile, skeletons: VirtualFile?, walk: Boolean) {
+        skeletons?.let {
+            val pydanticStub = skeletons.findChild("pydantic") ?: skeletons.createChildDirectory(null, "pydantic")
             when {
                 walk -> walkDirectory(source, pydanticStub) { target ->
                     copyPyFileToPyiFile(target, pydanticStub, target.name + "i")
@@ -67,8 +68,12 @@ class PydanticInitializer : StartupActivity {
 
     }
 
-    private fun initializeFileLoader(project: Project, configService: PydanticConfigService) {
+    private fun getSdk(project: Project): Sdk? {
+        return project.pythonSdk ?: project.modules.mapNotNull { findPythonSdk(it) }.firstOrNull()
+    }
 
+    fun initializeFileLoader(project: Project) {
+        val configService = PydanticConfigService.getInstance(project)
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
         invokeAfterPsiEvents {
@@ -85,10 +90,10 @@ class PydanticInitializer : StartupActivity {
                 else -> clearMypyIniConfig(configService)
             }
             runWriteAction {
-                project.pythonSdk?.let { sdk ->
-                    PythonSdkUtil.getSitePackagesDirectory(sdk)?.let { sitePackage ->
+                getSdk(project)?.let { sdk ->
+                    getSitePackagesDirectory(sdk)?.let { sitePackage ->
                         sitePackage.findChild("pydantic")?.let {
-                            copyPydanticStub(it, PythonSdkUtil.getSkeletonsPath(sdk), true)
+                            copyPydanticStub(it, findSkeletonsDir(sdk), true)
                         }
                     }
                 }
@@ -117,9 +122,9 @@ class PydanticInitializer : StartupActivity {
                                 val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
                                 val mypyIni = configService.mypyIni ?: defaultMypyIni
 
-                                val pythonSdk = project.pythonSdk
-                                val skeletonsPath = pythonSdk?.let { PythonSdkUtil.getSkeletonsPath(it) }
-                                val pydanticPackage = pythonSdk?.let { PythonSdkUtil.getSitePackagesDirectory(it)?.findChild("pydantic") }
+                                val pythonSdk = getSdk(project)
+                                val skeletons = pythonSdk?.let { findSkeletonsDir(it) }
+                                val pydanticPackage = pythonSdk?.let { getSitePackagesDirectory(it)?.findChild("pydantic") }
 
                                 invokeAfterPsiEvents {
                                     val libraries = projectFiles.filter {
@@ -139,7 +144,7 @@ class PydanticInitializer : StartupActivity {
                                         libraries.filter {
                                             pydanticPackage?.let { pydanticPackage -> it.path.startsWith(pydanticPackage.path) } == true
                                         }.forEach {
-                                            copyPydanticStub(it, skeletonsPath, it.isDirectory)
+                                            copyPydanticStub(it, skeletons, it.isDirectory)
                                         }
                                     }
                                 }
@@ -241,9 +246,9 @@ class PydanticInitializer : StartupActivity {
     }
 
     override fun runActivity(project: Project) {
+        if (ApplicationManager.getApplication().isUnitTestMode) return
         if (project.isDisposed) return
-        val configService = PydanticConfigService.getInstance(project)
-        initializeFileLoader(project, configService)
+        initializeFileLoader(project)
     }
 
     private fun invokeAfterPsiEvents(runnable: () -> Unit) {
