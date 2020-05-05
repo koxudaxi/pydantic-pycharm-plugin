@@ -19,7 +19,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
     protected var myFixture: CodeInsightTestFixture? = null
     private val PYTHON_3_MOCK_SDK = "3.7"
 
-    private val projectDescriptor: PyLightProjectDescriptor? = PyLightProjectDescriptor(PYTHON_3_MOCK_SDK)
+    private val projectDescriptor: PyLightProjectDescriptor = PyLightProjectDescriptor(PYTHON_3_MOCK_SDK)
     private val testDataPath: String = "testData"
     private val mockPath: String = "mock"
     private val pydanticMockPath: String = "$mockPath/pydantic$version"
