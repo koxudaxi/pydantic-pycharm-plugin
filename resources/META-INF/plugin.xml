@@ -7,6 +7,7 @@
     <h2>version 0.1.6</h2>
     <p>Features</p>
     <ul>
+        <li>Improve initializer [#126] </li>
         <li>Fix invalid self parameter when inherits from non-pydantic model [#125] </li>
         <li>Add mock sdk for unittest [#124] </li>
         <li>Fix types of methods and functions [#123] </li>
