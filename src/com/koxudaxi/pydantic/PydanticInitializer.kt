@@ -18,7 +18,6 @@ import com.intellij.serviceContainer.AlreadyDisposedException
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.psi.PyQualifiedNameOwner
 import com.jetbrains.python.psi.types.TypeEvalContext
-import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.PythonSdkUtil.*
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
@@ -75,17 +74,20 @@ class PydanticInitializer : StartupActivity {
         return project.pythonSdk ?: project.modules.mapNotNull { findPythonSdk(it) }.firstOrNull()
     }
 
-    private fun getSitePackage(sdk: Sdk): VirtualFile? {
-        getSitePackagesDirectory(sdk)?.let { return it }
+    private fun getSitePackage(sdk: Sdk?): List<VirtualFile> {
+        if (sdk == null) return emptyList()
         val prefix = sdk.homePath!!.split("/").last()
         val userSitePath = listOf(getUserSite(), "lib", prefix, PyNames.SITE_PACKAGES).joinToString(File.separator)
-        return LocalFileSystem.getInstance().refreshAndFindFileByPath(userSitePath)
+        return listOfNotNull(getSitePackagesDirectory(sdk), LocalFileSystem.getInstance().refreshAndFindFileByPath(userSitePath))
     }
 
     fun initializeFileLoader(project: Project) {
         val configService = PydanticConfigService.getInstance(project)
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
+        var sdk = getSdk(project)
+        var sitePackages = getSitePackage(sdk)
+        var skeletons = sdk?.let { findSkeletonsDir(it) }
         invokeAfterPsiEvents {
             when (val pyprojectToml = LocalFileSystem.getInstance()
                     .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
@@ -100,15 +102,12 @@ class PydanticInitializer : StartupActivity {
                 else -> clearMypyIniConfig(configService)
             }
             runWriteAction {
-                getSdk(project)?.let { sdk ->
-                    getSitePackage(sdk)?.let { sitePackage ->
-                        sitePackage.findChild("pydantic")?.let {
-                            copyPydanticStub(it, findSkeletonsDir(sdk), true)
-                        }
-                    }
+                sitePackages.asSequence().mapNotNull { sitePackage ->
+                    sitePackage.findChild("pydantic")
+                }.firstOrNull()?.let {
+                    copyPydanticStub(it, findSkeletonsDir(sdk!!), true)
                 }
             }
-
         }
 
         VirtualFileManager.getInstance().addAsyncFileListener(
@@ -131,29 +130,33 @@ class PydanticInitializer : StartupActivity {
                                 if (projectFiles.count() == 0) return
                                 val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
                                 val mypyIni = configService.mypyIni ?: defaultMypyIni
+                                val newSdk = getSdk(project)
+                                if (sdk != newSdk) {
+                                    skeletons = newSdk?.let { findSkeletonsDir(it) }
+                                    sitePackages = getSitePackage(newSdk)
+                                    sdk = newSdk
+                                }
 
-                                val pythonSdk = getSdk(project)
-                                val skeletons = pythonSdk?.let { findSkeletonsDir(it) }
-                                val pydanticPackage = pythonSdk?.let { getSitePackage(it)?.findChild("pydantic") }
-
+                                val pydanticPackage = sitePackages.asSequence().map { it.findChild("pydantic") }.firstOrNull()
                                 invokeAfterPsiEvents {
-                                    val libraries = projectFiles.filter {
+                                    val libraries = projectFiles.mapNotNull {
                                         when (it.path) {
                                             pyprojectToml -> {
                                                 loadPyprojecToml(project, it, configService)
-                                                false
+                                                null
                                             }
                                             mypyIni -> {
                                                 loadMypyIni(it, configService)
-                                                false
+                                                null
                                             }
-                                            else -> true
+                                            else -> it
                                         }
-                                    }
+                                    }.filter { targetFile ->
+                                        pydanticPackage?.let { targetFile.path.startsWith(pydanticPackage.path) } == true
+                                    }.toList()
+                                    if (libraries.isEmpty()) return@invokeAfterPsiEvents
                                     runWriteAction {
-                                        libraries.filter {
-                                            pydanticPackage?.let { pydanticPackage -> it.path.startsWith(pydanticPackage.path) } == true
-                                        }.forEach {
+                                        libraries.forEach {
                                             copyPydanticStub(it, skeletons, it.isDirectory)
                                         }
                                     }
