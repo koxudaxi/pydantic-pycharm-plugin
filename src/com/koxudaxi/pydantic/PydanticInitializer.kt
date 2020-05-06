@@ -76,9 +76,14 @@ class PydanticInitializer : StartupActivity {
 
     private fun getSitePackage(sdk: Sdk?): List<VirtualFile> {
         if (sdk == null) return emptyList()
-        val prefix = sdk.homePath!!.split("/").last()
-        val userSitePath = listOf(getUserSite(), "lib", prefix, PyNames.SITE_PACKAGES).joinToString(File.separator)
-        return listOfNotNull(getSitePackagesDirectory(sdk), LocalFileSystem.getInstance().refreshAndFindFileByPath(userSitePath))
+        return listOfNotNull(
+                getSitePackagesDirectory(sdk),
+//              userSite
+                sdk.homePath?.split("/")?.last()?.let { prefix ->
+                    val userSitePath = listOf(getUserSite(), "lib", prefix, PyNames.SITE_PACKAGES).joinToString(File.separator)
+                    LocalFileSystem.getInstance().refreshAndFindFileByPath(userSitePath)
+                }
+        )
     }
 
     fun initializeFileLoader(project: Project) {
