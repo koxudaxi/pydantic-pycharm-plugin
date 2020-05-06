@@ -1,6 +1,7 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
@@ -15,6 +16,8 @@ import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.*
+import com.jetbrains.python.sdk.PythonSdkUtil
+import com.jetbrains.python.sdk.associatedModule
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
@@ -208,9 +211,13 @@ fun isDataclassMissingByPsiElement(psiElement: PsiElement): Boolean {
     return validatePsiElementByFunction(psiElement, ::isDataclassMissing)
 }
 
+fun getSdk(project: Project): Sdk? {
+    return project.pythonSdk ?: project.modules.mapNotNull { PythonSdkUtil.findPythonSdk(it) }.firstOrNull()
+}
+
 fun getPsiElementByQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PsiElement? {
-    val module = project.modules.firstOrNull() ?: return null
-    val pythonSdk = module.pythonSdk
+    val pythonSdk = getSdk(project) ?: return null
+    val module = pythonSdk.associatedModule ?: project.modules.firstOrNull() ?: return null
     val contextAnchor = ModuleBasedContextAnchor(module)
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
 }
