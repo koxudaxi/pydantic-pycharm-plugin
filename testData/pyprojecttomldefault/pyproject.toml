@@ -1,7 +1,7 @@
 [tool.pydantic-pycharm-plugin]
 # You can select higlith level  from "warning",  "weak_warning", "disable"
-parsable-type-highlight = "weak_warning"
-acceptable-type-highlight = "invalid"
+parsable-type-highlight = "warning"
+acceptable-type-highlight = "weak_warning"
 
 [tool.pydantic-pycharm-plugin.parsable-types]
 ## datetime.datetime field may parse int

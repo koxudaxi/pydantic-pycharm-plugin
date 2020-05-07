@@ -3,8 +3,13 @@ package com.koxudaxi.pydantic
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.progress.util.BackgroundTaskUtil
+import com.intellij.openapi.vcs.changes.VcsFreezingProcess
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.writeChild
+import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.sdk.PythonSdkUtil
+import junit.framework.Assert
 import org.jetbrains.kotlin.konan.file.File
 
 
@@ -89,6 +94,16 @@ open class PydanticInitializerTest : PydanticTestCase() {
         }
     }
 
+    fun testPyProjectTomlDefault() {
+        setUpPyProjectToml {
+            initializeFileLoader()
+            invokeLater {
+                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
+                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+            }
+        }
+    }
+
     fun testPyProjectTomlEmpty() {
         setUpPyProjectToml {
             initializeFileLoader()
@@ -169,37 +184,17 @@ open class PydanticInitializerTest : PydanticTestCase() {
         }
     }
 
-    fun testCopyStubFile() {
+    fun testDeleteStubFile() {
         val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
-        val sitePackage = PythonSdkUtil.getSitePackagesDirectory(sdk)!!
+        val skeleton = PythonSdkUtil.findSkeletonsDir(sdk)!!
+        var pydanticStubDir: VirtualFile? = null
         runWriteAction {
-            val pydanticStubDir = sitePackage.findChild("pydantic")
-                    ?: sitePackage.createChildDirectory(null, "pydantic")
-            pydanticStubDir.writeChild("main.py", "test")
+            pydanticStubDir = skeleton.createChildDirectory(null, "pydantic")
         }
         PydanticInitializer().initializeFileLoader(myFixture!!.project)
+        BackgroundTaskUtil.syncPublisher(myFixture!!.project, PyPackageManager.PACKAGE_MANAGER_TOPIC).packagesRefreshed(sdk)
         invokeLater {
-            val skeleton = PythonSdkUtil.findSkeletonsDir(sdk)!!
-            skeleton.findFileByRelativePath("pydantic/main.pyi")!!.inputStream.bufferedReader().use {
-                assertEquals(it.readText(), "test")
-            }
-        }
-    }
-
-    fun testCopyStubFileAfter() {
-        PydanticInitializer().initializeFileLoader(myFixture!!.project)
-        val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
-        val sitePackage = PythonSdkUtil.getSitePackagesDirectory(sdk)!!
-        runWriteAction {
-            val pydanticStubDir = sitePackage.findChild("pydantic")
-                    ?: sitePackage.createChildDirectory(null, "pydantic")
-            pydanticStubDir.writeChild("main.py", "test")
-        }
-        invokeLater {
-            val skeleton = PythonSdkUtil.findSkeletonsDir(sdk)!!
-            skeleton.findFileByRelativePath("pydantic/main.pyi")!!.inputStream.bufferedReader().use {
-                assertEquals(it.readText(), "test")
-            }
+            Assert.assertFalse(pydanticStubDir!!.exists())
         }
     }
 }
