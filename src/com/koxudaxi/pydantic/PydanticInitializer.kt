@@ -37,19 +37,17 @@ class PydanticInitializer : StartupActivity {
         return project.basePath + File.separator + "mypy.ini"
     }
 
-    private val pydanticStubDirName = "pydantic"
 
-
-    private fun deleteAndWatchPydanticStub(sdk: Sdk) {
-        findSkeletonsDir(sdk)?.let { skeletons ->
-            val pydanticStub = skeletons.findChild(pydanticStubDirName)
-            if (pydanticStub is VirtualFile) {
-                runWriteAction {
-                    pydanticStub.delete(null)
-                }
-            }
-        }
-    }
+//    private fun deleteAndWatchPydanticStub(sdk: Sdk) {
+//        findSkeletonsDir(sdk)?.let { skeletons ->
+//            val pydanticStub = skeletons.findChild(pydanticStubDirName)
+//            if (pydanticStub is VirtualFile) {
+//                runWriteAction {
+//                    pydanticStub.delete(null)
+//                }
+//            }
+//        }
+//    }
 
     private fun ignoreDisposed(project: Project, runnable: () -> Unit) {
         if (project.isDisposed) return
@@ -80,13 +78,13 @@ class PydanticInitializer : StartupActivity {
             }
         }
 
-        project.messageBus.connect().subscribe(PyPackageManager.PACKAGE_MANAGER_TOPIC,
-                PyPackageManager.Listener { sdk ->
-                    ApplicationManager.getApplication().invokeLater {
-                        deleteAndWatchPydanticStub(sdk)
-                    }
-                }
-        )
+//        project.messageBus.connect().subscribe(PyPackageManager.PACKAGE_MANAGER_TOPIC,
+//                PyPackageManager.Listener { sdk ->
+//                    ApplicationManager.getApplication().invokeLater {
+//                        deleteAndWatchPydanticStub(sdk)
+//                    }
+//                }
+//        )
         VirtualFileManager.getInstance().addAsyncFileListener(
                 { events ->
                     object : AsyncFileListener.ChangeApplier {

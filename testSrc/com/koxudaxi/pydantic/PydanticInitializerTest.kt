@@ -183,18 +183,4 @@ open class PydanticInitializerTest : PydanticTestCase() {
             assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
         }
     }
-
-    fun testDeleteStubFile() {
-        val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
-        val skeleton = PythonSdkUtil.findSkeletonsDir(sdk)!!
-        var pydanticStubDir: VirtualFile? = null
-        runWriteAction {
-            pydanticStubDir = skeleton.createChildDirectory(null, "pydantic")
-        }
-        PydanticInitializer().initializeFileLoader(myFixture!!.project)
-        BackgroundTaskUtil.syncPublisher(myFixture!!.project, PyPackageManager.PACKAGE_MANAGER_TOPIC).packagesRefreshed(sdk)
-        invokeLater {
-            Assert.assertFalse(pydanticStubDir!!.exists())
-        }
-    }
 }
