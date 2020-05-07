@@ -7,7 +7,7 @@
     <h2>version 0.1.6</h2>
     <p>Features</p>
     <ul>
-        <li>Improve initializer [#126] </li>
+        <li>Improve initializer and add package manager listener [#126] </li>
         <li>Fix invalid self parameter when inherits from non-pydantic model [#125] </li>
         <li>Add mock sdk for unittest [#124] </li>
         <li>Fix types of methods and functions [#123] </li>
@@ -223,7 +223,8 @@
         <localInspection language="Python" shortName="PydanticTypeCheckerInspection" suppressId="PydanticTypeChecker" bundle="messages.PyPsiBundle" displayName="Type checker compatible with Pydantic" groupKey="INSP.GROUP.python" enabledByDefault="false"  level="WARNING" implementationClass="com.koxudaxi.pydantic.PydanticTypeCheckerInspection"/>
     </extensions>
     <projectListeners>
-        <listener class="com.koxudaxi.pydantic.PydanticPackageListener" topic="com.jetbrains.python.packaging.PyPackageManager$Listener"></listener>
+        <listener class="com.koxudaxi.pydantic.PydanticPackageManagerListener"
+                  topic="com.jetbrains.python.packaging.PyPackageManager$Listener"/>
     </projectListeners>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>

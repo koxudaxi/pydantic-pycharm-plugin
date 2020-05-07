@@ -7,7 +7,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.sdk.PythonSdkUtil
 
-class PydanticPackageListener : PyPackageManager.Listener {
+class PydanticPackageManagerListener : PyPackageManager.Listener {
     override fun packagesRefreshed(sdk: Sdk) {
         ApplicationManager.getApplication().invokeLater {
             PythonSdkUtil.findSkeletonsDir(sdk)?.let { skeletons ->

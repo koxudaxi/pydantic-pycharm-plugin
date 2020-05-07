@@ -2,11 +2,9 @@ package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.NoAccessDuringPsiEvents
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.AsyncFileListener
@@ -16,10 +14,8 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.*
 import com.intellij.psi.util.QualifiedName
 import com.intellij.serviceContainer.AlreadyDisposedException
-import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.psi.PyQualifiedNameOwner
 import com.jetbrains.python.psi.types.TypeEvalContext
-import com.jetbrains.python.sdk.PythonSdkUtil.*
 import org.apache.tuweni.toml.Toml
 import org.apache.tuweni.toml.TomlArray
 import org.apache.tuweni.toml.TomlParseResult
