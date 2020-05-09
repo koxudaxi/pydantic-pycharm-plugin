@@ -2,7 +2,7 @@ package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.NoAccessDuringPsiEvents
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
@@ -16,84 +16,37 @@ import com.intellij.psi.util.QualifiedName
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.jetbrains.python.psi.PyQualifiedNameOwner
 import com.jetbrains.python.psi.types.TypeEvalContext
-import com.jetbrains.python.sdk.PythonSdkUtil
-import com.jetbrains.python.sdk.pythonSdk
 import org.apache.tuweni.toml.Toml
 import org.apache.tuweni.toml.TomlArray
 import org.apache.tuweni.toml.TomlParseResult
 import org.apache.tuweni.toml.TomlTable
 import org.ini4j.Ini
 import org.ini4j.IniPreferences
+import java.io.File
 
 class PydanticInitializer : StartupActivity {
-
     private fun getDefaultPyProjectTomlPath(project: Project): String {
-        return project.basePath + "/pyproject.toml"
+        return project.basePath + File.separator + "pyproject.toml"
     }
 
     private fun getDefaultMypyIniPath(project: Project): String {
-        return project.basePath + "/mypy.ini"
+        return project.basePath + File.separator + "mypy.ini"
     }
 
-    private fun walkDirectory(virtualFile: VirtualFile, parentTarget: VirtualFile, action: (virtualFile: VirtualFile) -> (Unit)) {
-        virtualFile.children.forEach {
-            when {
-                it.isDirectory -> {
-                    val nextTarget = parentTarget.findChild(it.name) ?: parentTarget.createChildDirectory(null, it.name)
-                    walkDirectory(it, nextTarget, action)
-                }
-                else -> action(it)
-            }
-        }
-    }
-
-    private fun copyPyFileToPyiFile(source: VirtualFile, target: VirtualFile, fileName: String) {
-        if (source.name.endsWith(".py") && target.findChild(fileName) == null) {
-            source.copy(null, target, fileName)
-        }
-    }
-
-    private fun copyPydanticStub(source: VirtualFile, skeletonsPath: String?, walk: Boolean) {
-        skeletonsPath?.let {
-            val skeltions = LocalFileSystem.getInstance().refreshAndFindFileByPath(it)!!
-            val pydanticStub = skeltions.findChild("pydantic") ?: skeltions.createChildDirectory(null, "pydantic")
-            when {
-                walk -> walkDirectory(source, pydanticStub) { target ->
-                    copyPyFileToPyiFile(target, pydanticStub, target.name + "i")
-                }
-                else -> copyPyFileToPyiFile(source, pydanticStub, source.name.removePrefix(pydanticStub.path) + "i")
-            }
-        }
-
-    }
-
-    private fun initializeFileLoader(project: Project, configService: PydanticConfigService) {
-
+    fun initializeFileLoader(project: Project) {
+        val configService = PydanticConfigService.getInstance(project)
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
-        invokeAfterPsiEvents {
-            when (val pyprojectToml = LocalFileSystem.getInstance()
-                    .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
-                ) {
-                is VirtualFile -> loadPyprojecToml(project, pyprojectToml, configService)
-                else -> clearPyProjectTomlConfig(configService)
-            }
-            when (val mypyIni = LocalFileSystem.getInstance()
-                    .findFileByPath(configService.mypyIni ?: defaultMypyIni)
-                ) {
-                is VirtualFile -> loadMypyIni(mypyIni, configService)
-                else -> clearMypyIniConfig(configService)
-            }
-            runWriteAction {
-                project.pythonSdk?.let { sdk ->
-                    PythonSdkUtil.getSitePackagesDirectory(sdk)?.let { sitePackage ->
-                        sitePackage.findChild("pydantic")?.let {
-                            copyPydanticStub(it, PythonSdkUtil.getSkeletonsPath(sdk), true)
-                        }
-                    }
-                }
-            }
 
+        invokeAfterPsiEvents {
+            LocalFileSystem.getInstance()
+                    .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
+                    ?.also { loadPyprojecToml(project, it, configService) }
+                    ?: run { clearPyProjectTomlConfig(configService) }
+            LocalFileSystem.getInstance()
+                    .findFileByPath(configService.mypyIni ?: defaultMypyIni)
+                    ?.also { loadMypyIni(it, configService) }
+                    ?: run { clearMypyIniConfig(configService) }
         }
 
         VirtualFileManager.getInstance().addAsyncFileListener(
@@ -105,44 +58,23 @@ class PydanticInitializer : StartupActivity {
                                 val projectFiles = events
                                         .asSequence()
                                         .filter {
-                                            it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent || it is VFileCreateEvent || it is VFilePropertyChangeEvent
-                                        }
-                                        .mapNotNull { it.file }
-                                        .filter {
-                                            ProjectFileIndex.getInstance(project).isInContent(it) ||
-                                                    ProjectFileIndex.getInstance(project).isInLibrary(it)
-                                        }
-
+                                            it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent || it is VFileCreateEvent || it is VFileDeleteEvent
+                                        }.mapNotNull { it.file }
+                                        .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
                                 if (projectFiles.count() == 0) return
                                 val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
                                 val mypyIni = configService.mypyIni ?: defaultMypyIni
-
-                                val pythonSdk = project.pythonSdk
-                                val skeletonsPath = pythonSdk?.let { PythonSdkUtil.getSkeletonsPath(it) }
-                                val pydanticPackage = pythonSdk?.let { PythonSdkUtil.getSitePackagesDirectory(it)?.findChild("pydantic") }
-
                                 invokeAfterPsiEvents {
-                                    val libraries = projectFiles.filter {
-                                        when (it.path) {
-                                            pyprojectToml -> {
-                                                loadPyprojecToml(project, it, configService)
-                                                false
+                                    projectFiles
+                                            .asSequence()
+                                            .forEach {
+                                                when (it.path) {
+                                                    pyprojectToml -> loadPyprojecToml(project, it, configService)
+                                                    mypyIni -> loadMypyIni(it, configService)
+                                                }
                                             }
-                                            mypyIni -> {
-                                                loadMypyIni(it, configService)
-                                                false
-                                            }
-                                            else -> true
-                                        }
-                                    }
-                                    runWriteAction {
-                                        libraries.filter {
-                                            pydanticPackage?.let { pydanticPackage -> it.path.startsWith(pydanticPackage.path) } == true
-                                        }.forEach {
-                                            copyPydanticStub(it, skeletonsPath, it.isDirectory)
-                                        }
-                                    }
                                 }
+
                             } catch (e: AlreadyDisposedException) {
                             }
                         }
@@ -158,8 +90,8 @@ class PydanticInitializer : StartupActivity {
     }
 
     private fun clearPyProjectTomlConfig(configService: PydanticConfigService) {
-        configService.parsableTypeMap.clear()
-        configService.acceptableTypeMap.clear()
+        configService.parsableTypeMap = emptyMap()
+        configService.acceptableTypeMap = emptyMap()
         configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
         configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
     }
@@ -193,12 +125,14 @@ class PydanticInitializer : StartupActivity {
             return
         }
 
-        val context = TypeEvalContext.codeAnalysis(project, null)
-        configService.parsableTypeMap = getTypeMap(project, "parsable-types", table, context)
-        configService.acceptableTypeMap = getTypeMap(project, "acceptable-types", table, context)
+        TypeEvalContext.codeAnalysis(project, null).let {
+            configService.parsableTypeMap = getTypeMap(project, "parsable-types", table, it)
+            configService.acceptableTypeMap = getTypeMap(project, "acceptable-types", table, it)
+        }
 
         configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
         configService.acceptableTypeHighlightType = getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)
+
     }
 
     private fun getHighlightLevel(table: TomlTable, path: String, default: ProblemHighlightType): ProblemHighlightType {
@@ -218,32 +152,29 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    private fun getTypeMap(project: Project, path: String, table: TomlTable, context: TypeEvalContext): MutableMap<String, List<String>> {
-        val temporaryTypeMap = mutableMapOf<String, List<String>>()
-
-        val parsableTypeTable = table.getTableOrEmpty(path).toMap()
-        parsableTypeTable.entries.forEach { (key, value) ->
-            val name = when (val psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(key), project, context)) {
-                is PyQualifiedNameOwner -> psiElement.qualifiedName!!
-                else -> key
-            }
-            run {
-                if (value is TomlArray) {
-                    value.toList().filterIsInstance<String>().let {
-                        if (it.isNotEmpty()) {
-                            temporaryTypeMap[name] = it
-                        }
+    private fun getTypeMap(project: Project, path: String, table: TomlTable, context: TypeEvalContext): Map<String, List<String>> {
+        return table.getTableOrEmpty(path).toMap().mapNotNull { entry ->
+            getPsiElementByQualifiedName(QualifiedName.fromDottedString(entry.key), project, context)
+                    .let { psiElement -> (psiElement as? PyQualifiedNameOwner)?.qualifiedName ?: entry.key }
+                    .let { name ->
+                        (entry.value as? TomlArray)
+                                ?.toList()
+                                ?.filterIsInstance<String>()
+                                .takeIf { it?.isNotEmpty() == true }
+                                ?.let { name to it }
                     }
-                }
-            }
-        }
-        return temporaryTypeMap
+        }.toMap()
     }
 
     override fun runActivity(project: Project) {
+        if (ApplicationManager.getApplication().isUnitTestMode) return
         if (project.isDisposed) return
-        val configService = PydanticConfigService.getInstance(project)
-        initializeFileLoader(project, configService)
+        DumbService.getInstance(project).smartInvokeLater {
+            try {
+                initializeFileLoader(project)
+            } catch (e: AlreadyDisposedException) {
+            }
+        }
     }
 
     private fun invokeAfterPsiEvents(runnable: () -> Unit) {

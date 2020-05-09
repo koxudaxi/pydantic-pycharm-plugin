@@ -1,8 +1,9 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.PsiTestUtil
+import com.intellij.openapi.application.invokeLater
+import org.jetbrains.kotlin.konan.file.File
+
 
 open class PydanticInitializerTest : PydanticTestCase() {
     lateinit var pydanticConfigService: PydanticConfigService
@@ -12,62 +13,102 @@ open class PydanticInitializerTest : PydanticTestCase() {
         this.testMethodName = getTestName(true)
     }
 
+    private fun initializeFileLoader() {
+        PydanticInitializer().initializeFileLoader(myFixture!!.project)
+    }
 
     private fun setUpPyProjectToml(runnable: () -> Unit) {
-        ApplicationManager.getApplication().executeOnPooledThread {
-            setUpConfig()
-            pydanticConfigService.pyprojectToml = "/src/${testMethodName}"
-            val pyProjectToml = myFixture!!.copyFileToProject("${testDataMethodPath}/pyproject.toml", testMethodName)
-            try {
-                runnable()
-            } finally {
-                PsiTestUtil.removeSourceRoot(myFixture!!.module, pyProjectToml)
+        setUpConfig()
+        val target = createTempFile(testMethodName)
+        try {
+            val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.toLowerCase()}/pyproject.toml")
+            pydanticConfigService.pyprojectToml = target.path
+            invokeLater {
+                target.writeText(source.bufferedReader().readText())
             }
+            runnable()
+
+        } finally {
+            target.deleteOnExit()
         }
     }
 
     private fun setUpMypyIni(runnable: () -> Unit) {
-        ApplicationManager.getApplication().executeOnPooledThread {
-            setUpConfig()
-            pydanticConfigService.mypyIni = "/src/${testMethodName}"
-            val mypyIni = myFixture!!.copyFileToProject("${testDataMethodPath}/mypy.ini", testMethodName)
-            try {
-                runnable()
-            } finally {
-                PsiTestUtil.removeSourceRoot(myFixture!!.module, mypyIni)
+        setUpConfig()
+        val target = createTempFile(testMethodName)
+        try {
+            val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.toLowerCase()}/mypy.ini")
+            pydanticConfigService.mypyIni = target.path
+            target.writeText(source.bufferedReader().readText())
+            runnable()
+        } finally {
+            target.deleteOnExit()
+        }
+    }
+
+    fun testPyProjectToml() {
+        setUpPyProjectToml {
+            initializeFileLoader()
+            invokeLater {
+                assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf(
+                        "pydantic.HttpUrl" to listOf("str"),
+                        "datetime.datetime" to listOf("int")
+                ))
+                assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf("str" to listOf("int", "float")))
+                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)
             }
         }
     }
 
-    fun testpyprojecttoml() {
+//    fun testPyProjectTomlChange() {
+//        setUpPyProjectToml {
+//            initializeFileLoader()
+//        }
+//        invokeLater {
+//            assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf(
+//                    "pydantic.HttpUrl" to listOf("str"),
+//                    "datetime.datetime" to listOf("int")
+//            ))
+//            assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf("str" to listOf("int", "float")))
+//            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+//            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)
+//        }
+//    }
+
+    fun testPyProjectTomlDisable() {
         setUpPyProjectToml {
-            assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf(
-                    "datetime.datetime" to listOf("int"),
-                    "pydantic.networks.HttpUrl" to listOf("str")
-            ))
-            assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf("str" to listOf("int", "float")))
-            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
-            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)
+            initializeFileLoader()
+            invokeLater {
+                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.INFORMATION)
+                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
+            }
         }
     }
 
-    fun testpyprojecttomldisable() {
+    fun testPyProjectTomlDefault() {
         setUpPyProjectToml {
-            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
-            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
+            initializeFileLoader()
+            invokeLater {
+                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
+                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+            }
         }
     }
 
-    fun testpyprojecttomlempty() {
+    fun testPyProjectTomlEmpty() {
         setUpPyProjectToml {
-            assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
-            assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
-            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
-            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+            initializeFileLoader()
+            invokeLater {
+                assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
+                assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
+                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
+                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+            }
         }
     }
 
-    fun testnothingpyprojecttoml() {
+    fun testNothingPyProjectToml() {
         setUpConfig()
         assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
         assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
@@ -75,38 +116,63 @@ open class PydanticInitializerTest : PydanticTestCase() {
         assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
     }
 
-    fun testmypyini() {
+    fun testMypyIni() {
         setUpMypyIni {
-            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, true)
-            assertEquals(this.pydanticConfigService.mypyInitTyped, false)
-            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, true)
-            assertEquals(this.pydanticConfigService.currentInitTyped, false)
+            initializeFileLoader()
+            invokeLater {
+                assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, true)
+                assertEquals(this.pydanticConfigService.mypyInitTyped, false)
+                assertEquals(this.pydanticConfigService.currentWarnUntypedFields, true)
+                assertEquals(this.pydanticConfigService.currentInitTyped, false)
+            }
         }
     }
 
-    fun testmypyiniempty() {
+//    fun testMypyIniChange() {
+//        setUpMypyIni {
+//            initializeFileLoader()
+//        }
+//        invokeLater {
+//            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, true)
+//            assertEquals(this.pydanticConfigService.mypyInitTyped, false)
+//            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, true)
+//            assertEquals(this.pydanticConfigService.currentInitTyped, false)
+//        }
+//    }
+
+    fun testMypyIniEmpty() {
         setUpMypyIni {
-            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
-            assertEquals(this.pydanticConfigService.mypyInitTyped, null)
-            assertEquals(this.pydanticConfigService.currentInitTyped, true)
-            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
+            initializeFileLoader()
+            invokeLater {
+                assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
+                assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+                assertEquals(this.pydanticConfigService.currentInitTyped, true)
+                assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
+            }
         }
     }
 
-    fun testmypyinibroken() {
+    fun testMypyIniBroken() {
         setUpMypyIni {
-            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
-            assertEquals(this.pydanticConfigService.mypyInitTyped, null)
-            assertEquals(this.pydanticConfigService.currentInitTyped, true)
-            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
+
+            initializeFileLoader()
+            invokeLater {
+                assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
+                assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+                assertEquals(this.pydanticConfigService.currentInitTyped, true)
+                assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
+            }
         }
     }
 
-    fun testnothingmypyini() {
+    fun testNothingMypyIni() {
         setUpConfig()
-        assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
-        assertEquals(this.pydanticConfigService.mypyInitTyped, null)
-        assertEquals(this.pydanticConfigService.currentInitTyped, true)
-        assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
+        initializeFileLoader()
+        invokeLater {
+            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
+            assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+            assertEquals(this.pydanticConfigService.currentInitTyped, true)
+            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
+        }
     }
 }
