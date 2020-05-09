@@ -66,14 +66,13 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             val parameter = typeProvider.fieldToParameter(pyTargetExpression, ellipsis, typeEvalContext, pyClass, pydanticVersion, config, isDataclass = isDataclass)
             val defaultValue = parameter?.defaultValue?.let {
-                if (parameter.defaultValue is PyNoneLiteralExpression && !isBaseSetting(pyClass, typeEvalContext)) {
-                    "=None"
-                } else {
-                    parameter.defaultValueText?.let{ "=$it" } ?: ""
+                when {
+                    parameter.defaultValue is PyNoneLiteralExpression && !isBaseSetting(pyClass, typeEvalContext) -> "=None"
+                    else -> parameter.defaultValueText?.let { "=$it" } ?: ""
                 }
             } ?: ""
-            val typeHint = getTypeHint(parameter?.getType(typeEvalContext), typeEvalContext)
-            return "${typeHint}$defaultValue ${pyClass.name}"
+            return getTypeHint(parameter?.getType(typeEvalContext), typeEvalContext)
+                    .let { typeHint -> "${typeHint}$defaultValue ${pyClass.name}" }
         }
 
         private fun isInInit(field: PyTargetExpression): Boolean {
@@ -160,12 +159,13 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             result.runRemainingContributors(parameters)
             { completionResult ->
-                if (completionResult.lookupElement.psiElement?.getIcon(0) == AllIcons.Nodes.Field) {
-                    completionResult.lookupElement.lookupString
-                            .takeIf { name -> !fieldElements.contains(name) && (!excludes.contains(name)) }
-                            ?.let { result.passResult(completionResult) }
-                } else {
-                    result.passResult(completionResult)
+                when (AllIcons.Nodes.Field) {
+                    completionResult.lookupElement.psiElement?.getIcon(0) -> {
+                        completionResult.lookupElement.lookupString
+                                .takeIf { name -> !fieldElements.contains(name) && (!excludes.contains(name)) }
+                                ?.let { result.passResult(completionResult) }
+                    }
+                    else -> result.passResult(completionResult)
                 }
             }
         }

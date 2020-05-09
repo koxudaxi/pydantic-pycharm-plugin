@@ -52,21 +52,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val pydanticVersion = getPydanticVersion(pyClass.project, context)
         return getRefTypeFromFieldNameInPyClass(name, pyClass, context, ellipsis, pydanticVersion)
                 ?: pyClass.getAncestorClasses(context)
-                        .filter {isPydanticModel(it, false, context)  }
+                        .filter { isPydanticModel(it, false, context) }
                         .mapNotNull { ancestor ->
-                    getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion)
-                }.firstOrNull()
+                            getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion)
+                        }.firstOrNull()
     }
 
     private fun getRefTypeFromField(pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
                                     context: TypeEvalContext, pyClass: PyClass,
                                     pydanticVersion: KotlinVersion?): Ref<PyType>? {
-        val config = getConfig(pyClass, context, true)
-        fieldToParameter(pyTargetExpression, ellipsis, context, pyClass, pydanticVersion, config)
-                ?.let { parameter ->
-                    return Ref.create(parameter.getType(context))
-                }
-        return null
+        return fieldToParameter(pyTargetExpression, ellipsis, context, pyClass, pydanticVersion, getConfig(pyClass, context, true))
+                ?.let { parameter -> Ref.create(parameter.getType(context)) }
+
     }
 
     private fun getPydanticTypeForCallee(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyCallableType? {
@@ -100,7 +97,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         else -> null
                     }
                 }
-                .firstOrNull { it != null }
+                .firstOrNull()
     }
 
     private fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
