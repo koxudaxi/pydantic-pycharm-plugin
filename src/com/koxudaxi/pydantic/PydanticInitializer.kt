@@ -137,18 +137,10 @@ class PydanticInitializer : StartupActivity {
 
     private fun getHighlightLevel(table: TomlTable, path: String, default: ProblemHighlightType): ProblemHighlightType {
         return when (table.get(path) as? String) {
-            "warning" -> {
-                ProblemHighlightType.WARNING
-            }
-            "weak_warning" -> {
-                ProblemHighlightType.WEAK_WARNING
-            }
-            "disable" -> {
-                ProblemHighlightType.INFORMATION
-            }
-            else -> {
-                default
-            }
+            "warning" -> ProblemHighlightType.WARNING
+            "weak_warning" -> ProblemHighlightType.WEAK_WARNING
+            "disable" -> ProblemHighlightType.INFORMATION
+            else -> default
         }
     }
 
