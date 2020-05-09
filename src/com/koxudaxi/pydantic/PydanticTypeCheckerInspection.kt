@@ -15,6 +15,7 @@ import com.jetbrains.python.psi.impl.PyCallExpressionHelper
 import com.jetbrains.python.psi.types.*
 import com.jetbrains.python.psi.types.PyLiteralType.Companion.promoteToLiteral
 import com.jetbrains.python.psi.types.PyTypedDictType.Companion.match
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
@@ -68,9 +69,11 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
 
             val newType = when (typeForParameter) {
                 is PyCollectionType ->
-                    PyCollectionTypeImpl(typeForParameter.pyClass, typeForParameter.isDefinition, typeForParameter.elementTypes.mapNotNull {
+                    typeForParameter.elementTypes.mapNotNull {
                         getTypeFromTypeMap(getTypeMap, it, cache)
-                    })
+                    }.ifNotEmpty {
+                        PyCollectionTypeImpl(typeForParameter.pyClass, typeForParameter.isDefinition, this)
+                    }
                 else -> {
                     val project = holder!!.project
                     PyUnionType.union(getPyClassTypeByPyTypes(typeForParameter).toSet().flatMap { type ->
@@ -95,7 +98,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                 val expected = parameter.getArgumentType(myTypeEvalContext)
                 val actual = promoteToLiteral(argument, expected, myTypeEvalContext)
                 val strictMatched = matchParameterAndArgument(expected, actual, argument, substitutions)
-                val strictResult = AnalyzeArgumentResult(argument, expected, substituteGenerics(expected, substitutions), actual, strictMatched)
+                val strictResult = AnalyzeArgumentResult(expected, actual, strictMatched)
                 if (!strictResult.isMatched) {
                     val expectedType = PythonDocumentationProvider.getTypeName(strictResult.expectedType, myTypeEvalContext)
                     val actualType = PythonDocumentationProvider.getTypeName(strictResult.actualType, myTypeEvalContext)
@@ -103,7 +106,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                         val parsableType = getParsableTypeFromTypeMap(expected, cachedParsableTypeMap)
                         if (parsableType != null) {
                             val parsableMatched = matchParameterAndArgument(parsableType, actual, argument, substitutions)
-                            if (AnalyzeArgumentResult(argument, parsableType, substituteGenerics(parsableType, substitutions), actual, parsableMatched).isMatched) {
+                            if (AnalyzeArgumentResult(parsableType, actual, parsableMatched).isMatched) {
                                 registerProblem(
                                         argument,
                                         String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
@@ -118,7 +121,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                         val acceptableType = getAcceptableTypeFromTypeMap(expected, cachedAcceptableTypeMap)
                         if (acceptableType != null) {
                             val acceptableMatched = matchParameterAndArgument(acceptableType, actual, argument, substitutions)
-                            if (AnalyzeArgumentResult(argument, acceptableType, substituteGenerics(acceptableType, substitutions), actual, acceptableMatched).isMatched) {
+                            if (AnalyzeArgumentResult(acceptableType, actual, acceptableMatched).isMatched) {
                                 registerProblem(
                                         argument,
                                         String.format("Field is of type '%s', '%s' is set as an acceptable type in pyproject.toml",
@@ -146,16 +149,9 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             return if (parameterType is PyTypedDictType && argument is PyDictLiteralExpression) match((parameterType as PyTypedDictType?)!!, (argument as PyDictLiteralExpression?)!!, myTypeEvalContext) else PyTypeChecker.match(parameterType, argumentType, myTypeEvalContext, substitutions) &&
                     !matchingProtocolDefinitions(parameterType, argumentType, myTypeEvalContext)
         }
-
-        private fun substituteGenerics(expectedArgumentType: PyType?, substitutions: Map<PyGenericType, PyType>): PyType? {
-            return if (PyTypeChecker.hasGenerics(expectedArgumentType, myTypeEvalContext)) PyTypeChecker.substitute(expectedArgumentType, substitutions, myTypeEvalContext) else null
-        }
-
     }
 
-    internal class AnalyzeArgumentResult(val argument: PyExpression,
-                                         val expectedType: PyType?,
-                                         val expectedTypeAfterSubstitution: PyType?,
+    internal class AnalyzeArgumentResult(val expectedType: PyType?,
                                          val actualType: PyType?,
                                          val isMatched: Boolean)
 
