@@ -33,66 +33,35 @@ class PydanticInitializer : StartupActivity {
         return project.basePath + File.separator + "mypy.ini"
     }
 
-
-//    private fun deleteAndWatchPydanticStub(sdk: Sdk) {
-//        findSkeletonsDir(sdk)?.let { skeletons ->
-//            val pydanticStub = skeletons.findChild(pydanticStubDirName)
-//            if (pydanticStub is VirtualFile) {
-//                runWriteAction {
-//                    pydanticStub.delete(null)
-//                }
-//            }
-//        }
-//    }
-
-    private fun ignoreDisposed(project: Project, runnable: () -> Unit) {
-        if (project.isDisposed) return
-        try {
-            runnable()
-        } catch (e: AlreadyDisposedException) {
-        }
-    }
-
-
     fun initializeFileLoader(project: Project) {
         val configService = PydanticConfigService.getInstance(project)
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
 
         invokeAfterPsiEvents {
-            when (val pyprojectToml = LocalFileSystem.getInstance()
+            LocalFileSystem.getInstance()
                     .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
-                ) {
-                is VirtualFile -> loadPyprojecToml(project, pyprojectToml, configService)
-                else -> clearPyProjectTomlConfig(configService)
-            }
-            when (val mypyIni = LocalFileSystem.getInstance()
+                    ?.also { loadPyprojecToml(project, it, configService) }
+                    ?: run { clearPyProjectTomlConfig(configService) }
+            LocalFileSystem.getInstance()
                     .findFileByPath(configService.mypyIni ?: defaultMypyIni)
-                ) {
-                is VirtualFile -> loadMypyIni(mypyIni, configService)
-                else -> clearMypyIniConfig(configService)
-            }
+                    ?.also { loadMypyIni(it, configService) }
+                    ?: run { clearMypyIniConfig(configService) }
         }
 
-//        project.messageBus.connect().subscribe(PyPackageManager.PACKAGE_MANAGER_TOPIC,
-//                PyPackageManager.Listener { sdk ->
-//                    ApplicationManager.getApplication().invokeLater {
-//                        deleteAndWatchPydanticStub(sdk)
-//                    }
-//                }
-//        )
         VirtualFileManager.getInstance().addAsyncFileListener(
                 { events ->
                     object : AsyncFileListener.ChangeApplier {
                         override fun afterVfsChange() {
-                            ignoreDisposed(project) {
+                            if (project.isDisposed) return
+                            try {
                                 val projectFiles = events
                                         .asSequence()
                                         .filter {
                                             it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent || it is VFileCreateEvent || it is VFileDeleteEvent
                                         }.mapNotNull { it.file }
                                         .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
-                                if (projectFiles.count() == 0) return@ignoreDisposed
+                                if (projectFiles.count() == 0) return
                                 val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
                                 val mypyIni = configService.mypyIni ?: defaultMypyIni
                                 invokeAfterPsiEvents {
@@ -105,6 +74,8 @@ class PydanticInitializer : StartupActivity {
                                                 }
                                             }
                                 }
+
+                            } catch (e: AlreadyDisposedException) {
                             }
                         }
                     }
@@ -119,8 +90,8 @@ class PydanticInitializer : StartupActivity {
     }
 
     private fun clearPyProjectTomlConfig(configService: PydanticConfigService) {
-        configService.parsableTypeMap.clear()
-        configService.acceptableTypeMap.clear()
+        configService.parsableTypeMap = emptyMap()
+        configService.acceptableTypeMap = emptyMap()
         configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
         configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
     }
@@ -154,12 +125,14 @@ class PydanticInitializer : StartupActivity {
             return
         }
 
-        val context = TypeEvalContext.codeAnalysis(project, null)
-        configService.parsableTypeMap = getTypeMap(project, "parsable-types", table, context)
-        configService.acceptableTypeMap = getTypeMap(project, "acceptable-types", table, context)
+        TypeEvalContext.codeAnalysis(project, null).let {
+            configService.parsableTypeMap = getTypeMap(project, "parsable-types", table, it)
+            configService.acceptableTypeMap = getTypeMap(project, "acceptable-types", table, it)
+        }
 
         configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
         configService.acceptableTypeHighlightType = getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)
+
     }
 
     private fun getHighlightLevel(table: TomlTable, path: String, default: ProblemHighlightType): ProblemHighlightType {
@@ -179,34 +152,27 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    private fun getTypeMap(project: Project, path: String, table: TomlTable, context: TypeEvalContext): MutableMap<String, List<String>> {
-        val temporaryTypeMap = mutableMapOf<String, List<String>>()
-
-        val parsableTypeTable = table.getTableOrEmpty(path).toMap()
-        parsableTypeTable.entries.forEach { (key, value) ->
-            val name = when (val psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(key), project, context)) {
-                is PyQualifiedNameOwner -> psiElement.qualifiedName!!
-                else -> key
-            }
-            run {
-                if (value is TomlArray) {
-                    value.toList().filterIsInstance<String>().let {
-                        if (it.isNotEmpty()) {
-                            temporaryTypeMap[name] = it
-                        }
+    private fun getTypeMap(project: Project, path: String, table: TomlTable, context: TypeEvalContext): Map<String, List<String>> {
+        return table.getTableOrEmpty(path).toMap().mapNotNull { entry ->
+            getPsiElementByQualifiedName(QualifiedName.fromDottedString(entry.key), project, context)
+                    .let { psiElement -> (psiElement as? PyQualifiedNameOwner)?.qualifiedName ?: entry.key }
+                    .let { name ->
+                        (entry.value as? TomlArray)
+                                ?.toList()
+                                ?.filterIsInstance<String>()
+                                .takeIf { it?.isNotEmpty() == true }
+                                ?.let { name to it }
                     }
-                }
-            }
-        }
-        return temporaryTypeMap
+        }.toMap()
     }
 
     override fun runActivity(project: Project) {
         if (ApplicationManager.getApplication().isUnitTestMode) return
-
+        if (project.isDisposed) return
         DumbService.getInstance(project).smartInvokeLater {
-            ignoreDisposed(project) {
+            try {
                 initializeFileLoader(project)
+            } catch (e: AlreadyDisposedException) {
             }
         }
     }

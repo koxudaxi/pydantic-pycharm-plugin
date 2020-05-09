@@ -1,9 +1,6 @@
 package com.koxudaxi.pydantic
 
-import com.jetbrains.python.codeInsight.typing.PyTypingInspectionExtension
 import com.jetbrains.python.inspections.PyInspection
-import com.jetbrains.python.inspections.PyTypeCheckerInspection
-import com.jetbrains.python.inspections.PyTypeHintsInspection
 import kotlin.reflect.KClass
 
 

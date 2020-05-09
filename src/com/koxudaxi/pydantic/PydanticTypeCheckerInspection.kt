@@ -61,7 +61,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             )
         }
 
-        private fun getTypeFromTypeMap(getTypeMap: (project: Project) -> (MutableMap<String, List<String>>), typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
+        private fun getTypeFromTypeMap(getTypeMap: (project: Project) -> (Map<String, List<String>>), typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
             if (cache.containsKey(typeForParameter)) {
                 return cache[typeForParameter]
             }

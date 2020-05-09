@@ -2,14 +2,6 @@ package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.progress.util.BackgroundTaskUtil
-import com.intellij.openapi.vcs.changes.VcsFreezingProcess
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.writeChild
-import com.jetbrains.python.packaging.PyPackageManager
-import com.jetbrains.python.sdk.PythonSdkUtil
-import junit.framework.Assert
 import org.jetbrains.kotlin.konan.file.File
 
 

@@ -12,56 +12,62 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
 
     fun testParsableType() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.parsableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         doTest()
     }
+
     fun testParsableTypeCollection() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.parsableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         doTest()
     }
+
     fun testParsableTypeWeakWarning() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.parsableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         pydanticConfigService.parsableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
         doTest()
     }
+
     fun testParsableTypeDisable() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.parsableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         pydanticConfigService.parsableTypeHighlightType = ProblemHighlightType.INFORMATION
         doTest()
     }
 
     fun testParsableTypeInvalid() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.parsableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         doTest()
     }
 
     fun testAcceptableType() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.acceptableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         doTest()
     }
+
     fun testAcceptableTypeWarning() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.acceptableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         pydanticConfigService.acceptableTypeHighlightType = ProblemHighlightType.WARNING
         doTest()
     }
+
     fun testAcceptableTypeDisable() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.acceptableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         pydanticConfigService.acceptableTypeHighlightType = ProblemHighlightType.INFORMATION
         doTest()
     }
 
     fun testAcceptableTypeInvalid() {
         val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap["builtins.str"] = arrayListOf("builtins.int")
+        pydanticConfigService.acceptableTypeMap = mapOf(Pair("builtins.str", listOf("builtins.int")))
         doTest()
     }
+
     fun testField() {
         doTest()
     }

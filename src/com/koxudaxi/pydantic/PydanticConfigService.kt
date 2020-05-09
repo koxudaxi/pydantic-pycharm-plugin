@@ -16,9 +16,9 @@ class PydanticConfigService : PersistentStateComponent<PydanticConfigService> {
     var mypyWarnUntypedFields: Boolean? = null
     var pyprojectToml: String? = null
     var mypyIni: String? = null
-    var parsableTypeMap = mutableMapOf<String, List<String>>()
+    var parsableTypeMap = mapOf<String, List<String>>()
     var parsableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WARNING
-    var acceptableTypeMap = mutableMapOf<String, List<String>>()
+    var acceptableTypeMap = mapOf<String, List<String>>()
     var acceptableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WEAK_WARNING
 
     val currentInitTyped: Boolean
