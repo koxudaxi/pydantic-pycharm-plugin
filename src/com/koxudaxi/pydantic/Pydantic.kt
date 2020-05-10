@@ -34,6 +34,13 @@ const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 const val BASE_CONFIG_Q_NAME = "pydantic.BaseConfig"
 const val DATACLASS_MISSING = "dataclasses.MISSING"
+const val CON_BYTES_Q_NAME = "pydantic.types.conbytes"
+const val CON_DECIMAL_Q_NAME = "pydantic.types.condecimal"
+const val CON_FLOAT_Q_NAME = "pydantic.types.confloat"
+const val CON_INT_Q_NAME = "pydantic.types.conint"
+const val CON_LIST_Q_NAME = "pydantic.types.conlist"
+const val CON_STR_Q_NAME = "pydantic.types.constr"
+const val LIST_Q_NAME = "builtins.list"
 
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
@@ -55,6 +62,15 @@ val CONFIG_TYPES = mapOf(
         "allow_population_by_field_name" to Boolean,
         "orm_mode" to Boolean,
         "allow_mutation" to Boolean
+)
+
+val CON_FUNCS = mapOf(
+        CON_BYTES_Q_NAME to "",
+        CON_DECIMAL_Q_NAME to "",
+        CON_FLOAT_Q_NAME to "",
+        CON_INT_Q_NAME to "",
+        CON_LIST_Q_NAME to "",
+        CON_STR_Q_NAME to ""
 )
 
 fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, includeDataclass: Boolean, context: TypeEvalContext): PyClass? {
@@ -316,11 +332,11 @@ fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
     return pyPsiElement?.parent?.parent as? PyClass
 }
 
-fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext): PyClassTypeImpl? {
+fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext, isDefinition: Boolean = false): PyClassTypeImpl? {
     var psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(qualifiedName), project, context)
     if (psiElement == null) {
         psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString("builtins.$qualifiedName"), project, context)
                 ?: return null
     }
-    return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
+    return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, isDefinition)
 }
