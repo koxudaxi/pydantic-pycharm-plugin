@@ -17,3 +17,6 @@ class str:
 
 class bytes:
     pass
+
+class list:
+    pass

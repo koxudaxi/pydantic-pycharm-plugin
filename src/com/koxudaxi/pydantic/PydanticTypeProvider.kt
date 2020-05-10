@@ -15,6 +15,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return getPydanticTypeForCallee(referenceExpression, context)
     }
 
+    override fun getCallType(function: PyFunction, callSite: PyCallSiteExpression, context: TypeEvalContext): Ref<PyType>? {
+        return when (function.qualifiedName) {
+            CON_LIST_Q_NAME -> Ref.create(createConListPyType(callSite, context) ?: PyCollectionTypeImpl.createTypeByQName(callSite as PsiElement, LIST_Q_NAME, true))
+            else -> null
+        }
+    }
+
     override fun getReferenceType(referenceTarget: PsiElement, context: TypeEvalContext, anchor: PsiElement?): Ref<PyType>? {
         if (referenceTarget is PyTargetExpression) {
             val pyClass = getPyClassByAttribute(referenceTarget.parent) ?: return null
@@ -66,7 +73,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     }
 
-    private fun getPydanticTypeForCallee(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyCallableType? {
+    private fun getPydanticTypeForCallee(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
         if (PyCallExpressionNavigator.getPyCallExpressionByCallee(referenceExpression) == null) return null
 
         val resolveResults = getResolveElements(referenceExpression, context)
@@ -99,6 +106,19 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 }
                 .firstOrNull()
     }
+
+
+    private fun createConListPyType(pyCallSiteExpression: PyCallSiteExpression, context: TypeEvalContext): PyType? {
+        val pyCallExpression = pyCallSiteExpression as? PyCallExpression ?: return null
+        val argumentList = pyCallExpression.argumentList ?: return null
+        if (argumentList.arguments.isEmpty()) return null
+        val typeArgumentList = argumentList.getKeywordArgument("item_type") ?: argumentList.arguments[0]
+        // TODO support PySubscriptionExpression
+        val typeArgumentListType = context.getType(typeArgumentList) ?: return null
+        val typeArgumentListReturnType = (typeArgumentListType as? PyCallableType)?.getReturnType(context) ?: return null
+        return PyCollectionTypeImpl.createTypeByQName(pyCallExpression as PsiElement, LIST_Q_NAME, true, listOf(typeArgumentListReturnType))
+    }
+
 
     private fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
         if (!isPydanticModel(pyClass, false, context)) return null

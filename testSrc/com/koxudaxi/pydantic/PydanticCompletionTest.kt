@@ -732,4 +732,16 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 )
         )
     }
+
+    fun testConlist() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "list A"),
+                        Pair("cde=", "List[str] A"),
+                        Pair("efg=", "List[str] A"),
+                        Pair("hij=", "list A")
+                )
+        )
+    }
+
 }

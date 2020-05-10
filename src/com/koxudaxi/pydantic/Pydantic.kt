@@ -34,6 +34,13 @@ const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 const val BASE_CONFIG_Q_NAME = "pydantic.BaseConfig"
 const val DATACLASS_MISSING = "dataclasses.MISSING"
+const val CON_BYTES_Q_NAME = "pydantic.types.conbytes"
+const val CON_DECIMAL_Q_NAME = "pydantic.types.condecimal"
+const val CON_FLOAT_Q_NAME = "pydantic.types.confloat"
+const val CON_INT_Q_NAME = "pydantic.types.conint"
+const val CON_LIST_Q_NAME = "pydantic.types.conlist"
+const val CON_STR_Q_NAME = "pydantic.types.constr"
+const val LIST_Q_NAME = "builtins.list"
 
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
