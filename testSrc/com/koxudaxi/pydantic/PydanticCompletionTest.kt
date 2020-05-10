@@ -736,10 +736,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testConlist() {
         doFieldTest(
                 listOf(
-                        Pair("abc=", "Any A"),
+                        Pair("abc=", "list A"),
                         Pair("cde=", "List[str] A"),
                         Pair("efg=", "List[str] A"),
-                        Pair("hij=", "Any A")
+                        Pair("hij=", "list A")
                 )
         )
     }

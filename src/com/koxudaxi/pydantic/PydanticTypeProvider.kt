@@ -17,7 +17,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     override fun getCallType(function: PyFunction, callSite: PyCallSiteExpression, context: TypeEvalContext): Ref<PyType>? {
         return when (function.qualifiedName) {
-            CON_LIST_Q_NAME -> Ref.create(createConListPyType(callSite, context))
+            CON_LIST_Q_NAME -> Ref.create(createConListPyType(callSite, context) ?: PyCollectionTypeImpl.createTypeByQName(callSite as PsiElement, LIST_Q_NAME, true))
             else -> null
         }
     }
