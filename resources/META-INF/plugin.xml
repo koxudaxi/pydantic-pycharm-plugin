@@ -7,6 +7,7 @@
     <h2>version 0.1.6</h2>
     <p>Features</p>
     <ul>
+        <li>Support conlist [#129] </li>
         <li>Fix acceptable types for collections [#127] </li>
         <li>Improve initializer and add package manager listener [#126] </li>
         <li>Fix invalid self parameter when inherits from non-pydantic model [#125] </li>

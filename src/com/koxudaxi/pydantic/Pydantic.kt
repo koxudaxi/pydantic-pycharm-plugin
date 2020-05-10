@@ -64,15 +64,6 @@ val CONFIG_TYPES = mapOf(
         "allow_mutation" to Boolean
 )
 
-val CON_FUNCS = mapOf(
-        CON_BYTES_Q_NAME to "",
-        CON_DECIMAL_Q_NAME to "",
-        CON_FLOAT_Q_NAME to "",
-        CON_INT_Q_NAME to "",
-        CON_LIST_Q_NAME to "",
-        CON_STR_Q_NAME to ""
-)
-
 fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, includeDataclass: Boolean, context: TypeEvalContext): PyClass? {
     val callee = pyCallExpression.callee ?: return null
     val pyType = when (val type = context.getType(callee)) {
@@ -332,11 +323,11 @@ fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
     return pyPsiElement?.parent?.parent as? PyClass
 }
 
-fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext, isDefinition: Boolean = false): PyClassTypeImpl? {
+fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext): PyClassTypeImpl? {
     var psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(qualifiedName), project, context)
     if (psiElement == null) {
         psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString("builtins.$qualifiedName"), project, context)
                 ?: return null
     }
-    return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, isDefinition)
+    return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
