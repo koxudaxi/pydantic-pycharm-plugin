@@ -184,7 +184,9 @@ class PydanticCompletionContributor : CompletionContributor() {
         override val icon: Icon = AllIcons.Nodes.Parameter
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+            if (parameters.position.text == "." || parameters.position.prevSibling?.text == ".") return
             val pyArgumentList = parameters.position.parent?.parent as? PyArgumentList ?: return
+
             val typeEvalContext = parameters.getTypeEvalContext()
             val pyClassType = (pyArgumentList.parent as? PyCallExpression)?.let { typeEvalContext.getType(it) } as? PyClassType
                     ?: return
