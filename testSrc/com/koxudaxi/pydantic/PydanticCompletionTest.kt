@@ -35,7 +35,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
 
     fun testKeywordArgumentDot() {
         doFieldTest(
-                emptyList()
+                listOf(Pair("___slots__", "BaseModel"))
         )
     }
 
