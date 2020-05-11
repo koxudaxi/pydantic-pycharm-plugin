@@ -33,6 +33,18 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testKeywordArgumentDot() {
+        doFieldTest(
+                emptyList()
+        )
+    }
+
+    fun testKeywordArgumentDotName() {
+        doFieldTest(
+                emptyList()
+        )
+    }
+
     fun testKeywordArgumentIgnore() {
         doFieldTest(
                 listOf(

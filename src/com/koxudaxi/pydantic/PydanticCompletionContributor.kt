@@ -6,6 +6,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.util.ProcessingContext
+import com.jetbrains.python.PyNames
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHint
@@ -184,7 +185,9 @@ class PydanticCompletionContributor : CompletionContributor() {
         override val icon: Icon = AllIcons.Nodes.Parameter
 
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+            if (parameters.position.text == "." || parameters.position.prevSibling?.text == ".") return
             val pyArgumentList = parameters.position.parent?.parent as? PyArgumentList ?: return
+
             val typeEvalContext = parameters.getTypeEvalContext()
             val pyClassType = (pyArgumentList.parent as? PyCallExpression)?.let { typeEvalContext.getType(it) } as? PyClassType
                     ?: return
