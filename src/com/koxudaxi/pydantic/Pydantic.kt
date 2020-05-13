@@ -226,7 +226,7 @@ fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersio
             ?: return null
     val versionString = (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue
             ?: return null
-    return pydanticVersionCache.getOrElse(versionString, {
+    return pydanticVersionCache.getOrPut(versionString, {
         val versionList = versionString.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
         val pydanticVersion = when {
             versionList.size == 1 -> KotlinVersion(versionList[0], 0)
