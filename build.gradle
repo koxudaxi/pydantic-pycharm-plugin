@@ -24,6 +24,7 @@ intellij {
     updateSinceUntilBuild false
     downloadSources true
     plugins "java", "Kotlin", "PythonCore:$python_core_version"
+    alternativeIdePath "/opt/JetBrains/pycharm-community-2020.1" // PyCharmCommunity 2020.1 Path for runIde/debug
 
 }
 
