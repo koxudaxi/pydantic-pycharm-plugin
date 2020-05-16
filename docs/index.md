@@ -32,6 +32,8 @@ The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.je
 
 You can install the stable version on PyCharm's `Marketplace` (Preference -> Plugins -> Marketplace) [Offical Document](https://www.jetbrains.com/help/idea/managing-plugins.html)
 
+**The plugin requires PyCharm 2020.1 or later (include other JetBrains IDEs)**
+ 
 ![search plugin](search_plugin.png)
 
 
@@ -44,5 +46,8 @@ We are waiting for your contributions to `pydantic-pycharm-plugin`.
 
 ### Motivation
 [Auto-completion when instantiating BaseModel objects #650](https://github.com/samuelcolvin/pydantic/issues/650)
+
+### Other PyCharm plugin projects
+[Poetry PyCharm Plugin](https://github.com/koxudaxi/poetry-pycharm-plugin/)
 
 ## This project is currently in an experimental phase
