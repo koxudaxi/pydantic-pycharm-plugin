@@ -11,7 +11,8 @@
     </ul>
     <p>BugFixes</p>
     <ul>
-        <li>fix invalid cache for pydantic version [#132] </li>
+        <li>Fix handling project [#137] </li>
+        <li>Fix invalid cache for pydantic version [#132] </li>
         <li>Fix invalid completion in callable expression [#130] </li>
     </ul>
     <h2>version 0.1.6</h2>
