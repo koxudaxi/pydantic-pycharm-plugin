@@ -60,7 +60,13 @@ class PydanticInitializer : StartupActivity {
                                         .filter {
                                             it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent || it is VFileCreateEvent || it is VFileDeleteEvent
                                         }.mapNotNull { it.file }
-                                        .filter { ProjectFileIndex.getInstance(project).isInContent(it) }
+                                        .filter {
+                                            try {
+                                                ProjectFileIndex.getInstance(project).isInContent(it)
+                                            } catch (e: AlreadyDisposedException) {
+                                                false
+                                            }
+                                        }
                                 if (projectFiles.count() == 0) return
                                 val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
                                 val mypyIni = configService.mypyIni ?: defaultMypyIni
