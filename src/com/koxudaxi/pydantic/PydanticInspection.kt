@@ -63,16 +63,14 @@ class PydanticInspection : PyInspection() {
             super.visitPyAssignmentStatement(node)
 
             if (node == null) return
-             if (pydanticConfigService.currentWarnUntypedFields) {
+            if (pydanticConfigService.currentWarnUntypedFields) {
                 inspectWarnUntypedFields(node)
             }
             inspectReadOnlyProperty(node)
         }
 
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
-            val pyClass = getPyClassByPyCallExpression(pyCallExpression, false, myTypeEvalContext) ?: return
-            if (!isSubClassOfPydanticBaseModel(pyClass, myTypeEvalContext) || isPydanticBaseModel(pyClass)) return
-            if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
+            val pyClass = getPydanticPyClass(pyCallExpression, myTypeEvalContext) ?: return
             pyCallExpression.arguments
                     .filterNot { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
                     .forEach {
@@ -101,7 +99,7 @@ class PydanticInspection : PyInspection() {
             }
         }
 
-        private fun inspectReadOnlyProperty(node: PyAssignmentStatement){
+        private fun inspectReadOnlyProperty(node: PyAssignmentStatement) {
             val pyTypedElement = node.leftHandSideExpression?.firstChild as? PyTypedElement ?: return
             val pyType = myTypeEvalContext.getType(pyTypedElement) ?: return
             if ((pyType as? PyClassTypeImpl)?.isDefinition == true) return
@@ -116,7 +114,7 @@ class PydanticInspection : PyInspection() {
 
         }
 
-        private fun inspectWarnUntypedFields(node: PyAssignmentStatement){
+        private fun inspectWarnUntypedFields(node: PyAssignmentStatement) {
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             if (node.annotation != null) return
