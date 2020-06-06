@@ -212,6 +212,7 @@
             <ul>
                 <li>Support same features as pydantic.BaseModel
                     <li>(After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats pydantic.dataclasses.dataclass as third-party dataclass.</li>
+                    <li>Exclude a feature which is inserting unfilled arguments with a QuickFix</li>
                 </li>
             </ul>
         </li>

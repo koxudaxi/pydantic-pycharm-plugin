@@ -6,7 +6,7 @@ class A(BaseModel):
     a: str
 
 
-A(<warning descr="class 'A' accepts only keyword arguments">*['a']</warning>)
+<warning descr="Insert required arguments">A(<warning descr="class 'A' accepts only keyword arguments">*['a']</warning>)</warning>
 
 
 @dataclass

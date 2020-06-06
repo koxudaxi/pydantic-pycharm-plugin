@@ -40,6 +40,7 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
+  * Exclude a feature which is inserting unfilled arguments with a QuickFix
 
 
 

@@ -15,7 +15,7 @@ import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.types.PyCallableParameter
 import com.jetbrains.python.psi.types.TypeEvalContext
 
-class PydanticInsertArgumentsQuickFix(val onlyRequired: Boolean) : LocalQuickFix, IntentionAction, HighPriorityAction {
+class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : LocalQuickFix, IntentionAction, HighPriorityAction {
     private val pydanticTypeProvider = PydanticTypeProvider()
     override fun getText(): String = name
 
