@@ -24,7 +24,6 @@ import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.associatedModule
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
-import org.jetbrains.eval4j.checkNull
 import java.util.regex.Pattern
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
