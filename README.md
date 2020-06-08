@@ -23,8 +23,8 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
 
 ![search plugin](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/search_plugin.png)
 
-## Example:
-![type check1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/typecheck1.png)
+## Demo
+![demo1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/demo1.gif)
 
 ##  Features
 ### Implemented
