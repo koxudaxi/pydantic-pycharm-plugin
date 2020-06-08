@@ -36,11 +36,11 @@ class PydanticInspection : PyInspection() {
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
             if (firstParam == null) {
-                registerProblem(paramList, PyBundle.message("INSP.must.have.first.parameter", PyNames.CANONICAL_CLS),
+                registerProblem(paramList, "Method must have a first parameter, usually called 'cls'",
                         ProblemHighlightType.GENERIC_ERROR)
             } else if (firstParam.asNamed?.let { it.isSelf && it.name != PyNames.CANONICAL_CLS } == true) {
                 registerProblem(PyUtil.sure(firstParam),
-                        PyBundle.message("INSP.usually.named.\$0", PyNames.CANONICAL_CLS),
+                        "Usually first parameter of such methods is named 'cls'",
                         ProblemHighlightType.WEAK_WARNING, null,
                         RenameParameterQuickFix(PyNames.CANONICAL_CLS))
             }
