@@ -35,9 +35,12 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
   * (If the field name is refactored from the model definition or `__init__` call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.
 * Search related-fields by class attributes and keyword arguments of `__init__` with `Ctrl+B` and `Cmd+B`
 * Provide an inspection for type-checking which is compatible with pydantic. the inspection supports `parsable-type`. the detail is at [Inspection for type-checking section](https://koxudaxi.github.io/pydantic-pycharm-plugin/type-checking/)
+* Insert unfilled arguments with a QuickFix for subclasses of `pydantic.BaseModel`
+
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
+  * Exclude a feature which is inserting unfilled arguments with a QuickFix
 
 
 

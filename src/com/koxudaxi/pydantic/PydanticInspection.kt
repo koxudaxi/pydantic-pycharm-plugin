@@ -3,7 +3,6 @@ package com.koxudaxi.pydantic
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.codeInspection.ui.MultipleCheckboxOptionsPanel
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.PyBundle
 import com.jetbrains.python.PyNames
@@ -11,13 +10,11 @@ import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
-import com.jetbrains.python.psi.impl.PyStarArgumentImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.PyClassTypeImpl
-import javax.swing.JComponent
+
 
 class PydanticInspection : PyInspection() {
 
@@ -63,18 +60,16 @@ class PydanticInspection : PyInspection() {
             super.visitPyAssignmentStatement(node)
 
             if (node == null) return
-             if (pydanticConfigService.currentWarnUntypedFields) {
+            if (pydanticConfigService.currentWarnUntypedFields) {
                 inspectWarnUntypedFields(node)
             }
             inspectReadOnlyProperty(node)
         }
 
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
-            val pyClass = getPyClassByPyCallExpression(pyCallExpression, false, myTypeEvalContext) ?: return
-            if (!isSubClassOfPydanticBaseModel(pyClass, myTypeEvalContext) || isPydanticBaseModel(pyClass)) return
-            if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return
+            val pyClass = getPydanticPyClass(pyCallExpression, myTypeEvalContext) ?: return
             pyCallExpression.arguments
-                    .filterNot { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
+                    .filterNot { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
                     .forEach {
                         registerProblem(it,
                                 "class '${pyClass.name}' accepts only keyword arguments")
@@ -101,7 +96,7 @@ class PydanticInspection : PyInspection() {
             }
         }
 
-        private fun inspectReadOnlyProperty(node: PyAssignmentStatement){
+        private fun inspectReadOnlyProperty(node: PyAssignmentStatement) {
             val pyTypedElement = node.leftHandSideExpression?.firstChild as? PyTypedElement ?: return
             val pyType = myTypeEvalContext.getType(pyTypedElement) ?: return
             if ((pyType as? PyClassTypeImpl)?.isDefinition == true) return
@@ -116,7 +111,7 @@ class PydanticInspection : PyInspection() {
 
         }
 
-        private fun inspectWarnUntypedFields(node: PyAssignmentStatement){
+        private fun inspectWarnUntypedFields(node: PyAssignmentStatement) {
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             if (node.annotation != null) return

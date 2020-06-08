@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.1.7</version>
+    <version>0.1.8</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.1.8</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support inserting arguments [#144] </li>
+    </ul>
     <h2>version 0.1.7</h2>
     <p>Features</p>
     <ul>
@@ -197,15 +202,17 @@
                <li>Model-specific __init__-signature inspection and autocompletion for subclasses of pydantic.BaseModel</li>
                <li>Model-specific __init__-arguments type-checking for subclasses of pydantic.BaseModel</li>
                <li>Refactor support for renaming fields for subclasses of BaseModel</li>
-                <li>(If the field name is refactored from the model definition or __init__ call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.</li>
+               <li>(If the field name is refactored from the model definition or __init__ call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.</li>
                <li>Search related-fields by class attributes and keyword arguments of __init__. with Ctrl+B and Cmd+B</li>
                <li>Provide an inspection for type-checking which is compatible with pydantic. the inspection supports parsable-type. the detail is at <a href="https://koxudaxi.github.io/pydantic-pycharm-plugin/type-checking/"> Inspection for type-checking section</a></li>
+               <li>Insert unfilled arguments with a QuickFix for subclasses of pydantic.BaseModel</li>
             </ul>
          </li>
         <li>pydantic.dataclasses.dataclass
             <ul>
                 <li>Support same features as pydantic.BaseModel
                     <li>(After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats pydantic.dataclasses.dataclass as third-party dataclass.</li>
+                    <li>Exclude a feature which is inserting unfilled arguments with a QuickFix</li>
                 </li>
             </ul>
         </li>
@@ -243,6 +250,7 @@
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
         <inspectionExtension implementation="com.koxudaxi.pydantic.PydanticIgnoreInspection"/>
         <pyDataclassParametersProvider implementation="com.koxudaxi.pydantic.PydanticParametersProvider"/>
+        <pyAnnotator implementation="com.koxudaxi.pydantic.PydanticAnnotator"/>
     </extensions>
 
     <resource-bundle/>

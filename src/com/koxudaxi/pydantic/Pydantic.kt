@@ -1,8 +1,10 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
@@ -12,6 +14,8 @@ import com.jetbrains.extensions.resolveToElement
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
+import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
+import com.jetbrains.python.psi.impl.PyStarArgumentImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
@@ -331,3 +335,37 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
     }
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
+
+fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
+    val pyClass = getPyClassByPyCallExpression(pyCallExpression, false, context) ?: return null
+    if(!isPydanticModel(pyClass, false, context)) return null
+    if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return null
+    return pyClass
+}
+fun getTopmostParentOfPyCallExpression(file: PsiFile, offset: Int): PyCallExpression? =
+        PsiTreeUtil.getTopmostParentOfType(file.findElementAt(offset), PyCallExpression::class.java)
+
+fun getPyCallExpressionAtCaret(file: PsiFile, editor: Editor): PyCallExpression? {
+    return getTopmostParentOfPyCallExpression(file, editor.caretModel.offset)
+            ?: getTopmostParentOfPyCallExpression(file, editor.caretModel.offset - 1)
+            ?:return null
+}
+
+
+fun addKeywordArgument(pyCallExpression: PyCallExpression, pyKeywordArgument: PyKeywordArgument) {
+    when (val lastArgument = pyCallExpression.arguments.lastOrNull()) {
+        null -> pyCallExpression.argumentList?.addArgument(pyKeywordArgument)
+        else -> pyCallExpression.argumentList?.addArgumentAfter(pyKeywordArgument, lastArgument)
+    }
+}
+
+fun getPydanticUnFilledArguments(pyClass: PyClass?, pyCallExpression: PyCallExpression, pydanticTypeProvider: PydanticTypeProvider, context: TypeEvalContext): List<PyCallableParameter> {
+    val pydanticClass = pyClass ?: getPydanticPyClass(pyCallExpression, context) ?: return emptyList()
+    val pydanticType = pydanticTypeProvider.getPydanticTypeForClass(pydanticClass, context, true) ?: return emptyList()
+    val currentArguments = pyCallExpression.arguments.filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
+            .mapNotNull { it.name }.toSet()
+    return pydanticType.getParameters(context)?.filterNot { currentArguments.contains(it.name) } ?: emptyList()
+}
+
+val PyCallableParameter.required: Boolean
+    get() = !hasDefaultValue() || (defaultValue !is PyNoneLiteralExpression && defaultValueText == "...")
