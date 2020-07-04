@@ -25,6 +25,12 @@ class PydanticInsertArgumentsQuickFixTest : PydanticTestCase() {
     fun testPartArguments() {
         doTest(false)
     }
+    fun testNestedPartArguments() {
+        doTest(false)
+    }
+    fun testNestedOtherObject() {
+        doTest(false)
+    }
     fun testPartArgumentsOnlyRequired() {
         doTest(true)
     }
