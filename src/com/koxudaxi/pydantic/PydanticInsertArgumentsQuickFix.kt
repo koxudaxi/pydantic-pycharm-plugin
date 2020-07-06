@@ -30,17 +30,17 @@ class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : Local
     @Throws(IncorrectOperationException::class)
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
         ApplicationManager.getApplication().runWriteAction {
-            getPyCallExpressionAtCaret(file, editor)?.let { runFix(project, file, it) }
+            val context = TypeEvalContext.userInitiated(project, file)
+            getPydanticCallExpressionAtCaret(file, editor, context)?.let { runFix(project, file, it, context) }
         }
     }
 
     override fun startInWriteAction(): Boolean = true
 
-    fun runFix(project: Project, file: PsiFile, originalElement: PsiElement): PyCallExpression? {
+    fun runFix(project: Project, file: PsiFile, originalElement: PsiElement, context: TypeEvalContext): PyCallExpression? {
         if (originalElement !is PyCallExpression) return null
         if (file !is PyFile) return null
         val newEl = originalElement.copy() as PyCallExpression
-        val context = TypeEvalContext.userInitiated(originalElement.project, originalElement.containingFile)
         val unFilledArguments = getPydanticUnFilledArguments(null, originalElement, pydanticTypeProvider, context).let {
             when {
                 onlyRequired -> it.filter { arguments -> arguments.required }
@@ -61,7 +61,9 @@ class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : Local
     }
 
     override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-        runFix(project, descriptor.psiElement.containingFile, descriptor.psiElement)
+        descriptor.psiElement.containingFile.let {
+            runFix(project, it, descriptor.psiElement, TypeEvalContext.userInitiated(project, it))
+        }
     }
 
 }

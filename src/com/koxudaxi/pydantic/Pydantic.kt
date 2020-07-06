@@ -342,13 +342,17 @@ fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalCont
     if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return null
     return pyClass
 }
-fun getTopmostParentOfPyCallExpression(file: PsiFile, offset: Int): PyCallExpression? =
-        PsiTreeUtil.getTopmostParentOfType(file.findElementAt(offset), PyCallExpression::class.java)
 
-fun getPyCallExpressionAtCaret(file: PsiFile, editor: Editor): PyCallExpression? {
-    return getTopmostParentOfPyCallExpression(file, editor.caretModel.offset)
-            ?: getTopmostParentOfPyCallExpression(file, editor.caretModel.offset - 1)
-            ?:return null
+fun getParentOfPydanticCallableExpression(file: PsiFile, offset: Int, context: TypeEvalContext): PyCallExpression? {
+    var pyCallExpression: PyCallExpression? = PsiTreeUtil.getParentOfType(file.findElementAt(offset), PyCallExpression::class.java, true)
+    while (pyCallExpression != null && getPydanticPyClass(pyCallExpression, context) == null) {
+        pyCallExpression = PsiTreeUtil.getParentOfType(pyCallExpression, PyCallExpression::class.java, true)
+    }
+    return pyCallExpression
+}
+fun getPydanticCallExpressionAtCaret(file: PsiFile, editor: Editor, context: TypeEvalContext): PyCallExpression? {
+    return getParentOfPydanticCallableExpression(file, editor.caretModel.offset, context) ?:
+            getParentOfPydanticCallableExpression(file, editor.caretModel.offset - 1, context)
 }
 
 
