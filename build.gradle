@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version", "org.apache.tuweni:tuweni-toml:1.0.0"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version", "org.apache.tuweni:tuweni-toml:1.1.0"
 
     }
 }
@@ -54,7 +54,7 @@ allprojects {
     }
 
     dependencies {
-        compile "org.apache.tuweni:tuweni-toml:0.10.0"
+        compile "org.apache.tuweni:tuweni-toml:1.1.0"
         compile group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
         testCompile group: 'junit', name: 'junit', version: '4.13'
         compile group: 'org.jetbrains', name: 'annotations', version: '19.0.0'
