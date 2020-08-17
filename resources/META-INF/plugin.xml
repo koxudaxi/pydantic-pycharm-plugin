@@ -261,6 +261,7 @@
         <inspectionExtension implementation="com.koxudaxi.pydantic.PydanticIgnoreInspection"/>
         <pyDataclassParametersProvider implementation="com.koxudaxi.pydantic.PydanticParametersProvider"/>
         <pyAnnotator implementation="com.koxudaxi.pydantic.PydanticAnnotator"/>
+        <pyClassMembersProvider implementation="com.koxudaxi.pydantic.PydanticDynamicModelMemberProvider"/>
     </extensions>
 
     <resource-bundle/>
