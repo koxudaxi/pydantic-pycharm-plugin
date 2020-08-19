@@ -150,7 +150,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val project = pyFunction.project
         val typed = !init || getInstance(project).currentInitTyped
         val collected = linkedMapOf<String, Triple<PyCallableParameter, PyCustomMember, PyElement>>()
-        val pydanticVersion = getPydanticVersion(project, context)
         // TODO get config
 //        val config = getConfig(pyClass, context, true)
         val baseClass = when (val baseArgument = pyArgumentList.getKeywordArgument("__base__")?.valueExpression) {
@@ -168,7 +167,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     val current = currentType.pyClass
                     if (!isPydanticModel(current, false, context)) continue
                     getClassVariables(current, context)
-                            .map { Pair(fieldToParameter(it, context, pydanticVersion, hashMapOf(), typed), it) }
+                            .map { Pair(fieldToParameter(it, context, hashMapOf(), typed), it) }
                             .filter { (parameter, _) -> parameter?.name?.let { !collected.containsKey(it) } ?: false }
                             .forEach { (parameter, field) ->
                                 parameter?.name?.let { name ->
@@ -198,7 +197,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
                 .filterNot { it.name?.startsWith("_") == true || it.name == "model_name" }
                 .forEach {
-                    val parameter = fieldToParameter(it, context, pydanticVersion, hashMapOf(), typed)!!
+                    val parameter = fieldToParameter(it, context, hashMapOf(), typed)!!
                     parameter.name?.let { name ->
                         val type = parameter.getType(context)
                         val member = PyCustomMember(name, null) { type }
@@ -277,7 +276,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     internal fun fieldToParameter(field: PyExpression,
                                   context: TypeEvalContext,
-                                  pydanticVersion: KotlinVersion?,
                                   config: HashMap<String, Any?>,
                                   typed: Boolean = true): PyCallableParameter? {
         var type: PyType? = null
