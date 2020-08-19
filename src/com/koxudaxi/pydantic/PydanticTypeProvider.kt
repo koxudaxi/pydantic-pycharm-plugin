@@ -188,7 +188,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val modelNameArgument = pyArgumentList.getKeywordArgument("__model_name")?.valueExpression
                 ?: pyArgumentList.arguments.firstOrNull() ?: return null
-        val modelName = PyPsiUtils.strValue(modelNameArgument) ?: return null
+        val modelName = when (modelNameArgument) {
+            is PyReferenceExpression -> PyUtil.filterTopPriorityResults(getResolveElements(modelNameArgument, context))
+                    .filterIsInstance<PyTargetExpression>()
+                    .map { it.findAssignedValue() }
+                    .firstOrNull()
+                    .let { PyPsiUtils.strValue(it) }
+            else -> PyPsiUtils.strValue(modelNameArgument)
+        } ?: return null
         val langLevel = LanguageLevel.forElement(pyFunction)
         val dynamicModelClassText = "class ${modelName}: pass"
         val modelClass = PydanticDynamicModel(PyElementGenerator.getInstance(project).createFromText(langLevel, PyClass::class.java, dynamicModelClassText).node, baseClass)
