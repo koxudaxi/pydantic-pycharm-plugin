@@ -5,7 +5,7 @@ import com.jetbrains.python.codeInsight.PyCustomMember
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.*
 
-class PydanticDynamicModelMemberProvider : PyClassMembersProviderBase(), PyOverridingClassMembersProvider {
+class PydanticDynamicModelMemberProvider : PyClassMembersProviderBase() {
     override fun resolveMember(type: PyClassType, name: String, location: PsiElement?, resolveContext: PyResolveContext): PsiElement? {
         if (type is PydanticDynamicModelClassType) {
             type.resolveMember(name)?.let { return it }

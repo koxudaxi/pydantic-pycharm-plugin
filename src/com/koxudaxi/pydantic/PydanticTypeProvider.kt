@@ -17,10 +17,16 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return getPydanticTypeForCallee(referenceExpression, context)
     }
 
-    override fun getCallType(function: PyFunction, callSite: PyCallSiteExpression, context: TypeEvalContext): Ref<PyType>? {
-        return when (function.qualifiedName) {
+    override fun getCallType(pyFunction: PyFunction, callSite: PyCallSiteExpression, context: TypeEvalContext): Ref<PyType>? {
+        return when (pyFunction.qualifiedName) {
             CON_LIST_Q_NAME -> Ref.create(createConListPyType(callSite, context)
                     ?: PyCollectionTypeImpl.createTypeByQName(callSite as PsiElement, LIST_Q_NAME, true))
+            CREATE_MODEL -> when (callSite) {
+                is PyCallExpression -> callSite.argumentList?.let {
+                    Ref.create(getPydanticDynamicModelTypeForFunction(pyFunction, it, context)?.getReturnType(context))
+                }
+                else -> null
+            }
             else -> null
         }
     }
@@ -104,7 +110,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                             ?.map { filteredPyClassType ->
                                                 getPydanticTypeForClass(filteredPyClassType.pyClass, context, true)
                                             }?.firstOrNull()
-                                } ?: getPydanticTypeForCreateModel(it, context, true)
+                                } ?: getPydanticDynamicModelTypeForTargetExpression(it, context, true)
                         else -> null
                     }
                 }
@@ -124,21 +130,30 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return PyCollectionTypeImpl.createTypeByQName(pyCallExpression as PsiElement, LIST_Q_NAME, true, listOf(typeArgumentListReturnType))
     }
 
-    private fun getPydanticTypeForCreateModel(pyTargetExpression: PyTargetExpression, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
+    private fun getPydanticDynamicModelTypeForTargetExpression(pyTargetExpression: PyTargetExpression, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
         val pyCallExpression = pyTargetExpression.findAssignedValue() as? PyCallExpression ?: return null
+        return getPydanticDynamicModelTypeForTargetExpression(pyCallExpression, context, init)
+    }
+
+    private fun getPydanticDynamicModelTypeForTargetExpression(pyCallExpression: PyCallExpression, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
+        val argumentList = pyCallExpression.argumentList ?: return null
         val referenceExpression = (pyCallExpression.callee as? PyReferenceExpression) ?: return null
         val resolveResults = getResolveElements(referenceExpression, context)
-        if (!PyUtil.filterTopPriorityResults(resolveResults).any { (it as? PyFunction)?.let { pyFunction -> isPydanticCreateModel(pyFunction) } == true }) return null
+        val pyFunction = PyUtil.filterTopPriorityResults(resolveResults).asSequence().filterIsInstance<PyFunction>().map { it.takeIf { pyFunction -> isPydanticCreateModel(pyFunction) } }.firstOrNull()
+                ?: return null
 
-        val project = pyCallExpression.project
 
+        return getPydanticDynamicModelTypeForFunction(pyFunction, argumentList, context, init)
+    }
 
+    private fun getPydanticDynamicModelTypeForFunction(pyFunction: PyFunction, pyArgumentList: PyArgumentList, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
+        val project = pyFunction.project
         val typed = !init || getInstance(project).currentInitTyped
         val collected = linkedMapOf<String, Triple<PyCallableParameter, PyCustomMember, PyElement>>()
         val pydanticVersion = getPydanticVersion(project, context)
         // TODO get config
 //        val config = getConfig(pyClass, context, true)
-        val baseClass = when (val baseArgument = pyCallExpression.getKeywordArgument("__base__")) {
+        val baseClass = when (val baseArgument = pyArgumentList.getKeywordArgument("__base__")?.valueExpression) {
             is PyReferenceExpression -> {
                 PyUtil.filterTopPriorityResults(getResolveElements(baseArgument, context))
                         .filterIsInstance<PyClass>().firstOrNull { isPydanticModel(it, false, context) }
@@ -172,10 +187,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             baseClass
         } ?: getPydanticBaseModel(project, context) ?: return null
 
-        val modelClass = PyPsiFacade.getInstance(baseClass.project).createClassByQName(BASE_MODEL_Q_NAME, baseClass)
-                ?: return null
+        val modelNameArgument = pyArgumentList.getKeywordArgument("__model_name")?.valueExpression
+                ?: pyArgumentList.arguments.firstOrNull() ?: return null
+        val modelName = PyPsiUtils.strValue(modelNameArgument) ?: return null
+        val langLevel = LanguageLevel.forElement(pyFunction)
+        val dynamicModelClassText = "class ${modelName}: pass"
+        val modelClass = PydanticDynamicModel(PyElementGenerator.getInstance(project).createFromText(langLevel, PyClass::class.java, dynamicModelClassText).node, baseClass)
 
-        pyCallExpression.arguments
+        pyArgumentList.arguments
                 .filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
                 .filterNot { it.name?.startsWith("_") == true || it.name == "model_name" }
                 .forEach {
@@ -261,23 +280,25 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                   pydanticVersion: KotlinVersion?,
                                   config: HashMap<String, Any?>,
                                   typed: Boolean = true): PyCallableParameter? {
-        var type: PyType?
-        var defaultValue: PyExpression?
+        var type: PyType? = null
+        var defaultValue: PyExpression? = null
         when (val tupleValue = PsiTreeUtil.findChildOfType(field, PyTupleExpression::class.java)) {
             is PyTupleExpression -> {
                 tupleValue.toList().let {
-                    type = when (val typeValue = it[0]) {
-                        is PyType -> typeValue
-                        is PyReferenceExpression -> {
-                            val resolveResults = getResolveElements(typeValue, context)
-                            PyUtil.filterTopPriorityResults(resolveResults)
-                                    .filterIsInstance<PyClass>()
-                                    .map { pyClass -> pyClass.getType(context)?.getReturnType(context) }
-                                    .firstOrNull()
+                    if (it.size > 1) {
+                        type = when (val typeValue = it[0]) {
+                            is PyType -> typeValue
+                            is PyReferenceExpression -> {
+                                val resolveResults = getResolveElements(typeValue, context)
+                                PyUtil.filterTopPriorityResults(resolveResults)
+                                        .filterIsInstance<PyClass>()
+                                        .map { pyClass -> pyClass.getType(context)?.getReturnType(context) }
+                                        .firstOrNull()
+                            }
+                            else -> null
                         }
-                        else -> null
+                        defaultValue = it[1]
                     }
-                    defaultValue = it[1]
                 }
             }
             else -> {
