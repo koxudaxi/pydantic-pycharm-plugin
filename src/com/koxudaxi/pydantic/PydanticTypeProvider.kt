@@ -21,12 +21,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return when (pyFunction.qualifiedName) {
             CON_LIST_Q_NAME -> Ref.create(createConListPyType(callSite, context)
                     ?: PyCollectionTypeImpl.createTypeByQName(callSite as PsiElement, LIST_Q_NAME, true))
-            CREATE_MODEL -> when (callSite) {
-                is PyCallExpression -> callSite.argumentList?.let {
-                    Ref.create(getPydanticDynamicModelTypeForFunction(pyFunction, it, context)?.getReturnType(context))
-                }
-                else -> null
-            }
             else -> null
         }
     }
@@ -185,9 +179,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             }
             baseClass
         } ?: getPydanticBaseModel(project, context) ?: return null
-
-        val modelNameArgument = pyArgumentList.getKeywordArgument("__model_name")?.valueExpression
-                ?: pyArgumentList.arguments.firstOrNull() ?: return null
+        var modelNameIsPositionalArgument = true
+        val modelNameArgument = pyArgumentList.getKeywordArgument("__model_name")?.valueExpression?.apply {
+            modelNameIsPositionalArgument = false
+        } ?: pyArgumentList.arguments.firstOrNull() ?: return null
         val modelName = when (modelNameArgument) {
             is PyReferenceExpression -> PyUtil.filterTopPriorityResults(getResolveElements(modelNameArgument, context))
                     .filterIsInstance<PyTargetExpression>()
@@ -199,8 +194,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val langLevel = LanguageLevel.forElement(pyFunction)
         val dynamicModelClassText = "class ${modelName}: pass"
         val modelClass = PydanticDynamicModel(PyElementGenerator.getInstance(project).createFromText(langLevel, PyClass::class.java, dynamicModelClassText).node, baseClass)
-
-        pyArgumentList.arguments
+        val argumentWithoutModelName = when (modelNameIsPositionalArgument) {
+            true -> pyArgumentList.arguments.asSequence().drop(1)
+            else -> pyArgumentList.arguments.asSequence()
+        }
+        argumentWithoutModelName
                 .filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
                 .filterNot { it.name?.startsWith("_") == true || it.name == "model_name" }
                 .forEach {

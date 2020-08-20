@@ -47,3 +47,14 @@ class BaseConfig:
     json_loads = json.loads
     json_dumps = json.dumps
     json_encoders = {}
+
+def create_model(
+    model_name: str,
+    *,
+    __config__: Type[BaseConfig] = None,
+    __base__: Type[BaseModel] = None,
+    __module__: Optional[str] = None,
+    __validators__: Dict[str, classmethod] = None,
+    **field_definitions: Any,
+) -> Type[BaseModel]:
+    pass
