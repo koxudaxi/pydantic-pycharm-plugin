@@ -45,10 +45,13 @@ const val CON_INT_Q_NAME = "pydantic.types.conint"
 const val CON_LIST_Q_NAME = "pydantic.types.conlist"
 const val CON_STR_Q_NAME = "pydantic.types.constr"
 const val LIST_Q_NAME = "builtins.list"
+const val CREATE_MODEL = "pydantic.main.create_model"
 
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
 val BASE_CONFIG_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_CONFIG_Q_NAME)
+
+val BASE_MODEL_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_MODEL_Q_NAME)
 
 val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
 
@@ -122,6 +125,11 @@ internal fun isPydanticField(pyFunction: PyFunction): Boolean {
 
 internal fun isDataclassField(pyFunction: PyFunction): Boolean {
     return pyFunction.qualifiedName == DATACLASS_FIELD_Q_NAME
+}
+
+
+internal fun isPydanticCreateModel(pyFunction: PyFunction): Boolean {
+    return pyFunction.qualifiedName == CREATE_MODEL
 }
 
 internal fun isDataclassMissing(pyTargetExpression: PyTargetExpression): Boolean {
@@ -317,10 +325,18 @@ fun getFieldName(field: PyTargetExpression,
 
 
 fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? {
+    return getPyClassFromQualifiedName(BASE_CONFIG_QUALIFIED_NAME, project, context)
+}
+
+fun getPydanticBaseModel(project: Project, context: TypeEvalContext): PyClass? {
+    return getPyClassFromQualifiedName(BASE_MODEL_QUALIFIED_NAME, project, context)
+}
+
+fun getPyClassFromQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PyClass? {
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
     val contextAnchor = ModuleBasedContextAnchor(module)
-    return BASE_CONFIG_QUALIFIED_NAME.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyClass
+    return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyClass
 }
 
 fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
