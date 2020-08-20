@@ -23,5 +23,3 @@ class List:
     @classmethod
     def __getitem__(cls, item):
         pass
-
-Type = _alias(type, CT_co, inst=False)
