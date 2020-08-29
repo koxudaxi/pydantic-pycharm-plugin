@@ -15,7 +15,6 @@ import com.jetbrains.python.psi.impl.PyCallExpressionHelper
 import com.jetbrains.python.psi.types.*
 import com.jetbrains.python.psi.types.PyLiteralType.Companion.promoteToLiteral
 import com.jetbrains.python.psi.types.PyTypedDictType.Companion.match
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
@@ -71,9 +70,9 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                 is PyCollectionType ->
                     typeForParameter.elementTypes.mapNotNull {
                         getTypeFromTypeMap(getTypeMap, it, cache)
-                    }.ifNotEmpty {
-                        PyCollectionTypeImpl(typeForParameter.pyClass, typeForParameter.isDefinition, this)
-                    }
+                    }.toList().takeIf {
+                        it.isNotEmpty()
+                    }?.let { PyCollectionTypeImpl(typeForParameter.pyClass, typeForParameter.isDefinition, it) }
                 else -> {
                     val project = holder!!.project
                     PyUnionType.union(getPyClassTypeByPyTypes(typeForParameter).toSet().flatMap { type ->
