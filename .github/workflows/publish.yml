@@ -1,0 +1,75 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - '**'
+
+jobs:
+  build-n-publish:
+    name: Build and publish plugin 📦 to JetBrains merket
+    if: "success() && startsWith(github.ref, 'refs/tags/')"
+    runs-on: ubuntu-latest
+    steps:
+
+     - uses: actions/checkout@v2
+     - name: Setup Python
+       uses: actions/setup-python@v1
+       with:
+         python-version: '3.8'
+         architecture: 'x64'
+
+     - uses: actions/cache@v1
+       with:
+         path: ~/.cache/pip
+         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+     - name: Install dependencies
+       run: |
+         pip install -r requirements.txt
+     - run: |
+         python scripts/build_changelog.py
+         CHANGELOG_LATEST=$(cat docs/changelog_latest.md)
+         CHANGELOG_LATEST="${CHANGELOG_LATEST//'%'/'%25'}"
+         CHANGELOG_LATEST="${CHANGELOG_LATEST//$'\n'/'%0A'}"
+         CHANGELOG_LATEST="${CHANGELOG_LATEST//$'\r'/'%0D'}"
+         echo ::set-env name=CHANGELOG_LATEST::$CHANGELOG_LATEST
+     - name: Cache
+       uses: actions/cache@v1.1.2
+       with:
+        path: ~/.gradle
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+     - name: Set up JDK 11
+       uses: actions/setup-java@v1
+       with:
+        java-version: 11
+     - name: test 
+       run: ./gradlew buildPlugin test jacocoTestReport
+     - name: Create Release
+       id: create_release
+       uses: actions/create-release@v1
+       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       with:
+         tag_name: ${{ github.ref }}
+         release_name: Release ${{ github.ref }}
+         body: |
+            ${{ env.CHANGELOG_LATEST }}
+         draft: false
+         prerelease: false
+     - name: Upload Release Asset
+       id: upload-release-asset 
+       uses: actions/upload-release-asset@v1
+       env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/distributions/pydantic-pycharm-plugin.zip
+          asset_name: pydantic-pycharm-plugin.zip
+          asset_content_type: application/zip
+     - name: Publish a plugin
+       run: |
+         curl --fail --header "Authorization: Bearer ${{secrets.JETBRAINS_TOKEN}}" \
+               -F pluginId=12861 -F file=@build/distributions/pydantic-pycharm-plugin.zip \
+                https://plugins.jetbrains.com/plugin/uploadPlugin
