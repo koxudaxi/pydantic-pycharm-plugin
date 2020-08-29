@@ -1,36 +1,29 @@
 buildscript {
-    ext.kotlin_version = "1.4.0"
-    ext.python_core_version = "201.6668.115"
+    ext.kotlin_version = "1.3.70"
     repositories {
         mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version", "org.apache.tuweni:tuweni-toml:1.1.0"
-
     }
 }
 
 
 plugins {
     id "org.jetbrains.intellij" version "0.4.21"
-    id "java"
-    id "idea"
 }
 
 intellij {
     pluginName project.name
     version "2020.1"
-    type "IC"
+    type "PC"
     updateSinceUntilBuild false
     downloadSources true
-    plugins "java", "Kotlin", "PythonCore:$python_core_version"
-    alternativeIdePath "/opt/JetBrains/pycharm-community-2020.1" // PyCharmCommunity 2020.1 Path for runIde/debug
-
+    plugins "python-ce"
 }
 
 allprojects {
     apply plugin: "org.jetbrains.intellij"
-    apply plugin: "java"
     apply plugin: "kotlin"
     apply plugin: "jacoco"
     repositories {
@@ -66,12 +59,8 @@ allprojects {
             html.enabled true
         }
     }
-
-
     sourceCompatibility = 11
     targetCompatibility = 11
-
-
 }
 
 sourceSets {

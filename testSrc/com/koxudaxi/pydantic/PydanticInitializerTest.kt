@@ -2,8 +2,7 @@ package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.application.invokeLater
-import org.jetbrains.kotlin.konan.file.File
-
+import java.io.File
 
 open class PydanticInitializerTest : PydanticTestCase() {
     lateinit var pydanticConfigService: PydanticConfigService
