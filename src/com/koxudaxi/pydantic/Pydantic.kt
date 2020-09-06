@@ -13,10 +13,7 @@ import com.jetbrains.extensions.QNameResolveContext
 import com.jetbrains.extensions.resolveToElement
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.PyCallExpressionImpl
-import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
-import com.jetbrains.python.psi.impl.PyStarArgumentImpl
-import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
+import com.jetbrains.python.psi.impl.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.*
@@ -251,8 +248,17 @@ fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersio
     })
 }
 
-fun isValidFieldName(name: String): Boolean {
-    return !name.startsWith('_')
+fun isValidField(field: PyTargetExpression): Boolean {
+    if (!isValidFieldName(field.name)) return false
+
+    val annotation = field.annotation?.value ?: return true
+    val qualifier = (annotation as? PySubscriptionExpression)?.qualifier ?: return true
+    // TODO Support a variable.
+    return qualifier.text != "ClassVar"
+}
+
+fun isValidFieldName(name: String?): Boolean {
+    return name?.startsWith('_') == false
 }
 
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
@@ -354,7 +360,7 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
 
 fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
     val pyClass = getPyClassByPyCallExpression(pyCallExpression, false, context) ?: return null
-    if(!isPydanticModel(pyClass, false, context)) return null
+    if (!isPydanticModel(pyClass, false, context)) return null
     if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return null
     return pyClass
 }
@@ -366,9 +372,10 @@ fun getParentOfPydanticCallableExpression(file: PsiFile, offset: Int, context: T
     }
     return pyCallExpression
 }
+
 fun getPydanticCallExpressionAtCaret(file: PsiFile, editor: Editor, context: TypeEvalContext): PyCallExpression? {
-    return getParentOfPydanticCallableExpression(file, editor.caretModel.offset, context) ?:
-            getParentOfPydanticCallableExpression(file, editor.caretModel.offset - 1, context)
+    return getParentOfPydanticCallableExpression(file, editor.caretModel.offset, context)
+            ?: getParentOfPydanticCallableExpression(file, editor.caretModel.offset - 1, context)
 }
 
 

@@ -251,7 +251,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                   config: HashMap<String, Any?>,
                                   typed: Boolean = true,
                                   isDataclass: Boolean = false): PyCallableParameter? {
-        if (field.name == null || !isValidFieldName(field.name!!)) return null
+        if (!isValidField(field)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
         val defaultValueFromField = getDefaultValueForParameter(field, ellipsis, context, pydanticVersion, isDataclass)

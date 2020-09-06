@@ -23,3 +23,8 @@ class List:
     @classmethod
     def __getitem__(cls, item):
         pass
+
+class ClassVar:
+    @classmethod
+    def __getitem__(cls, item):
+        pass
