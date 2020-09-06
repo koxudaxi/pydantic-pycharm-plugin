@@ -28,11 +28,11 @@ jobs:
          pip install -r requirements.txt
      - run: |
          python scripts/build_changelog.py
-         CHANGELOG_LATEST=$(cat docs/changelog_latest.md)
-         CHANGELOG_LATEST="${CHANGELOG_LATEST//'%'/'%25'}"
-         CHANGELOG_LATEST="${CHANGELOG_LATEST//$'\n'/'%0A'}"
-         CHANGELOG_LATEST="${CHANGELOG_LATEST//$'\r'/'%0D'}"
-         echo ::set-env name=CHANGELOG_LATEST::$CHANGELOG_LATEST
+         CHANGELOG=$(cat docs/changelog.md)
+         CHANGELOG="${CHANGELOG//'%'/'%25'}"
+         CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+         CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+         echo ::set-env name=CHANGELOG::CHANGELOG
      - name: Cache
        uses: actions/cache@v1.1.2
        with:
@@ -55,7 +55,7 @@ jobs:
          tag_name: ${{ github.ref }}
          release_name: Release ${{ github.ref }}
          body: |
-            ${{ env.CHANGELOG_LATEST }}
+            ${{ env.CHANGELOG }}
          draft: false
          prerelease: false
      - name: Upload Release Asset
