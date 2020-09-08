@@ -12,7 +12,10 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
             PythonSdkUtil.findSkeletonsDir(sdk)?.let { skeletons ->
                 skeletons.findChild("pydantic")?.let { pydanticStub ->
                     runWriteAction {
-                        pydanticStub.delete(null)
+                        try {
+                            pydanticStub.delete(null)
+                        } catch (e: java.io.IOException) {
+                        }
                     }
                 }
             }
