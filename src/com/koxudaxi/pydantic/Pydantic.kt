@@ -25,15 +25,18 @@ import java.util.regex.Pattern
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
-const val VALIDATOR_Q_NAME = "pydantic.validator"
-const val ROOT_VALIDATOR_Q_NAME = "pydantic.root_validator"
+const val DATA_CLASS_SHORT_Q_NAME = "pydantic.dataclass"
+const val VALIDATOR_Q_NAME = "pydantic.class_validators.validator"
+const val VALIDATOR_SHORT_Q_NAME = "pydantic.validator"
+const val ROOT_VALIDATOR_Q_NAME = "pydantic.class_validators.root_validator"
+const val ROOT_VALIDATOR_SHORT_Q_NAME = "pydantic.root_validator"
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.fields.Field"
 const val DATACLASS_FIELD_Q_NAME = "dataclasses.field"
 const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
-const val BASE_CONFIG_Q_NAME = "pydantic.BaseConfig"
+const val BASE_CONFIG_Q_NAME = "pydantic.main.BaseConfig"
 const val DATACLASS_MISSING = "dataclasses.MISSING"
 const val CON_BYTES_Q_NAME = "pydantic.types.conbytes"
 const val CON_DECIMAL_Q_NAME = "pydantic.types.condecimal"
@@ -49,6 +52,30 @@ val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 val BASE_CONFIG_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_CONFIG_Q_NAME)
 
 val BASE_MODEL_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_MODEL_Q_NAME)
+
+val VALIDATOR_QUALIFIED_NAME = QualifiedName.fromDottedString(VALIDATOR_Q_NAME)
+
+val VALIDATOR_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(VALIDATOR_SHORT_Q_NAME)
+
+val ROOT_VALIDATOR_QUALIFIED_NAME = QualifiedName.fromDottedString(ROOT_VALIDATOR_Q_NAME)
+
+val ROOT_VALIDATOR_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(ROOT_VALIDATOR_SHORT_Q_NAME)
+
+val DATA_CLASS_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_Q_NAME)
+
+val DATA_CLASS_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_SHORT_Q_NAME)
+
+val DATA_CLASS_QUALIFIED_NAMES = listOf(
+        DATA_CLASS_QUALIFIED_NAME,
+        DATA_CLASS_SHORT_QUALIFIED_NAME
+)
+
+val VALIDATOR_QUALIFIED_NAMES = listOf(
+        VALIDATOR_QUALIFIED_NAME,
+        VALIDATOR_SHORT_QUALIFIED_NAME,
+        ROOT_VALIDATOR_QUALIFIED_NAME,
+        ROOT_VALIDATOR_SHORT_QUALIFIED_NAME
+)
 
 val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
 
@@ -99,17 +126,16 @@ internal fun isBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean 
     return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
 }
 
-internal fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolean {
-    pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {
-        PyResolveUtil.resolveImportedElementQNameLocally(it).forEach { decoratorQualifiedName ->
-            if (decoratorQualifiedName == QualifiedName.fromDottedString(refName)) return true
+internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean {
+    return pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.any {
+        PyResolveUtil.resolveImportedElementQNameLocally(it).any { decoratorQualifiedName ->
+            refNames.any { refName -> decoratorQualifiedName == refName }
         }
-    }
-    return false
+    } ?: false
 }
 
 internal fun isPydanticDataclass(pyClass: PyClass): Boolean {
-    return hasDecorator(pyClass, DATA_CLASS_Q_NAME)
+    return hasDecorator(pyClass, DATA_CLASS_QUALIFIED_NAMES)
 }
 
 internal fun isPydanticSchema(pyClass: PyClass, context: TypeEvalContext): Boolean {
@@ -134,7 +160,7 @@ internal fun isDataclassMissing(pyTargetExpression: PyTargetExpression): Boolean
 }
 
 internal fun isValidatorMethod(pyFunction: PyFunction): Boolean {
-    return hasDecorator(pyFunction, VALIDATOR_Q_NAME) || hasDecorator(pyFunction, ROOT_VALIDATOR_Q_NAME)
+    return hasDecorator(pyFunction, VALIDATOR_QUALIFIED_NAMES)
 }
 
 internal fun isConfigClass(pyClass: PyClass): Boolean {
