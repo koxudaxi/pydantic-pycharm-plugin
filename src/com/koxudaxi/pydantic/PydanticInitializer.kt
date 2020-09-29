@@ -33,7 +33,8 @@ class PydanticInitializer : StartupActivity {
         return project.basePath + File.separator + "mypy.ini"
     }
 
-    fun initializeFileLoader(project: Project) {
+    fun initializeFileLoader(project: Project?) {
+        if (project == null) return
         val configService = PydanticConfigService.getInstance(project)
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
