@@ -35,8 +35,8 @@ class PydanticConfigService : PersistentStateComponent<PydanticConfigService> {
     }
 
     companion object {
-        fun getInstance(project: Project?): PydanticConfigService {
-            return ServiceManager.getService(project!!, PydanticConfigService::class.java)
+        fun getInstance(project: Project): PydanticConfigService {
+            return ServiceManager.getService(project, PydanticConfigService::class.java)
         }
     }
 
