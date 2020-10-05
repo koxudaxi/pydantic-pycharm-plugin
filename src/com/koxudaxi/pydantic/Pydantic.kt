@@ -387,7 +387,6 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
 fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
     val pyClass = getPyClassByPyCallExpression(pyCallExpression, false, context) ?: return null
     if (!isPydanticModel(pyClass, false, context)) return null
-    if ((pyCallExpression.callee as? PyReferenceExpressionImpl)?.isQualified == true) return null
     return pyClass
 }
 
