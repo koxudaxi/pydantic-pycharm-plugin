@@ -232,6 +232,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             if (!isPydanticModel(current, false, context)) continue
 
             getClassVariables(current, context)
+                    .filterNot { isUntouchedClass(it.findAssignedValue(), config, context) }
                     .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion, config, typed) }
                     .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
                     .forEach { parameter -> collected[parameter.name!!] = parameter }
@@ -242,6 +243,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun hasAnnotationValue(field: PyTargetExpression): Boolean {
         return field.annotationValue != null
     }
+
 
     internal fun fieldToParameter(field: PyTargetExpression,
                                   ellipsis: PyNoneLiteralExpression,
@@ -289,17 +291,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             is PyTupleExpression -> {
                 tupleValue.toList().let {
                     if (it.size > 1) {
-                        type = when (val typeValue = it[0]) {
-                            is PyType -> typeValue
-                            is PyReferenceExpression -> {
-                                val resolveResults = getResolveElements(typeValue, context)
-                                PyUtil.filterTopPriorityResults(resolveResults)
-                                        .filterIsInstance<PyClass>()
-                                        .map { pyClass -> pyClass.getType(context)?.getReturnType(context) }
-                                        .firstOrNull()
-                            }
-                            else -> null
-                        }
+                        type = getPyTypeFromPyExpression(it[0], context)
                         defaultValue = it[1]
                     }
                 }

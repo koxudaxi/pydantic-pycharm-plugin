@@ -439,6 +439,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldIgnore() {
         doFieldTest(
                 listOf(
+                        Pair("descriptor1", "A"),
                         Pair("efg", "A"),
                         Pair("___slots__", "BaseModel")
                 )
