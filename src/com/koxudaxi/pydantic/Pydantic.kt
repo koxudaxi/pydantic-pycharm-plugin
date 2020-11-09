@@ -81,18 +81,24 @@ val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
 
 val pydanticVersionCache: HashMap<String, KotlinVersion> = hashMapOf()
 
+enum class ConfigType {
+    BOOLEAN, LIST_PYTYPE
+}
+
 val DEFAULT_CONFIG = mapOf<String, Any?>(
         "allow_population_by_alias" to false,
         "allow_population_by_field_name" to false,
         "orm_mode" to false,
-        "allow_mutation" to true
+        "allow_mutation" to true,
+        "keep_untouched" to listOf<PyType>()
 )
 
 val CONFIG_TYPES = mapOf(
-        "allow_population_by_alias" to Boolean,
-        "allow_population_by_field_name" to Boolean,
-        "orm_mode" to Boolean,
-        "allow_mutation" to Boolean
+        "allow_population_by_alias" to ConfigType.BOOLEAN,
+        "allow_population_by_field_name" to ConfigType.BOOLEAN,
+        "orm_mode" to ConfigType.BOOLEAN,
+        "allow_mutation" to ConfigType.BOOLEAN,
+        "keep_untouched" to ConfigType.LIST_PYTYPE
 )
 
 fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, includeDataclass: Boolean, context: TypeEvalContext): PyClass? {
@@ -295,12 +301,20 @@ fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
         return getConfigValue(name, assignedValue, context)
     }
     return when (CONFIG_TYPES[name]) {
-        Boolean ->
+        ConfigType.BOOLEAN ->
             when (value) {
                 is PyBoolLiteralExpression -> value.value
                 is Boolean -> value
                 else -> null
             }
+        ConfigType.LIST_PYTYPE -> {
+            if (value is PyElement) {
+                when (val tupleValue = PsiTreeUtil.findChildOfType(value, PyTupleExpression::class.java)) {
+                    is PyTupleExpression -> tupleValue.toList().mapNotNull { getPyTypeFromPyExpression(it, context) }
+                    else -> null
+                }
+            } else null
+        }
         else -> null
     }
 }
@@ -421,3 +435,32 @@ fun getPydanticUnFilledArguments(pyClass: PyClass?, pyCallExpression: PyCallExpr
 
 val PyCallableParameter.required: Boolean
     get() = !hasDefaultValue() || (defaultValue !is PyNoneLiteralExpression && defaultValueText == "...")
+
+
+fun getPyTypeFromPyExpression(pyExpression: PyExpression, context: TypeEvalContext): PyType? {
+    return when (pyExpression) {
+        is PyType -> pyExpression
+        is PyReferenceExpression -> {
+            val resolveResults = getResolveElements(pyExpression, context)
+            PyUtil.filterTopPriorityResults(resolveResults)
+                    .filterIsInstance<PyClass>()
+                    .map { pyClass -> pyClass.getType(context)?.getReturnType(context) }
+                    .firstOrNull()
+        }
+        else -> null
+    }
+}
+
+internal fun hasTargetPyType(pyExpression: PyExpression, targetPyTypes: List<PyType>, context: TypeEvalContext): Boolean {
+    val callee = (pyExpression as? PyCallExpression)?.callee ?: return false
+    val pyType = getPyTypeFromPyExpression(callee, context) ?: return false
+    val defaultValueTypeClassQName = pyType.declarationElement?.qualifiedName ?: return false
+    return targetPyTypes.any { it.declarationElement?.qualifiedName == defaultValueTypeClassQName }
+}
+
+internal fun isUntouchedClass(pyExpression: PyExpression?, config: HashMap<String, Any?>, context: TypeEvalContext):Boolean {
+    if (pyExpression == null) return false
+    val keepUntouchedClasses = (config["keep_untouched"] as? List<*>)?.filterIsInstance<PyType>()?.toList() ?: return false
+    if (keepUntouchedClasses.isNullOrEmpty()) return false
+    return (hasTargetPyType(pyExpression, keepUntouchedClasses, context))
+}

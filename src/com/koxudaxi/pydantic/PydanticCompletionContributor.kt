@@ -90,6 +90,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pydanticVersion = getPydanticVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
+                    .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
                     .filter { isValidField(it) }
                     .filter { !isDataclass || isInInit(it) }
                     .forEach {
@@ -131,7 +132,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         protected fun removeAllFieldElement(parameters: CompletionParameters, result: CompletionResultSet,
                                             pyClass: PyClass, typeEvalContext: TypeEvalContext,
-                                            excludes: HashSet<String>) {
+                                            excludes: HashSet<String>, config: HashMap<String, Any?>) {
 
             if (!isPydanticModel(pyClass, true)) return
 
@@ -141,6 +142,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                     .filter { isPydanticModel(it, true) }
                     .forEach {
                         fieldElements.addAll(it.classAttributes
+                                .filterNot {attribute ->  isUntouchedClass(attribute.findAssignedValue(), config, typeEvalContext) }
                                 .filter { attribute ->
                                     isValidField(attribute)
                                 }
@@ -150,6 +152,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
 
             fieldElements.addAll(pyClass.classAttributes
+                    .filterNot {isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
                     .filter { isValidField(it) }
                     .mapNotNull { attribute -> attribute?.name })
 
@@ -213,11 +216,11 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             val pyClassType = getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, true) }
                     ?: return
+            val config = getConfig(pyClassType.pyClass, typeEvalContext, true)
             if (pyClassType.isDefinition) { // class
-                removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields)
+                removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields, config)
                 return
             }
-            val config = getConfig(pyClassType.pyClass, typeEvalContext, true)
             val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
             addAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, ellipsis, config, isDataclass = isPydanticDataclass(pyClassType.pyClass))
         }
