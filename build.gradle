@@ -10,7 +10,7 @@ buildscript {
 
 
 plugins {
-    id "org.jetbrains.intellij" version "0.6.3"
+    id "org.jetbrains.intellij" version "0.6.4"
 }
 
 intellij {
