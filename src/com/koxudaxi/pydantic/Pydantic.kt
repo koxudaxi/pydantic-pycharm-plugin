@@ -101,6 +101,8 @@ val CONFIG_TYPES = mapOf(
         "keep_untouched" to ConfigType.LIST_PYTYPE
 )
 
+const val CUSTOM_ROOT_FIELD = "__root__"
+
 fun getPyClassByPyCallExpression(pyCallExpression: PyCallExpression, includeDataclass: Boolean, context: TypeEvalContext): PyClass? {
     val callee = pyCallExpression.callee ?: return null
     val pyType = when (val type = context.getType(callee)) {
@@ -290,7 +292,7 @@ fun isValidField(field: PyTargetExpression): Boolean {
 }
 
 fun isValidFieldName(name: String?): Boolean {
-    return name?.startsWith('_') == false
+    return name?.let { !it.startsWith('_') || it == CUSTOM_ROOT_FIELD } ?: false
 }
 
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {

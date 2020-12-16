@@ -200,7 +200,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }
         argumentWithoutModelName
                 .filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
-                .filterNot { it.name?.startsWith("_") == true || it.name == "model_name" }
+                .filter { isValidFieldName(it.name) || it.name != "model_name" }
                 .forEach {
                     val parameter = fieldToParameter(it, context, hashMapOf(), typed)!!
                     parameter.name?.let { name ->
