@@ -36,7 +36,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testKeywordArgumentCustomRoot() {
         doFieldTest(
                 listOf(
-                        Pair("__root__=", "str A"),
+                        Pair("__root__=", "str A")
                 )
         )
     }
