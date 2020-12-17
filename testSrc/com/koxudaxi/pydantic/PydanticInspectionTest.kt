@@ -59,4 +59,8 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
         pydanticConfigService.warnUntypedFields = true
         doTest()
     }
+
+    fun testCustomRoot() {
+        doTest()
+    }
 }
