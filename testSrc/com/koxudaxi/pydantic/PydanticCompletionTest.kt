@@ -33,6 +33,14 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testKeywordArgumentCustomRoot() {
+        doFieldTest(
+                listOf(
+                        Pair("__root__=", "str A")
+                )
+        )
+    }
+
     fun testKeywordArgumentDot() {
         doFieldTest(
                 listOf(Pair("___slots__", "BaseModel"))
@@ -441,6 +449,14 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 listOf(
                         Pair("descriptor1", "A"),
                         Pair("efg", "A"),
+                        Pair("___slots__", "BaseModel")
+                )
+        )
+    }
+    fun testFieldCustomRoot() {
+        doFieldTest(
+                listOf(
+                        Pair("__root__", "str A"),
                         Pair("___slots__", "BaseModel")
                 )
         )

@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin" require-restart="true">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.1.17</version>
+    <version>0.1.18</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.1.18</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support custom root field [#227]</li>
+    </ul>
     <h2>version 0.1.17</h2>
     <p>Features</p>
     <ul>

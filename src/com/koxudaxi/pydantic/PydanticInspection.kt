@@ -63,6 +63,7 @@ class PydanticInspection : PyInspection() {
             if (pydanticConfigService.currentWarnUntypedFields) {
                 inspectWarnUntypedFields(node)
             }
+            inspectCustomRootField(node)
             inspectReadOnlyProperty(node)
         }
 
@@ -115,10 +116,20 @@ class PydanticInspection : PyInspection() {
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             if (node.annotation != null) return
-            if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.startsWith("_") == true) return
+            if (!isValidFieldName((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text)) return
             registerProblem(node,
                     "Untyped fields disallowed", ProblemHighlightType.WARNING)
 
+        }
+
+        private fun inspectCustomRootField(node: PyAssignmentStatement) {
+            val pyClass = getPyClassByAttribute(node) ?: return
+            if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
+            val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
+            if (fieldName.startsWith('_')) return
+            pyClass.findClassAttribute("__root__", true, myTypeEvalContext) ?: return
+            registerProblem(node,
+                "__root__ cannot be mixed with other fields", ProblemHighlightType.WARNING)
         }
     }
 
