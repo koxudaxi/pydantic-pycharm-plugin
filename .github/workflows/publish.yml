@@ -26,7 +26,10 @@ jobs:
      - name: Install dependencies
        run: |
          pip install -r requirements.txt
-     - run: |
+     - name: build changelog 
+       env: 
+         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+       run: |
          python scripts/build_changelog.py
          CHANGELOG=$(cat docs/changelog.md)
          CHANGELOG="${CHANGELOG//'%'/'%25'}"
