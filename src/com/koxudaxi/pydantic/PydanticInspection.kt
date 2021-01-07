@@ -124,10 +124,11 @@ class PydanticInspection : PyInspection() {
 
         private fun inspectCustomRootField(node: PyAssignmentStatement) {
             val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
             if (fieldName.startsWith('_')) return
-            pyClass.findClassAttribute("__root__", true, myTypeEvalContext) ?: return
+            val rootModel = pyClass.findClassAttribute("__root__", true, myTypeEvalContext)?.containingClass ?: return
+            if (!isPydanticModel(rootModel, false, myTypeEvalContext)) return
             registerProblem(node,
                 "__root__ cannot be mixed with other fields", ProblemHighlightType.WARNING)
         }
