@@ -405,6 +405,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getDefaultValue(assignedValue: PyCallExpression): PyExpression? {
+        assignedValue.getKeywordArgument("default_factory")
+            ?.let {
+                return assignedValue
+            }
         val defaultValue = assignedValue.getKeywordArgument("default")
                 ?: assignedValue.getArgument(0, PyExpression::class.java)
         return when {
