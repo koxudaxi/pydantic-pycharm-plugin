@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin" require-restart="true">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.1.19</version>
+    <version>0.1.20</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.1.20</h2>
+    <p>Features</p>
+    <ul>
+        <li>Show Field() as parameter info for a default value when set default_factory [#240]</li>
+    </ul>
     <h2>version 0.1.19</h2>
     <p>BugFixes</p>
     <ul>
