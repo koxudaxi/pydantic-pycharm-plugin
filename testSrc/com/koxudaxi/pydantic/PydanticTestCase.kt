@@ -84,7 +84,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
                     .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
             libDir.createChildDirectory(null, PyNames.SITE_PACKAGES)
         }
-        PythonDialectsTokenSetProvider.reset()
+//        PythonDialectsTokenSetProvider.getInstance().dispose()
         setLanguageLevel(LanguageLevel.PYTHON37)
     }
 

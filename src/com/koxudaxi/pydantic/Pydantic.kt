@@ -466,3 +466,26 @@ internal fun isUntouchedClass(pyExpression: PyExpression?, config: HashMap<Strin
     if (keepUntouchedClasses.isNullOrEmpty()) return false
     return (hasTargetPyType(pyExpression, keepUntouchedClasses, context))
 }
+
+internal fun getFieldFromPyExpression(psiElement: PsiElement, context: TypeEvalContext): PyCallExpression? {
+    val callee = (psiElement as? PyCallExpression)
+        ?.let { it.callee as? PyReferenceExpression }
+        ?: return null
+    val results = getResolveElements(callee, context)
+    if (!PyUtil.filterTopPriorityResults(results).any{isPydanticFieldByPsiElement(it)}) return null
+    return psiElement
+}
+
+internal fun getFieldFromAnnotated(annotated: PySubscriptionExpression, context: TypeEvalContext): PyCallExpression? =
+    annotated.children
+        .filterIsInstance <PyTupleExpression>()
+        .firstOrNull()
+        ?.children
+        ?.getOrNull(1)
+        ?.let {getFieldFromPyExpression(it, context)
+        }
+
+internal fun getDefaultFromField(field: PyCallExpression): PyExpression? = field.getKeywordArgument("default")
+    ?: field.getArgument(0, PyExpression::class.java).takeIf { it?.name == null }
+
+internal fun getDefaultFactoryFromField(field: PyCallExpression): PyExpression? = field.getKeywordArgument("default_factory")

@@ -10,6 +10,8 @@ import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.impl.PyCallExpressionImpl
+import com.jetbrains.python.psi.impl.PySubscriptionExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
@@ -65,7 +67,16 @@ class PydanticInspection : PyInspection() {
             }
             inspectCustomRootField(node)
             inspectReadOnlyProperty(node)
+            inspectAnnotatedAssignedField(node)
         }
+
+        override fun visitPyTypeDeclarationStatement(node: PyTypeDeclarationStatement?) {
+            super.visitPyTypeDeclarationStatement(node)
+
+            if (node == null) return
+            inspectAnnotatedField(node)
+        }
+
 
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
             val pyClass = getPydanticPyClass(pyCallExpression, myTypeEvalContext) ?: return
@@ -131,6 +142,68 @@ class PydanticInspection : PyInspection() {
             if (!isPydanticModel(rootModel, false, myTypeEvalContext)) return
             registerProblem(node,
                 "__root__ cannot be mixed with other fields", ProblemHighlightType.WARNING)
+        }
+        private fun validateDefaultAndDefaultFactory(default: PyExpression?, defaultFactory: PyExpression?): Boolean {
+            if (default == null || defaultFactory == null) return true
+            registerProblem(
+                defaultFactory.parent,
+                    "cannot specify both default and default_factory",
+                    ProblemHighlightType.WARNING
+                )
+            return false
+        }
+
+        private fun inspectAnnotatedField(node: PyTypeDeclarationStatement) {
+            val pyClass = getPyClassByAttribute(node) ?: return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            val fieldName = node.target.name ?: return
+            val annotationValue =  node.annotation?.value as? PySubscriptionExpression ?: return
+            if (annotationValue.qualifier?.text != "Annotated") return
+            val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
+            val default = getDefaultFromField(annotatedField)
+            if (default != null)  {
+                registerProblem(
+                    default.parent,
+                    "`Field` default cannot be set in `Annotated` for '$fieldName'",
+                    ProblemHighlightType.WARNING
+                )
+            }
+        }
+
+        private fun inspectAnnotatedAssignedField(node: PyAssignmentStatement) {
+            val pyClass = getPyClassByAttribute(node) ?: return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
+            val assignedValue = node.assignedValue
+
+
+            val assignedValueField = assignedValue?.let { getFieldFromPyExpression(assignedValue, myTypeEvalContext) }
+            if (assignedValueField != null) {
+                val default: PyExpression? = getDefaultFromField(assignedValueField)
+                val defaultFactory: PyExpression? = getDefaultFactoryFromField(assignedValueField)
+                if (!validateDefaultAndDefaultFactory(default, defaultFactory)) return
+            }
+            val annotationValue =  node.annotation?.value as? PySubscriptionExpression ?: return
+            if (annotationValue.qualifier?.text != "Annotated") return
+            if (assignedValueField != null) {
+                registerProblem(
+                    assignedValueField,
+                    "cannot specify `Annotated` and value `Field`s together for '$fieldName'",
+                    ProblemHighlightType.WARNING
+                )
+                return
+            }
+            val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
+            val default =  getDefaultFromField(annotatedField)
+            val defaultFactory = getDefaultFactoryFromField(annotatedField)
+            if (!validateDefaultAndDefaultFactory(assignedValue, defaultFactory)) return
+            if (default != null)  {
+                registerProblem(
+                    assignedValue,
+                    "`Field` default cannot be set in `Annotated` for '$fieldName'",
+                    ProblemHighlightType.WARNING
+                )
+            }
         }
     }
 

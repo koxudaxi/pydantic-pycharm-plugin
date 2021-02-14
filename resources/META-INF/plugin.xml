@@ -284,7 +284,7 @@
     </ul>
     ]]></description>
 
-    <idea-version since-build="201.6668.115"/>
+    <idea-version since-build="202.6397.20"/>
 
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.python</depends>
