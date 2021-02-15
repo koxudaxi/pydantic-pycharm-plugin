@@ -177,7 +177,7 @@ class PydanticInspection : PyInspection() {
             val assignedValue = node.assignedValue
 
 
-            val assignedValueField = assignedValue?.let { getFieldFromPyExpression(assignedValue, myTypeEvalContext) }
+            val assignedValueField = assignedValue?.let { getFieldFromPyExpression(assignedValue, myTypeEvalContext, null) }
             if (assignedValueField != null) {
                 val default: PyExpression? = getDefaultFromField(assignedValueField)
                 val defaultFactory: PyExpression? = getDefaultFactoryFromField(assignedValueField)
