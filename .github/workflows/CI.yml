@@ -27,7 +27,7 @@ jobs:
       with:
         java-version: 11
     - name: test 
-      run: ./gradlew buildPlugin test jacocoTestReport
+      run: ./gradlew buildPlugin test jacocoTestReport --info
     - name: IntelliJ Platform Plugin Verifier
       uses: ChrisCarini/intellij-platform-plugin-verifier-action@v0.0.2
       with: 
