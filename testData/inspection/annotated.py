@@ -14,3 +14,4 @@ class A(BaseModel):
     tuv: Annotated[str, Field<warning descr="`Field` default cannot be set in `Annotated` for 'tuv'">('default', default_factory=lambda: 123)</warning>]
     wxy: Annotated[str, Field(<warning descr="cannot specify both default and default_factory">default_factory=lambda: 123</warning>)] = 'default'
     a12: Annotated[str, Field(default_factory=lambda: 123, <warning descr="`Field` default cannot be set in `Annotated` for 'a12'">default='default'</warning>)]
+    a34: Annotated[str, Field(example='example')] = 'default'
