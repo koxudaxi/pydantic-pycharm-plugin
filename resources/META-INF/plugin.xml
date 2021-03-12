@@ -7,7 +7,9 @@
     <h2>version 0.2.0</h2>
     <p>BugFixes</p>
     <ul>
+        <li>Support `import typing` [#258]</li>
         <li>Fix DisposalException [#252]</li>
+        <li>Support Annotated [#241]</li>
     </ul>
     <h2>version 0.1.20</h2>
     <p>Features</p>

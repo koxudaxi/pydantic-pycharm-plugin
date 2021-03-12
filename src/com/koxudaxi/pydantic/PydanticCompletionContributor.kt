@@ -91,7 +91,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
                     .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                    .filter { isValidField(it) }
+                    .filter { isValidField(it, typeEvalContext) }
                     .filter { !isDataclass || isInInit(it) }
                     .forEach {
                         val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion, config)
@@ -144,7 +144,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                         fieldElements.addAll(it.classAttributes
                                 .filterNot {attribute ->  isUntouchedClass(attribute.findAssignedValue(), config, typeEvalContext) }
                                 .filter { attribute ->
-                                    isValidField(attribute)
+                                    isValidField(attribute, typeEvalContext)
                                 }
                                 .mapNotNull { attribute -> attribute?.name })
                     }
@@ -153,7 +153,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             fieldElements.addAll(pyClass.classAttributes
                     .filterNot {isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                    .filter { isValidField(it) }
+                    .filter { isValidField(it, typeEvalContext) }
                     .mapNotNull { attribute -> attribute?.name })
 
             result.runRemainingContributors(parameters)

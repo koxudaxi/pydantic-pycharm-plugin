@@ -157,8 +157,11 @@ class PydanticInspection : PyInspection() {
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             val fieldName = node.target.name ?: return
-            val annotationValue =  node.annotation?.value as? PySubscriptionExpression ?: return
-            if (annotationValue.qualifier?.text != "Annotated") return
+
+            val annotationValue =  node.annotation?.value ?: return
+            val qualifiedName = getQualifiedName(annotationValue, myTypeEvalContext)
+            if (qualifiedName != ANNOTATED_Q_NAME) return
+
             val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
             val default = getDefaultFromField(annotatedField)
             if (default != null)  {
@@ -183,8 +186,10 @@ class PydanticInspection : PyInspection() {
                 val defaultFactory: PyExpression? = getDefaultFactoryFromField(assignedValueField)
                 if (!validateDefaultAndDefaultFactory(default, defaultFactory)) return
             }
-            val annotationValue =  node.annotation?.value as? PySubscriptionExpression ?: return
-            if (annotationValue.qualifier?.text != "Annotated") return
+
+            val annotationValue =  node.annotation?.value ?: return
+            val qualifiedName = getQualifiedName(annotationValue, myTypeEvalContext)
+            if (qualifiedName != ANNOTATED_Q_NAME) return
             if (assignedValueField != null) {
                 registerProblem(
                     assignedValueField,

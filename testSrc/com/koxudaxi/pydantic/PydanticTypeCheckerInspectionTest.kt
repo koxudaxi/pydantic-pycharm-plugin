@@ -75,4 +75,12 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
     fun testClass() {
         doTest()
     }
+
+    fun testFieldImportTyping() {
+        doTest()
+    }
+
+    fun testFieldImportTypingInvalid() {
+        doTest()
+    }
 }
