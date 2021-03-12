@@ -4,7 +4,7 @@ class Union:
         pass
 
 
-class Optional:
+class _Optional:
     @classmethod
     def __getitem__(cls, item):
         pass
@@ -34,3 +34,5 @@ class ClassVar:
     @classmethod
     def __getitem__(cls, item):
         pass
+
+Optional = _Optional

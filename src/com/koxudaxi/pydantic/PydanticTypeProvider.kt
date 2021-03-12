@@ -4,6 +4,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.codeInsight.PyCustomMember
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.*
@@ -253,7 +254,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                   config: HashMap<String, Any?>,
                                   typed: Boolean = true,
                                   isDataclass: Boolean = false): PyCallableParameter? {
-        if (!isValidField(field)) return null
+        if (!isValidField(field, context)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
         val defaultValueFromField = getDefaultValueForParameter(field, ellipsis, context, pydanticVersion, isDataclass)
@@ -328,38 +329,37 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                             pydanticVersion: KotlinVersion?,
                                             isDataclass: Boolean): PyExpression? {
 
-        when (val value = field.findAssignedValue()) {
-            null -> {
-                when (val annotation = field.annotation?.value) {
-                    is PySubscriptionExpressionImpl -> {
-                        when {
-                            annotation.qualifier == null -> return value
-                            annotation.qualifier!!.text == "Optional" -> return ellipsis
-                            annotation.qualifier!!.text == "Union" -> annotation.children
-                                    .filterIsInstance<PyTupleExpression>()
-                                    .forEach {
-                                        it.children
-                                                .forEach { type -> if (type is PyNoneLiteralExpression) return ellipsis }
-                                    }
-                            annotation.qualifier!!.text == "Annotated" -> return getFieldFromAnnotated(annotation, context)
-                                ?.takeIf { it.arguments.any { arg -> arg.name == "default_factory"} } ?: value
-
-                        }
-                        return value
-                    }
-                    is PyReferenceExpressionImpl -> {
-                        return if (annotation.text == "Any") {
-                            ellipsis
-                        } else null
-                    }
-                    else -> {
-                        return null
-                    }
-                }
-            }
-            else -> return getDefaultValueByAssignedValue(field, ellipsis, context, pydanticVersion, isDataclass)
+        val value = field.findAssignedValue()
+        if (value is PyExpression) {
+            return getDefaultValueByAssignedValue(field, ellipsis, context, pydanticVersion, isDataclass)
         }
+        val annotationValue = field.annotation?.value ?: return null
+
+        fun parseAnnotation(pyExpression: PyExpression, context: TypeEvalContext) :PyExpression? {
+            val qualifiedName = getQualifiedName(pyExpression, context) ?: return null
+            when (qualifiedName) {
+                ANY_Q_NAME -> return ellipsis
+                OPTIONAL_Q_NAME -> return ellipsis
+                UNION_Q_NAME -> pyExpression.children
+                    .filterIsInstance<PyTupleExpression>()
+                    .flatMap { it.children.toList() }
+                    .filterIsInstance<PyNoneLiteralExpression>()
+                    .firstOrNull()
+                    ?.run { return ellipsis }
+                ANNOTATED_Q_NAME -> return getFieldFromAnnotated(pyExpression, context)
+                    ?.takeIf { it.arguments.any { arg -> arg.name == "default_factory" } }
+                    ?: value
+                    ?: getTypeExpressionFromAnnotated(pyExpression, context)?.let {
+                        parseAnnotation(it, context)
+                    }
+                else -> return value
+            }
+            return value
+        }
+
+        return parseAnnotation(annotationValue, context)
     }
+
 
     private fun getDefaultValueByAssignedValue(field: PyTargetExpression,
                                                ellipsis: PyNoneLiteralExpression,

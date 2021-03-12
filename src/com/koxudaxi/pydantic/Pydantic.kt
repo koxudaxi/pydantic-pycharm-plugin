@@ -46,6 +46,12 @@ const val CON_LIST_Q_NAME = "pydantic.types.conlist"
 const val CON_STR_Q_NAME = "pydantic.types.constr"
 const val LIST_Q_NAME = "builtins.list"
 const val CREATE_MODEL = "pydantic.main.create_model"
+const val ANY_Q_NAME = "typing.Any"
+const val OPTIONAL_Q_NAME = "typing.Optional"
+const val UNION_Q_NAME = "typing.Union"
+const val ANNOTATED_Q_NAME = "typing.Annotated"
+const val CLASSVAR_Q_NAME = "typing.ClassVar"
+
 
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
@@ -188,7 +194,7 @@ private fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalCont
         getFieldFromPyExpression(it, context, pydanticVersion)
     } ?:
         (field.annotation?.value as? PySubscriptionExpression)
-            ?.takeIf { it.qualifier!!.text == "Annotated" }
+            ?.takeIf { getQualifiedName(it, context) == ANNOTATED_Q_NAME }
             ?.let { getFieldFromAnnotated(it, context) }
     ?: return fieldName
 
@@ -272,13 +278,12 @@ fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersio
     })
 }
 
-fun isValidField(field: PyTargetExpression): Boolean {
+fun isValidField(field: PyTargetExpression, context: TypeEvalContext): Boolean {
     if (!isValidFieldName(field.name)) return false
 
-    val annotation = field.annotation?.value ?: return true
-    val qualifier = (annotation as? PySubscriptionExpression)?.qualifier ?: return true
+    val annotationValue = field.annotation?.value ?: return true
     // TODO Support a variable.
-    return qualifier.text != "ClassVar"
+    return getQualifiedName(annotationValue, context) != CLASSVAR_Q_NAME
 }
 
 fun isValidFieldName(name: String?): Boolean {
@@ -472,7 +477,7 @@ internal fun getFieldFromPyExpression(psiElement: PsiElement, context: TypeEvalC
     return psiElement
 }
 
-internal fun getFieldFromAnnotated(annotated: PySubscriptionExpression, context: TypeEvalContext): PyCallExpression? =
+internal fun getFieldFromAnnotated(annotated: PyExpression, context: TypeEvalContext): PyCallExpression? =
     annotated.children
         .filterIsInstance <PyTupleExpression>()
         .firstOrNull()
@@ -481,7 +486,31 @@ internal fun getFieldFromAnnotated(annotated: PySubscriptionExpression, context:
         ?.let {getFieldFromPyExpression(it, context, null)
         }
 
+internal fun getTypeExpressionFromAnnotated(annotated: PyExpression, context: TypeEvalContext): PyExpression? =
+    annotated.children
+        .filterIsInstance <PyTupleExpression>()
+        .firstOrNull()
+        ?.children
+        ?.getOrNull(0)
+        ?.let { it as? PyExpression }
+
 internal fun getDefaultFromField(field: PyCallExpression): PyExpression? = field.getKeywordArgument("default")
     ?: field.getArgument(0, PyExpression::class.java).takeIf { it?.name == null }
 
 internal fun getDefaultFactoryFromField(field: PyCallExpression): PyExpression? = field.getKeywordArgument("default_factory")
+
+internal fun getQualifiedName(pyExpression: PyExpression, context: TypeEvalContext) : String? {
+    return when(pyExpression) {
+    is PySubscriptionExpression -> pyExpression.qualifier?.let { getQualifiedName(it, context) }
+    is PyReferenceExpression -> {
+        val resolveResults = getResolveElements(pyExpression, context)
+        return PyUtil.filterTopPriorityResults(resolveResults)
+            .filterIsInstance<PyQualifiedNameOwner>()
+            .mapNotNull { it.qualifiedName }
+            .firstOrNull()
+    }
+    else -> {
+        return null
+        }
+    }
+}
