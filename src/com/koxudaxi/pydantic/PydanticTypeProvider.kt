@@ -341,6 +341,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                         it.children
                                                 .forEach { type -> if (type is PyNoneLiteralExpression) return ellipsis }
                                     }
+                            annotation.qualifier!!.text == "Annotated" -> return getFieldFromAnnotated(annotation, context)
+                                ?.takeIf { it.arguments.any { arg -> arg.name == "default_factory"} } ?: value
+
                         }
                         return value
                     }
@@ -405,17 +408,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getDefaultValue(assignedValue: PyCallExpression): PyExpression? {
-        assignedValue.getKeywordArgument("default_factory")
+        getDefaultFactoryFromField(assignedValue)
             ?.let {
                 return assignedValue
             }
-        val defaultValue = assignedValue.getKeywordArgument("default")
-                ?: assignedValue.getArgument(0, PyExpression::class.java)
-        return when {
-            defaultValue == null -> null
-            defaultValue.text == "..." -> null
-            else -> defaultValue
-        }
+        return getDefaultFromField(assignedValue)?.takeIf { it.text != "..." }
     }
 
     private fun getDefaultValueForDataclass(assignedValue: PyCallExpression, context: TypeEvalContext, argumentName: String): PyExpression? {

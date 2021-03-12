@@ -15,7 +15,7 @@ plugins {
 
 intellij {
     pluginName project.name
-    version "2020.1"
+    version "2020.2"
     type "PC"
     updateSinceUntilBuild false
     downloadSources true

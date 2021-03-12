@@ -774,4 +774,25 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testFieldAnnotated() {
+        doFieldTest(
+            listOf(
+                Pair("a_id","str A"),
+                Pair("abc", "str A"),
+                Pair("cde", "str='default_value' A"),
+                Pair("efg", "str=Field(default_factory=lambda: 123) A"),
+                Pair("___slots__", "BaseModel")
+            )
+        )
+    }
+    fun testKeywordArgumentFieldAnnotated() {
+        doFieldTest(
+            listOf(
+                Pair("abc=", "str A"),
+                Pair("alias_a_id=", "str A"),
+                Pair("cde=", "str='default_value' A"),
+                Pair("efg=", "str=Field(default_factory=lambda: 123) A")
+            )
+        )
+    }
 }

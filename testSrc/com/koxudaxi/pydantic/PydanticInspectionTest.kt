@@ -63,4 +63,7 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     fun testCustomRoot() {
         doTest()
     }
+    fun testAnnotated() {
+        doTest()
+    }
 }

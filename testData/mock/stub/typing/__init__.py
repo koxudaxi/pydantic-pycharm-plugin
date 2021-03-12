@@ -9,6 +9,12 @@ class Optional:
     def __getitem__(cls, item):
         pass
 
+class Annotated:
+    @classmethod
+    def __getitem__(cls, item):
+        pass
+
+
 class Any:
     pass
 

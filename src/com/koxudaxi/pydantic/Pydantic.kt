@@ -184,32 +184,22 @@ internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequ
 
 private fun getAliasedFieldName(field: PyTargetExpression, context: TypeEvalContext, pydanticVersion: KotlinVersion?): String? {
     val fieldName = field.name
-    val assignedValue = field.findAssignedValue() ?: return fieldName
-    val referenceExpression = (assignedValue as? PyCallExpressionImpl)?.callee?.reference?.element as? PyReferenceExpression
-            ?: return fieldName ?: return fieldName
+    val assignedField = field.findAssignedValue()?.let {
+        getFieldFromPyExpression(it, context, pydanticVersion)
+    } ?:
+        (field.annotation?.value as? PySubscriptionExpression)
+            ?.takeIf { it.qualifier!!.text == "Annotated" }
+            ?.let { getFieldFromAnnotated(it, context) }
+    ?: return fieldName
 
-    val resolveResults = getResolveElements(referenceExpression, context)
-
-    val versionZero = pydanticVersion?.major == 0
-    return PyUtil.filterTopPriorityResults(resolveResults)
-            .filter {
-                when {
-                    versionZero -> isPydanticSchemaByPsiElement(it, context)
-                    else -> isPydanticFieldByPsiElement(it)
-                }
-
-            }
-            .mapNotNull {
-                when (val alias = assignedValue.getKeywordArgument("alias")) {
-                    is StringLiteralExpression -> alias.stringValue
-                    is PyReferenceExpression -> ((alias.reference.resolve() as? PyTargetExpressionImpl)
-                            ?.findAssignedValue() as? StringLiteralExpression)?.stringValue
-                    //TODO Support dynamic assigned Value. eg:  Schema(..., alias=get_alias_name(field_name))
-                    else -> null
-                }
-            }
-            .firstOrNull() ?: fieldName
-}
+    return when (val alias = assignedField.getKeywordArgument("alias")) {
+                is StringLiteralExpression -> alias.stringValue
+                is PyReferenceExpression -> ((alias.reference.resolve() as? PyTargetExpressionImpl)
+                        ?.findAssignedValue() as? StringLiteralExpression)?.stringValue
+                //TODO Support dynamic assigned Value. eg:  Schema(..., alias=get_alias_name(field_name))
+                else -> fieldName
+            } ?: fieldName
+    }
 
 
 fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
@@ -466,3 +456,32 @@ internal fun isUntouchedClass(pyExpression: PyExpression?, config: HashMap<Strin
     if (keepUntouchedClasses.isNullOrEmpty()) return false
     return (hasTargetPyType(pyExpression, keepUntouchedClasses, context))
 }
+
+internal fun getFieldFromPyExpression(psiElement: PsiElement, context: TypeEvalContext, pydanticVersion: KotlinVersion?): PyCallExpression? {
+    val callee = (psiElement as? PyCallExpression)
+        ?.let { it.callee as? PyReferenceExpression }
+        ?: return null
+    val results = getResolveElements(callee, context)
+    val versionZero = pydanticVersion?.major == 0
+    if (!PyUtil.filterTopPriorityResults(results).any{
+            when {
+                versionZero -> isPydanticSchemaByPsiElement(it, context)
+                else -> isPydanticFieldByPsiElement(it)
+            }
+    }) return null
+    return psiElement
+}
+
+internal fun getFieldFromAnnotated(annotated: PySubscriptionExpression, context: TypeEvalContext): PyCallExpression? =
+    annotated.children
+        .filterIsInstance <PyTupleExpression>()
+        .firstOrNull()
+        ?.children
+        ?.getOrNull(1)
+        ?.let {getFieldFromPyExpression(it, context, null)
+        }
+
+internal fun getDefaultFromField(field: PyCallExpression): PyExpression? = field.getKeywordArgument("default")
+    ?: field.getArgument(0, PyExpression::class.java).takeIf { it?.name == null }
+
+internal fun getDefaultFactoryFromField(field: PyCallExpression): PyExpression? = field.getKeywordArgument("default_factory")
