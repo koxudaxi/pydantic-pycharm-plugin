@@ -37,7 +37,7 @@ The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.je
 
 You can install the stable version on PyCharm's `Marketplace` (Preference -> Plugins -> Marketplace) [Offical Document](https://www.jetbrains.com/help/idea/managing-plugins.html)
 
-**The plugin requires PyCharm 2020.1 or later (include other JetBrains IDEs)**
+**The plugin requires PyCharm 2020.2 or later (include other JetBrains IDEs)**
  
 ![search plugin](search_plugin.png)
 
