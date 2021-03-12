@@ -19,7 +19,7 @@ The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.je
 
 You can install the stable version on PyCharm's `Marketplace` (Preference -> Plugins -> Marketplace) [Offical Document](https://www.jetbrains.com/help/idea/managing-plugins.html)
 
-**The plugin requires PyCharm 2020.1 or later (include other JetBrains IDEs)**
+**The plugin requires PyCharm 2020.2 or later (include other JetBrains IDEs)**
 
 ![search plugin](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/search_plugin.png)
 
@@ -39,7 +39,7 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
 
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
-  * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
+  * (After PyCharm 2020.2 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
   * Exclude a feature which is inserting unfilled arguments with a QuickFix
 
 ### pydantic.create_model [experimental]
