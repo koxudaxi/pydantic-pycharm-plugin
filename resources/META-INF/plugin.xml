@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin" require-restart="true">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.2.1</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support regex (Field, constr) [#262]</li>
+    </ul>
     <h2>version 0.2.0</h2>
     <p>BugFixes</p>
     <ul>
@@ -278,6 +283,9 @@
                <li>Search related-fields by class attributes and keyword arguments of __init__. with Ctrl+B and Cmd+B</li>
                <li>Provide an inspection for type-checking which is compatible with pydantic. the inspection supports parsable-type. the detail is at <a href="https://koxudaxi.github.io/pydantic-pycharm-plugin/type-checking/"> Inspection for type-checking section</a></li>
                <li>Insert unfilled arguments with a QuickFix for subclasses of pydantic.BaseModel</li>
+               <li>Support typing.Annotated (PEP 593)</li>
+               <li>Regex arguments in `Field` and `constr` are treated as Python's regex string literals </li>
+
             </ul>
          </li>
         <li>pydantic.dataclasses.dataclass
@@ -313,6 +321,7 @@
         <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
         <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer" order="last"/>
         <localInspection language="Python" shortName="PydanticTypeCheckerInspection" suppressId="PydanticTypeChecker" bundle="messages.PyPsiBundle" displayName="Type checker compatible with Pydantic" groupKey="INSP.GROUP.python" enabledByDefault="false"  level="WARNING" implementationClass="com.koxudaxi.pydantic.PydanticTypeCheckerInspection"/>
+        <multiHostInjector implementation="com.koxudaxi.pydantic.PydanticRegexInjector"/>
     </extensions>
     <projectListeners>
         <listener class="com.koxudaxi.pydantic.PydanticPackageManagerListener"
