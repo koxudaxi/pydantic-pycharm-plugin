@@ -194,7 +194,7 @@ internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): 
     val resolveResults = getResolveElements(referenceExpression, context)
     return PyUtil.filterTopPriorityResults(resolveResults)
             .filterIsInstance<PyFunction>()
-            .map { pyFunction -> isPydanticField(pyFunction) || isConStr(pyFunction) }
+            .filter { pyFunction -> isPydanticField(pyFunction) || isConStr(pyFunction) }
             .any()
 }
 

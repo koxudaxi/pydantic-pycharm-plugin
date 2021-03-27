@@ -7,18 +7,27 @@ import com.intellij.psi.util.PsiUtilBase.getElementAtCaret
 
 class PydanticRegexTest : PydanticTestCase() {
     fun testConstr() {
-        doTestInjectedText( "[^a-zA-Z]+")
+        doTestInjectedText("[^a-zA-Z]+")
     }
 
     fun testField() {
-        doTestInjectedText( "[^a-zA-Z]+")
+        doTestInjectedText("[^a-zA-Z]+")
     }
+
     fun testConstrMinLength() {
-        doTestInjectedText( null)
+        doTestInjectedText(null)
     }
 
     fun testFieldTitle() {
-        doTestInjectedText( null)
+        doTestInjectedText(null)
+    }
+
+    fun testFieldDefault() {
+        doTestInjectedText(null)
+    }
+
+    fun testOtherFunc() {
+        doTestInjectedText(null)
     }
 
     private fun doTestInjectedText(expected: String?): PsiElement? {
