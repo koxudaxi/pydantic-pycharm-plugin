@@ -20,6 +20,8 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 * Search related-fields by class attributes and keyword arguments of `__init__` with `Ctrl+B` and `Cmd+B`
 * Provide an inspection for type-checking which is compatible with pydantic. the inspection supports `parsable-type`. the detail is at [Inspection for type-checking section](https://koxudaxi.github.io/pydantic-pycharm-plugin/type-checking/)
 * Insert unfilled arguments with a QuickFix for subclasses of `pydantic.BaseModel`
+* Support typing.Annotated (PEP 593)
+* Regex arguments in `Field` and `constr` are treated as Python's regex string literals
 
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
