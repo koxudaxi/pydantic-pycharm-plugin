@@ -181,6 +181,23 @@ internal fun isConfigClass(pyClass: PyClass): Boolean {
     return pyClass.name == "Config"
 }
 
+internal fun isConStr(pyFunction: PyFunction): Boolean {
+    return pyFunction.qualifiedName == CON_STR_Q_NAME
+}
+
+internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): Boolean {
+    val pyKeywordArgument = stringLiteralExpression.parent as? PyKeywordArgument ?: return false
+    if (pyKeywordArgument.keyword != "regex") return false
+    val pyCallExpression = pyKeywordArgument.parent.parent as? PyCallExpression ?: return false
+    val referenceExpression = pyCallExpression.callee as? PyReferenceExpression ?: return false
+    val context = TypeEvalContext.userInitiated(referenceExpression.project, referenceExpression.containingFile)
+    val resolveResults = getResolveElements(referenceExpression, context)
+    return PyUtil.filterTopPriorityResults(resolveResults)
+            .filterIsInstance<PyFunction>()
+            .map { pyFunction -> isPydanticField(pyFunction) || isConStr(pyFunction) }
+            .any()
+}
+
 internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
     return pyClass.classAttributes
             .asReversed()

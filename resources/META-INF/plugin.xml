@@ -313,6 +313,7 @@
         <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
         <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer" order="last"/>
         <localInspection language="Python" shortName="PydanticTypeCheckerInspection" suppressId="PydanticTypeChecker" bundle="messages.PyPsiBundle" displayName="Type checker compatible with Pydantic" groupKey="INSP.GROUP.python" enabledByDefault="false"  level="WARNING" implementationClass="com.koxudaxi.pydantic.PydanticTypeCheckerInspection"/>
+        <multiHostInjector implementation="com.koxudaxi.pydantic.PydanticRegexInjector"/>
     </extensions>
     <projectListeners>
         <listener class="com.koxudaxi.pydantic.PydanticPackageManagerListener"
