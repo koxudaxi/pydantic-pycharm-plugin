@@ -1,4 +1,4 @@
-from builtins import *
+
 from dataclasses import field, MISSING
 
 from pydantic.dataclasses import dataclass

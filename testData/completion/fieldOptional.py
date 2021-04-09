@@ -1,4 +1,4 @@
-from builtins import *
+
 from typing import Union, Optional
 
 from pydantic import BaseModel

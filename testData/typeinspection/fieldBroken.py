@@ -1,4 +1,4 @@
-from builtins import *
+
 
 from pydantic import BaseModel, Schema
 

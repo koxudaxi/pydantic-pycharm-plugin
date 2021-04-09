@@ -12,7 +12,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
         val excludes = listOf(
                 "__annotations__", "__base__", "__bases__", "__basicsize__", "__dict__", "__dictoffset__", "__flags__",
                 "__itemsize__", "__mro__", "__name__", "__qualname__", "__slots__", "__text_signature__",
-                "__weakrefoffset__", "Ellipsis", "EnvironmentError", "IOError", "NotImplemented")
+                "__weakrefoffset__", "Ellipsis", "EnvironmentError", "IOError", "NotImplemented", "List", "Type", "Annotated", "MISSING")
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression
         }.filterNot {
@@ -703,8 +703,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
                         Pair("klm=", "str='qwe' A"),
                         Pair("qrs=", "str='fgh' A"),
                         Pair("tuw=", "str A"),
-                        Pair("xyz=", "str A"),
-                        Pair("MISSING", "dataclasses")
+                        Pair("xyz=", "str A")
                 )
         )
     }
