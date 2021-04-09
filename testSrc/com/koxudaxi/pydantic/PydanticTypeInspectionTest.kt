@@ -94,23 +94,7 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
-    fun testClassMethodCls () {
-        doTest()
-    }
-
-    fun testClassMethodClsDuplicate () {
-        doTest()
-    }
-
-    fun testClassMethodClsInvalid () {
-        doTest()
-    }
-
     fun testFieldInherit() {
-        doTest()
-    }
-
-    fun testFieldOverride() {
         doTest()
     }
 
