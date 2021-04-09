@@ -23,6 +23,6 @@ public class PythonTestUtil {
     }
 
     public static String getTestDataPath() {
-        return PythonHelpersLocator.getPythonCommunityPath() + "/testData";
+        return System.getProperty("user.dir") + "/testData";
     }
 }

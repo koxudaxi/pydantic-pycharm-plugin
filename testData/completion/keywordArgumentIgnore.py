@@ -1,4 +1,4 @@
-from builtins import *
+
 
 from pydantic import BaseModel
 
@@ -10,6 +10,6 @@ class A(BaseModel):
 
 class B(A):
     _efg: str = str('abc')
-    __hij: str = str('abc')
+    __hij: str = 1
 
 B(<caret>)
