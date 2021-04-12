@@ -32,7 +32,7 @@ jobs:
       uses: ChrisCarini/intellij-platform-plugin-verifier-action@v0.0.2
       with: 
         ide-versions: |
-            pycharmPC:2020.2
+            pycharmPC:2021.1
             pycharmPC:LATEST-EAP-SNAPSHOT
     - name: setup python
       uses: actions/setup-python@v1
