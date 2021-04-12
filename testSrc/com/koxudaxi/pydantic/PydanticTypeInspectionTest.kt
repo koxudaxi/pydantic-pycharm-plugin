@@ -109,5 +109,9 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
     fun testSkipMember() {
         doTest()
     }
+
+    fun testDynamicModel() {
+        doTest()
+    }
 }
 
