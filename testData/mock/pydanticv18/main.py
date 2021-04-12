@@ -10,6 +10,8 @@ class BaseModel:
     def from_orm(cls, obj):
         pass
 
+Model = TypeVar('Model', bound='BaseModel')
+
 
 class Extra(str):
     allow = 'allow'
@@ -52,12 +54,12 @@ class BaseConfig:
     json_encoders = {}
 
 def create_model(
-        model_name: str,
-        *,
-        __config__: Type[BaseConfig] = None,
-        __base__: Type[BaseModel] = None,
-        __module__: Optional[str] = None,
-        __validators__: Dict[str, classmethod] = None,
-        **field_definitions: Any,
-) -> Type[BaseModel]:
+    __model_name: str,
+    *,
+    __config__: Type[BaseConfig] = None,
+    __base__: Type['Model'] = None,
+    __module__: str = __name__,
+    __validators__: Dict[str, classmethod] = None,
+    **field_definitions: Any,
+) -> Type['Model']:
     pass

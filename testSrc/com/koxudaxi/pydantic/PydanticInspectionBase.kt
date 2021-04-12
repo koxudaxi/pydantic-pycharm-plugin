@@ -4,7 +4,7 @@ import com.jetbrains.python.inspections.PyInspection
 import kotlin.reflect.KClass
 
 
-abstract class PydanticInspectionBase : PydanticTestCase() {
+abstract class PydanticInspectionBase(version: String = "v1") : PydanticTestCase(version)  {
 
     @Suppress("UNCHECKED_CAST")
     protected open val inspectionClass: KClass<PyInspection> = PydanticInspection::class as KClass<PyInspection>
