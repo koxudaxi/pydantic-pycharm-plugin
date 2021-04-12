@@ -249,7 +249,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                             }
                         }.firstOrNull()
                 }
-                is PyClass -> baseArgument.takeIf { isPydanticModel(baseArgument, false, context) } as? PyClass
+                is PyClass -> baseArgument.takeIf { isPydanticModel(baseArgument, false, context) }
                 else -> null
             }
                 ?.let { baseClass ->
@@ -264,9 +264,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                 continue
                             }
                             baseClassCollected.putAll(getClassVariables(current, context)
-                                .mapNotNull { it to fieldToParameter(it, context, hashMapOf(), typed) }
+                                .mapNotNull { it to fieldToParameter(it, context, typed) }
                                 .mapNotNull { (field, parameter) ->
-                                    parameter?.name?.let { name -> Triple(field, parameter, name) }
+                                    parameter.name?.let { name -> Triple(field, parameter, name) }
                                 }
                                 .filterNot { (_, _, name) -> collected.containsKey(name) }
                                 .map { (field, parameter, name) ->
@@ -288,7 +288,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             .filter { (name, _) -> isValidFieldName(name) && !name.startsWith('_') }
             .filter { (name, _) -> (newVersion || name != "model_name") }
             .map { (name, field) ->
-                val parameter = fieldToParameter(field, context, hashMapOf(), typed)!!
+                val parameter = fieldToParameter(field, context, typed)
                 name to PydanticDynamicModel.createAttribute(name, parameter, field, context, false)
             }
         )
@@ -372,12 +372,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         )
     }
 
-    internal fun fieldToParameter(
+    private fun fieldToParameter(
         field: PyExpression,
         context: TypeEvalContext,
-        config: HashMap<String, Any?>,
         typed: Boolean = true
-    ): PyCallableParameter? {
+    ): PyCallableParameter {
         var type: PyType? = null
         var defaultValue: PyExpression? = null
         when (val tupleValue = PsiTreeUtil.findChildOfType(field, PyTupleExpression::class.java)) {
@@ -403,7 +402,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         return PyCallableParameterImpl.nonPsi(
             field.name,
-//                getFieldName(field, context, config, pydanticVersion),
             typeForParameter,
             defaultValue
         )
@@ -445,7 +443,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 ANNOTATED_Q_NAME -> return getFieldFromAnnotated(pyExpression, context)
                     ?.takeIf { it.arguments.any { arg -> arg.name == "default_factory" } }
                     ?: value
-                    ?: getTypeExpressionFromAnnotated(pyExpression, context)?.let {
+                    ?: getTypeExpressionFromAnnotated(pyExpression)?.let {
                         parseAnnotation(it, context)
                     }
                 else -> return value

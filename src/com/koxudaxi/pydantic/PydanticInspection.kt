@@ -4,14 +4,11 @@ import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
-import com.jetbrains.python.PyBundle
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.PyCallExpressionImpl
-import com.jetbrains.python.psi.impl.PySubscriptionExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
@@ -28,10 +25,9 @@ class PydanticInspection : PyInspection() {
 
         val pydanticConfigService = PydanticConfigService.getInstance(holder.project)
 
-        override fun visitPyFunction(node: PyFunction?) {
+        override fun visitPyFunction(node: PyFunction) {
             super.visitPyFunction(node)
 
-            if (node == null) return
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext) || !isValidatorMethod(node)) return
             val paramList = node.parameterList
@@ -49,19 +45,17 @@ class PydanticInspection : PyInspection() {
 
         }
 
-        override fun visitPyCallExpression(node: PyCallExpression?) {
+        override fun visitPyCallExpression(node: PyCallExpression) {
             super.visitPyCallExpression(node)
 
-            if (node == null) return
             inspectPydanticModelCallableExpression(node)
             inspectFromOrm(node)
 
         }
 
-        override fun visitPyAssignmentStatement(node: PyAssignmentStatement?) {
+        override fun visitPyAssignmentStatement(node: PyAssignmentStatement) {
             super.visitPyAssignmentStatement(node)
 
-            if (node == null) return
             if (pydanticConfigService.currentWarnUntypedFields) {
                 inspectWarnUntypedFields(node)
             }
@@ -70,10 +64,9 @@ class PydanticInspection : PyInspection() {
             inspectAnnotatedAssignedField(node)
         }
 
-        override fun visitPyTypeDeclarationStatement(node: PyTypeDeclarationStatement?) {
+        override fun visitPyTypeDeclarationStatement(node: PyTypeDeclarationStatement) {
             super.visitPyTypeDeclarationStatement(node)
 
-            if (node == null) return
             inspectAnnotatedField(node)
         }
 

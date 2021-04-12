@@ -17,9 +17,7 @@ import com.jetbrains.python.psi.impl.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.*
-import com.jetbrains.python.sdk.PythonSdkUtil
-import com.jetbrains.python.sdk.associatedModule
-import com.jetbrains.python.sdk.pythonSdk
+import com.jetbrains.python.sdk.*
 import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
 
@@ -272,7 +270,7 @@ fun getSdk(project: Project): Sdk? {
 
 fun getPsiElementByQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PsiElement? {
     val pythonSdk = getSdk(project) ?: return null
-    val module = pythonSdk.associatedModule ?: project.modules.firstOrNull() ?: return null
+    val module =  project.modules.firstOrNull { pythonSdk.isAssociatedWithModule(it) } ?: return null
     val contextAnchor = ModuleBasedContextAnchor(module)
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
 }
@@ -503,7 +501,7 @@ internal fun getFieldFromAnnotated(annotated: PyExpression, context: TypeEvalCon
         ?.let {getFieldFromPyExpression(it, context, null)
         }
 
-internal fun getTypeExpressionFromAnnotated(annotated: PyExpression, context: TypeEvalContext): PyExpression? =
+internal fun getTypeExpressionFromAnnotated(annotated: PyExpression): PyExpression? =
     annotated.children
         .filterIsInstance <PyTupleExpression>()
         .firstOrNull()

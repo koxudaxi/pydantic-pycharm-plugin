@@ -10,17 +10,17 @@ import com.jetbrains.python.psi.types.PyCallableParameterImpl
 
 class PydanticParametersProvider: PyDataclassParametersProvider {
 
-      override fun getType(): PyDataclassParameters.Type = PyDanticType
+      override fun getType(): PyDataclassParameters.Type = PydanticType
 
       override fun getDecoratorAndTypeAndParameters(project: Project): Triple<QualifiedName, PyDataclassParameters.Type, List<PyCallableParameter>> {
             val generator = PyElementGenerator.getInstance(project)
             val ellipsis = generator.createEllipsis()
             val parameters = mutableListOf(PyCallableParameterImpl.psi(generator.createSingleStarParameter()))
             parameters.addAll(DATACLASS_ARGUMENTS.map { name -> PyCallableParameterImpl.nonPsi(name, null, ellipsis) })
-            return Triple(DATACLASS_QUALIFIED_NAME, PyDanticType, parameters)
+            return Triple(DATACLASS_QUALIFIED_NAME, PydanticType, parameters)
       }
 
-      private object PyDanticType: PyDataclassParameters.Type {
+      private object PydanticType: PyDataclassParameters.Type {
             override val name: String = "pydantic"
             override val asPredefinedType: PyDataclassParameters.PredefinedType = PyDataclassParameters.PredefinedType.STD
       }

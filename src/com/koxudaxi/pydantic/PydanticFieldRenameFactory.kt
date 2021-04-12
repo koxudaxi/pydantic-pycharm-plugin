@@ -30,7 +30,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
         return false
     }
 
-    override fun getOptionName(): String? {
+    override fun getOptionName(): String {
         return "Rename fields in hierarchy"
     }
 

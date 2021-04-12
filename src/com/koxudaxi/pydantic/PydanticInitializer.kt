@@ -42,7 +42,7 @@ class PydanticInitializer : StartupActivity {
         invokeAfterPsiEvents {
             LocalFileSystem.getInstance()
                     .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
-                    ?.also { loadPyprojecToml(project, it, configService) }
+                    ?.also { loadPyprojectToml(project, it, configService) }
                     ?: run { clearPyProjectTomlConfig(configService) }
             LocalFileSystem.getInstance()
                     .findFileByPath(configService.mypyIni ?: defaultMypyIni)
@@ -76,7 +76,7 @@ class PydanticInitializer : StartupActivity {
                                             .asSequence()
                                             .forEach {
                                                 when (it.path) {
-                                                    pyprojectToml -> loadPyprojecToml(project, it, configService)
+                                                    pyprojectToml -> loadPyprojectToml(project, it, configService)
                                                     mypyIni -> loadMypyIni(it, configService)
                                                 }
                                             }
@@ -123,7 +123,7 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    private fun loadPyprojecToml(project: Project, config: VirtualFile, configService: PydanticConfigService) {
+    private fun loadPyprojectToml(project: Project, config: VirtualFile, configService: PydanticConfigService) {
         val result: TomlParseResult = Toml.parse(config.inputStream)
 
         val table = result.getTableOrEmpty("tool.pydantic-pycharm-plugin")
@@ -183,6 +183,6 @@ class PydanticInitializer : StartupActivity {
                 else -> runnable()
             }
         }
-        ApplicationManager.getApplication().invokeLater(wrapper, { false })
+        ApplicationManager.getApplication().invokeLater(wrapper) { false }
     }
 }

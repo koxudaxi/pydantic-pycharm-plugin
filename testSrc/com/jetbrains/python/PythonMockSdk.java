@@ -48,7 +48,7 @@ public class PythonMockSdk {
         final VirtualFile typeShedDir = PyTypeShed.INSTANCE.getDirectory();
         PyTypeShed.INSTANCE
                 .findRootsForLanguageLevel(level)
-                .forEach(path -> ContainerUtil.putIfNotNull(classes, typeShedDir.findFileByRelativePath(path), roots));
+                .forEach(path -> ContainerUtil.putIfNotNull(classes, typeShedDir.findFileByRelativePath(path.getPath()), roots));
 
         String mock_stubs_path = mock_path + PythonSdkUtil.SKELETON_DIR_NAME;
         ContainerUtil.putIfNotNull(classes, LocalFileSystem.getInstance().refreshAndFindFileByPath(mock_stubs_path), roots);
