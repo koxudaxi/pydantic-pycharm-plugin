@@ -332,6 +332,7 @@
     </projectListeners>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
+        <typeProvider implementation="com.koxudaxi.pydantic.PydanticDataclassTypeProvider"/>
         <inspectionExtension implementation="com.koxudaxi.pydantic.PydanticIgnoreInspection"/>
         <pyDataclassParametersProvider implementation="com.koxudaxi.pydantic.PydanticParametersProvider"/>
         <pyAnnotator implementation="com.koxudaxi.pydantic.PydanticAnnotator"/>

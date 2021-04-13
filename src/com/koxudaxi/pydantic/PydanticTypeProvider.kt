@@ -12,7 +12,7 @@ import one.util.streamex.StreamEx
 class PydanticTypeProvider : PyTypeProviderBase() {
     override fun getReferenceExpressionType(
         referenceExpression: PyReferenceExpression,
-        context: TypeEvalContext
+        context: TypeEvalContext,
     ): PyType? {
         return getPydanticTypeForCallee(referenceExpression, context)
     }
@@ -20,7 +20,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     override fun getCallType(
         pyFunction: PyFunction,
         callSite: PyCallSiteExpression,
-        context: TypeEvalContext
+        context: TypeEvalContext,
     ): Ref<PyType>? {
         return when (pyFunction.qualifiedName) {
             CON_LIST_Q_NAME -> Ref.create(
@@ -37,7 +37,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     override fun getReferenceType(
         referenceTarget: PsiElement,
         context: TypeEvalContext,
-        anchor: PsiElement?
+        anchor: PsiElement?,
     ): Ref<PyType>? {
         if (referenceTarget is PyTargetExpression) {
             val pyClass = getPyClassByAttribute(referenceTarget.parent) ?: return null
@@ -70,7 +70,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyClass: PyClass,
         context: TypeEvalContext,
         ellipsis: PyNoneLiteralExpression,
-        pydanticVersion: KotlinVersion?
+        pydanticVersion: KotlinVersion?,
     ): Ref<PyType>? {
         return pyClass.findClassAttribute(name, false, context)
             ?.let { return getRefTypeFromField(it, ellipsis, context, pyClass, pydanticVersion) }
@@ -91,7 +91,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getRefTypeFromField(
         pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
         context: TypeEvalContext, pyClass: PyClass,
-        pydanticVersion: KotlinVersion?
+        pydanticVersion: KotlinVersion?,
     ): Ref<PyType>? {
         return fieldToParameter(
             pyTargetExpression,
@@ -107,13 +107,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getPydanticTypeForCallee(
         referenceExpression: PyReferenceExpression,
-        context: TypeEvalContext
+        context: TypeEvalContext,
     ): PyType? {
         if (PyCallExpressionNavigator.getPyCallExpressionByCallee(referenceExpression) == null) return null
 
-        val resolveResults = getResolveElements(referenceExpression, context)
-
-        return PyUtil.filterTopPriorityResults(resolveResults)
+        return getResolvedPsiElements(referenceExpression, context)
             .asSequence()
             .map {
                 when {
@@ -171,7 +169,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getPydanticDynamicModelPyClass(
         pyTargetExpression: PyTargetExpression,
-        context: TypeEvalContext
+        context: TypeEvalContext,
     ): PyClass? {
         val pyCallableType = getPydanticDynamicModelTypeForTargetExpression(pyTargetExpression, context)
             ?: return null
@@ -180,7 +178,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getPydanticDynamicModelTypeForTargetExpression(
         pyTargetExpression: PyTargetExpression,
-        context: TypeEvalContext
+        context: TypeEvalContext,
     ): PydanticDynamicModelClassType? {
         val pyCallExpression = pyTargetExpression.findAssignedValue() as? PyCallExpression ?: return null
         return getPydanticDynamicModelTypeForTargetExpression(pyCallExpression, context)
@@ -188,13 +186,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getPydanticDynamicModelTypeForTargetExpression(
         pyCallExpression: PyCallExpression,
-        context: TypeEvalContext
+        context: TypeEvalContext,
     ): PydanticDynamicModelClassType? {
         val arguments = pyCallExpression.arguments.toList()
         if (arguments.isEmpty()) return null
         val referenceExpression = (pyCallExpression.callee as? PyReferenceExpression) ?: return null
-        val resolveResults = getResolveElements(referenceExpression, context)
-        val pyFunction = PyUtil.filterTopPriorityResults(resolveResults)
+        val pyFunction = getResolvedPsiElements(referenceExpression, context)
             .asSequence()
             .filterIsInstance<PyFunction>()
             .map { it.takeIf { pyFunction -> isPydanticCreateModel(pyFunction) } }.firstOrNull()
@@ -207,7 +204,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getPydanticDynamicModelTypeForFunction(
         pyFunction: PyFunction,
         pyArguments: List<PyExpression>,
-        context: TypeEvalContext
+        context: TypeEvalContext,
     ): PydanticDynamicModelClassType? {
         val project = pyFunction.project
         val typed = getInstance(project).currentInitTyped
@@ -227,7 +224,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             pyArguments.firstOrNull()
         } ?: return null
         val modelName = when (modelNameArgument) {
-            is PyReferenceExpression -> PyUtil.filterTopPriorityResults(getResolveElements(modelNameArgument, context))
+            is PyReferenceExpression -> getResolvedPsiElements(modelNameArgument, context)
                 .filterIsInstance<PyTargetExpression>()
                 .map { it.findAssignedValue() }
                 .firstOrNull()
@@ -240,7 +237,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val baseClass =
             when (val baseArgument = (keywordArguments["__base__"] as? PyKeywordArgument)?.valueExpression) {
                 is PyReferenceExpression -> {
-                    PyUtil.filterTopPriorityResults(getResolveElements(baseArgument, context))
+                    getResolvedPsiElements(baseArgument, context)
                         .map {
                             when (it) {
                                 is PyTargetExpression -> getPydanticDynamicModelPyClass(it, context)
@@ -342,7 +339,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pydanticVersion: KotlinVersion?,
         config: HashMap<String, Any?>,
         typed: Boolean = true,
-        isDataclass: Boolean = false
+        isDataclass: Boolean = false,
     ): PyCallableParameter? {
         if (!isValidField(field, context)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
@@ -375,7 +372,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun fieldToParameter(
         field: PyExpression,
         context: TypeEvalContext,
-        typed: Boolean = true
+        typed: Boolean = true,
     ): PyCallableParameter {
         var type: PyType? = null
         var defaultValue: PyExpression? = null
@@ -409,7 +406,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getTypeForParameter(
         field: PyTargetExpression,
-        context: TypeEvalContext
+        context: TypeEvalContext,
     ): PyType? {
 
         return context.getType(field)
@@ -420,7 +417,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         ellipsis: PyNoneLiteralExpression,
         context: TypeEvalContext,
         pydanticVersion: KotlinVersion?,
-        isDataclass: Boolean
+        isDataclass: Boolean,
     ): PyExpression? {
 
         val value = field.findAssignedValue()
@@ -460,7 +457,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         ellipsis: PyNoneLiteralExpression,
         context: TypeEvalContext,
         pydanticVersion: KotlinVersion?,
-        isDataclass: Boolean
+        isDataclass: Boolean,
     ): PyExpression? {
         val assignedValue = field.findAssignedValue()!!
 
@@ -514,15 +511,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getDefaultValueForDataclass(
         assignedValue: PyCallExpression,
         context: TypeEvalContext,
-        argumentName: String
+        argumentName: String,
     ): PyExpression? {
         val defaultValue = assignedValue.getKeywordArgument(argumentName)
         return when {
             defaultValue == null -> null
             defaultValue.text == "..." -> null
             defaultValue is PyReferenceExpression -> {
-                val resolveResults = getResolveElements(defaultValue, context)
-                PyUtil.filterTopPriorityResults(resolveResults).any { isDataclassMissingByPsiElement(it) }.let {
+                getResolvedPsiElements(defaultValue, context).any { isDataclassMissingByPsiElement(it) }.let {
                     return when {
                         it -> null
                         else -> defaultValue

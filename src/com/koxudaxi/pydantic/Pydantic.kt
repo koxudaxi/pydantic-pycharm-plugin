@@ -194,8 +194,7 @@ internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): 
     val pyCallExpression = pyKeywordArgument.parent.parent as? PyCallExpression ?: return false
     val referenceExpression = pyCallExpression.callee as? PyReferenceExpression ?: return false
     val context = TypeEvalContext.userInitiated(referenceExpression.project, referenceExpression.containingFile)
-    val resolveResults = getResolveElements(referenceExpression, context)
-    return PyUtil.filterTopPriorityResults(resolveResults)
+    return getResolvedPsiElements(referenceExpression, context)
         .filterIsInstance<PyFunction>()
         .filter { pyFunction -> isPydanticField(pyFunction) || isConStr(pyFunction) }
         .any()
@@ -236,6 +235,11 @@ fun getResolveElements(referenceExpression: PyReferenceExpression, context: Type
         referenceExpression.getReference(it).multiResolve(false)
     }
 
+}
+
+
+fun getResolvedPsiElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): List<PsiElement> {
+    return getResolveElements(referenceExpression, context).let { PyUtil.filterTopPriorityResults(it) }
 }
 
 fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
@@ -325,8 +329,7 @@ fun isValidFieldName(name: String?): Boolean {
 
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
-        val resolveResults = getResolveElements(value, context)
-        val targetExpression = PyUtil.filterTopPriorityResults(resolveResults).firstOrNull() ?: return null
+        val targetExpression = getResolvedPsiElements(value, context).firstOrNull() ?: return null
         val assignedValue = (targetExpression as? PyTargetExpression)?.findAssignedValue() ?: return null
         return getConfigValue(name, assignedValue, context)
     }
@@ -481,8 +484,7 @@ fun getPyTypeFromPyExpression(pyExpression: PyExpression, context: TypeEvalConte
     return when (pyExpression) {
         is PyType -> pyExpression
         is PyReferenceExpression -> {
-            val resolveResults = getResolveElements(pyExpression, context)
-            PyUtil.filterTopPriorityResults(resolveResults)
+            getResolvedPsiElements(pyExpression, context)
                 .filterIsInstance<PyClass>()
                 .map { pyClass -> pyClass.getType(context)?.getReturnType(context) }
                 .firstOrNull()
@@ -522,9 +524,8 @@ internal fun getFieldFromPyExpression(
     val callee = (psiElement as? PyCallExpression)
         ?.let { it.callee as? PyReferenceExpression }
         ?: return null
-    val results = getResolveElements(callee, context)
     val versionZero = pydanticVersion?.major == 0
-    if (!PyUtil.filterTopPriorityResults(results).any {
+    if (!getResolvedPsiElements(callee, context).any {
             when {
                 versionZero -> isPydanticSchemaByPsiElement(it, context)
                 else -> isPydanticFieldByPsiElement(it)
@@ -561,8 +562,7 @@ internal fun getQualifiedName(pyExpression: PyExpression, context: TypeEvalConte
     return when (pyExpression) {
         is PySubscriptionExpression -> pyExpression.qualifier?.let { getQualifiedName(it, context) }
         is PyReferenceExpression -> {
-            val resolveResults = getResolveElements(pyExpression, context)
-            return PyUtil.filterTopPriorityResults(resolveResults)
+            return getResolvedPsiElements(pyExpression, context)
                 .filterIsInstance<PyQualifiedNameOwner>()
                 .mapNotNull { it.qualifiedName }
                 .firstOrNull()
