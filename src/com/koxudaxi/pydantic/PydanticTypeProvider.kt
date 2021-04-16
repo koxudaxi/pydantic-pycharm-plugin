@@ -302,6 +302,28 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             true)
     }
 
+    private fun getBaseSettingInitParameters(
+        baseSetting: PyClass,
+        context: TypeEvalContext,
+        typed: Boolean,
+    ): List<PyCallableParameter>? {
+        return baseSetting.findInitOrNew(true, context)?.parameterList?.parameters
+            ?.filterIsInstance<PyNamedParameter>()
+            ?.filter { it.name?.matches(Regex("^_[^_].*")) == true }
+            ?.mapNotNull { argumentToParameter(it, context, typed) }
+    }
+
+    private fun getBaseSetting(pyClass: PyClass, context: TypeEvalContext): PyClass? {
+        pyClass.getSuperClasses(context).forEach {
+            return if (isBaseSetting(it)) {
+                it
+            } else {
+                getBaseSetting(it, context)
+            }
+        }
+        return null
+    }
+
     fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
         if (!isPydanticModel(pyClass, false, context)) return null
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
@@ -309,6 +331,16 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val typed = !init || getInstance(pyClass.project).currentInitTyped
         val collected = linkedMapOf<String, PyCallableParameter>()
+
+        if (isSubClassOfBaseSetting(pyClass, context)) {
+            getBaseSetting(pyClass, context)?.let { baseSetting ->
+                getBaseSettingInitParameters(baseSetting, context, typed)
+                    ?.map { parameter -> Pair(parameter.name, parameter) }
+                    ?.filterIsInstance<Pair<String, PyCallableParameter>>()
+                    ?.let { collected.putAll(it) }
+            }
+        }
+
         val pydanticVersion = getPydanticVersion(pyClass.project, context)
         val config = getConfig(pyClass, context, true)
         for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
@@ -323,6 +355,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
                 .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
+
         return PyCallableTypeImpl(collected.values.reversed(), clsType.toInstance())
     }
 
@@ -346,7 +379,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val defaultValueFromField = getDefaultValueForParameter(field, ellipsis, context, pydanticVersion, isDataclass)
         val defaultValue = when {
-            isBaseSetting(pyClass, context) -> ellipsis
+            isSubClassOfBaseSetting(pyClass, context) -> ellipsis
             else -> defaultValueFromField
         }
 
@@ -366,6 +399,25 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             getFieldName(field, context, config, pydanticVersion),
             typeForParameter,
             defaultValue
+        )
+    }
+
+    internal fun argumentToParameter(
+        parameter: PyNamedParameter,
+        context: TypeEvalContext,
+        typed: Boolean = true,
+    ): PyCallableParameter? {
+        val name = parameter.name ?: return null
+
+        val typeForParameter = when {
+            !typed -> null
+            else -> parameter.getArgumentType(context)
+        }
+
+        return PyCallableParameterImpl.nonPsi(
+            name,
+            typeForParameter,
+            parameter.defaultValue
         )
     }
 

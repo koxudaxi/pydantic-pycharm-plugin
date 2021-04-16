@@ -139,8 +139,12 @@ internal fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalCo
     return pyClass.isSubclass(BASE_MODEL_Q_NAME, context)
 }
 
-internal fun isBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean {
+internal fun isSubClassOfBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
+}
+
+internal fun isBaseSetting(pyClass: PyClass): Boolean {
+    return pyClass.qualifiedName == BASE_SETTINGS_Q_NAME
 }
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean {

@@ -25,7 +25,7 @@ class PydanticAnnotator : PyAnnotator() {
         holder.newSilentAnnotation(HighlightSeverity.INFORMATION).withFix(PydanticInsertArgumentsQuickFix(false)).create()
         unFilledArguments.filter { it.required }.nullize() ?: return
         val highlight = when {
-            isBaseSetting(pyClass, context) || pyCallExpression.arguments.any {(it as? PyStarArgument)?.isKeyword == true} -> HighlightSeverity.INFORMATION
+            isSubClassOfBaseSetting(pyClass, context) || pyCallExpression.arguments.any {(it as? PyStarArgument)?.isKeyword == true} -> HighlightSeverity.INFORMATION
             else -> HighlightSeverity.WARNING
         }
         holder.newSilentAnnotation(highlight).withFix(PydanticInsertArgumentsQuickFix(true)).range(TextRange.from(pyCallExpression.textOffset + pyCallExpression.textLength  - 1,1)).create()
