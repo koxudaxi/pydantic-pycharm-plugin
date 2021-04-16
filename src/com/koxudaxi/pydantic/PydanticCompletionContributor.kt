@@ -67,7 +67,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val parameter = typeProvider.fieldToParameter(pyTargetExpression, ellipsis, typeEvalContext, pyClass, pydanticVersion, config, isDataclass = isDataclass)
             val defaultValue = parameter?.defaultValue?.let {
                 when {
-                    parameter.defaultValue is PyNoneLiteralExpression && !isBaseSetting(pyClass, typeEvalContext) -> "=None"
+                    parameter.defaultValue is PyNoneLiteralExpression && !isSubClassOfBaseSetting(pyClass, typeEvalContext) -> "=None"
                     else -> parameter.defaultValueText?.let { "=$it" } ?: ""
                 }
             } ?: ""
