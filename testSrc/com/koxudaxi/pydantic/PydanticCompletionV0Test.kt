@@ -60,6 +60,7 @@ open class PydanticCompletionV0Test : PydanticTestCase(version = "v0") {
                         Pair("EnvironmentError", "builtins"),
                         Pair("IOError", "builtins"),
                         Pair("NotImplemented", "builtins"),
+                        Pair("WindowsError", "builtins"),
                         Pair("b_id", "null")
                 )
         )

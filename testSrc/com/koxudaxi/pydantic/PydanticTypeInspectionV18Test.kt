@@ -12,4 +12,7 @@ open class PydanticTypeInspectionV18Test : PydanticInspectionBase("v18") {
     fun testDynamicModel() {
         doTest()
     }
+    fun testDataclass() {
+        doTest()
+    }
 }

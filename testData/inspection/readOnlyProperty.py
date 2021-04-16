@@ -46,7 +46,7 @@ class G(BaseModel):
         allow_mutation=False
 G.abc =<EOLError descr="Expression expected"></EOLError>
 G.abc.lower()
-<error descr="Can't assign to function call">G.abc.lower()</error> = 'efg'
+<error descr="Cannot assign to function call">G.abc.lower()</error> = 'efg'
 
 
 class H:

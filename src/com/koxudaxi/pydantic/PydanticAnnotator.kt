@@ -12,9 +12,8 @@ import com.jetbrains.python.validation.PyAnnotator
 
 class PydanticAnnotator : PyAnnotator() {
     private val pydanticTypeProvider = PydanticTypeProvider()
-    override fun visitPyCallExpression(node: PyCallExpression?) {
+    override fun visitPyCallExpression(node: PyCallExpression) {
         super.visitPyCallExpression(node)
-        if (node == null) return
         annotatePydanticModelCallableExpression(node)
     }
 

@@ -3,7 +3,10 @@ package com.koxudaxi.pydantic
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.application.invokeLater
 import java.io.File
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createTempFile
 
+@ExperimentalPathApi
 open class PydanticInitializerTest : PydanticTestCase() {
     lateinit var pydanticConfigService: PydanticConfigService
     lateinit var testMethodName: String
@@ -18,7 +21,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
 
     private fun setUpPyProjectToml(runnable: () -> Unit) {
         setUpConfig()
-        val target = createTempFile(testMethodName)
+        val target = createTempFile(testMethodName).toFile()
         try {
             val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.toLowerCase()}/pyproject.toml")
             pydanticConfigService.pyprojectToml = target.path
@@ -34,7 +37,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
 
     private fun setUpMypyIni(runnable: () -> Unit) {
         setUpConfig()
-        val target = createTempFile(testMethodName)
+        val target = createTempFile(testMethodName).toFile()
         try {
             val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.toLowerCase()}/mypy.ini")
             pydanticConfigService.mypyIni = target.path
