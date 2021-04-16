@@ -7,6 +7,7 @@
     <h2>version 0.3.0</h2>
     <p>Features</p>
     <ul>
+        <li>Support extra init args on baseSetting [#276]</li>
         <li>Support PyCharm 2021.1 [#]</li>
     </ul>
     <h2>version 0.2.1</h2>
