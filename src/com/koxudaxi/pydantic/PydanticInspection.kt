@@ -106,7 +106,7 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectConfig(pyClass: PyClass) {
-            val pydanticVersion = getPydanticVersion(pyClass.project, myTypeEvalContext)
+            val pydanticVersion =  PydanticVersionService.getVersion(pyClass.project, myTypeEvalContext)
             if (pydanticVersion?.isAtLeast(1, 8) != true) return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             validateConfig(pyClass)?.forEach {

@@ -87,7 +87,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                                     config: HashMap<String, Any?>,
                                     excludes: HashSet<String>?,
                                     isDataclass: Boolean) {
-            val pydanticVersion = getPydanticVersion(pyClass.project, typeEvalContext)
+            val pydanticVersion =  PydanticVersionService.getVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
                     .filter { it.name != null }
                     .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }

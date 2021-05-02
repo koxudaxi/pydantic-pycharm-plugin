@@ -300,25 +300,6 @@ fun getPsiElementByQualifiedName(
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
 }
 
-fun getPydanticVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
-    val version = getPsiElementByQualifiedName(VERSION_QUALIFIED_NAME, project, context) as? PyTargetExpression
-        ?: return null
-    val versionString =
-        (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue
-            ?: (version.findAssignedValue() as? PyStringLiteralExpressionImpl)?.stringValue ?: return null
-    return pydanticVersionCache.getOrPut(versionString) {
-        val versionList = versionString.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
-        val pydanticVersion = when {
-            versionList.size == 1 -> KotlinVersion(versionList[0], 0)
-            versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
-            versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
-            else -> null
-        } ?: KotlinVersion(0, 0)
-        pydanticVersionCache[versionString] = pydanticVersion
-        pydanticVersion
-    }
-}
-
 fun isValidField(field: PyTargetExpression, context: TypeEvalContext): Boolean {
     if (!isValidFieldName(field.name)) return false
 
@@ -369,7 +350,7 @@ fun validateConfig(pyClass: PyClass): List<PsiElement>? {
 
 fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean, pydanticVersion: KotlinVersion? = null): HashMap<String, Any?> {
     val config = hashMapOf<String, Any?>()
-    val version = pydanticVersion ?: getPydanticVersion(pyClass.project, context)
+    val version = pydanticVersion ?: PydanticVersionService.getVersion(pyClass.project, context)
     pyClass.getAncestorClasses(context)
         .reversed()
         .filter { isPydanticModel(it, false) }
