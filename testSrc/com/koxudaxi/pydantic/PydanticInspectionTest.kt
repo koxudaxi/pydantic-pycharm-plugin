@@ -66,4 +66,12 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     fun testAnnotated() {
         doTest()
     }
+
+    fun testConfigDuplicate() {
+        doTest()
+    }
+
+    fun testKwargConfig() {
+        doTest()
+    }
 }
