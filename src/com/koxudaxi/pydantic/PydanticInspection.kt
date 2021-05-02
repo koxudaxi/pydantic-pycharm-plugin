@@ -70,7 +70,11 @@ class PydanticInspection : PyInspection() {
             inspectAnnotatedField(node)
         }
 
+        override fun visitPyClass(node: PyClass) {
+            super.visitPyClass(node)
 
+            inspectConfig(node)
+        }
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
             val pyClass = getPydanticPyClass(pyCallExpression, myTypeEvalContext) ?: return
             pyCallExpression.arguments
@@ -98,6 +102,17 @@ class PydanticInspection : PyInspection() {
                 registerProblem(pyCallExpression,
                         "You must have the config attribute orm_mode=True to use from_orm",
                         ProblemHighlightType.GENERIC_ERROR)
+            }
+        }
+
+        private fun inspectConfig(pyClass: PyClass) {
+            val pydanticVersion = getPydanticVersion(pyClass.project, myTypeEvalContext)
+            if (pydanticVersion?.isAtLeast(1, 8) != true) return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            validateConfig(pyClass)?.forEach {
+                registerProblem(it,
+                    "Specifying config in two places is ambiguous, use either Config attribute or class kwargs",
+                    ProblemHighlightType.GENERIC_ERROR)
             }
         }
 

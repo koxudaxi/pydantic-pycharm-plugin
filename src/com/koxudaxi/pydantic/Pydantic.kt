@@ -356,12 +356,24 @@ fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     }
 }
 
-fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): HashMap<String, Any?> {
+fun validateConfig(pyClass: PyClass): List<PsiElement>? {
+    val configClass = pyClass.nestedClasses.firstOrNull { isConfigClass(it) } ?: return null
+
+    val configKwargs = pyClass.superClassExpressions.filterIsInstance<PyKeywordArgument>()
+        .takeIf { it.isNotEmpty() } ?: return null
+
+    val results: MutableList<PsiElement> = configKwargs.toMutableList()
+    configClass.nameNode?.psi?.let { results.add(it) }
+    return results
+}
+
+fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean, pydanticVersion: KotlinVersion? = null): HashMap<String, Any?> {
     val config = hashMapOf<String, Any?>()
+    val version = pydanticVersion ?: getPydanticVersion(pyClass.project, context)
     pyClass.getAncestorClasses(context)
         .reversed()
         .filter { isPydanticModel(it, false) }
-        .map { getConfig(it, context, false) }
+        .map { getConfig(it, context, false, version) }
         .forEach {
             it.entries.forEach { entry ->
                 if (entry.value != null) {
@@ -375,6 +387,14 @@ fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean): 
                 attribute.name?.let { name ->
                     config[name] = getConfigValue(name, value, context)
                 }
+            }
+        }
+    }
+
+    if (version?.isAtLeast(1, 8) == true) {
+        pyClass.superClassExpressions.filterIsInstance<PyKeywordArgument>().forEach {
+            it.name?.let { name ->
+                config[name] = getConfigValue(name, it.valueExpression, context)
             }
         }
     }
