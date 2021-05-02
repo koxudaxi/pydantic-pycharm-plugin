@@ -7,6 +7,7 @@
     <h2>version 0.3.1</h2>
     <p>Features</p>
     <ul>
+        <li>Improve handling pydantic version [#286]</li>
         <li>Support config parameters on class kwargs [#285]</li>
     </ul>
     <h2>version 0.3.0</h2>
