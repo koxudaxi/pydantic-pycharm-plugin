@@ -131,11 +131,12 @@ class PydanticInspection : PyInspection() {
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return
             val config = getConfig(pyClass, myTypeEvalContext, true)
-            if (config["allow_mutation"] != false) return
-            registerProblem(node,
-                "Property \"${attributeName}\" defined in \"${pyClass.name}\" is read-only",
-                ProblemHighlightType.GENERIC_ERROR)
-
+            val version = PydanticVersionService.getVersion(pyClass.project, myTypeEvalContext)
+            if (config["allow_mutation"] == false || (version?.isAtLeast(1, 8) == true && config["frozen"] == true)) {
+                registerProblem(node,
+                    "Property \"${attributeName}\" defined in \"${pyClass.name}\" is read-only",
+                    ProblemHighlightType.GENERIC_ERROR)
+            }
         }
 
         private fun inspectWarnUntypedFields(node: PyAssignmentStatement) {

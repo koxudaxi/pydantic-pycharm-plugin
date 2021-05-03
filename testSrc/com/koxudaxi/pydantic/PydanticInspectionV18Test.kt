@@ -16,4 +16,12 @@ open class PydanticInspectionV18Test : PydanticInspectionBase(version = "v18") {
     fun testKwargConfig() {
         doTest()
     }
+
+    fun testReadOnlyProperty() {
+        doTest()
+    }
+
+    fun testReadOnlyPropertyFrozen() {
+        doTest()
+    }
 }

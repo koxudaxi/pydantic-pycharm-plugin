@@ -38,6 +38,7 @@ class BaseConfig:
     validate_all = False
     extra = Extra.ignore
     allow_mutation = True
+    frozen = False
     allow_population_by_field_name = False
     use_enum_values = False
     fields = {}

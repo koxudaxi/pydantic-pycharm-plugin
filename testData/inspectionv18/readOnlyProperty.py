@@ -53,9 +53,3 @@ class H:
     class Config:
         allow_mutation=False
 H.abc = '123'
-
-class I(BaseModel):
-    abc: str = '123'
-    class Config:
-        frozen=False
-I.abc = '456'
