@@ -9,7 +9,7 @@ open class PydanticRefactorTest : PydanticTestCase() {
 
     }
 
-    private fun doRefactorTest(newName: String = "cde", isApplicable: Boolean = true, skipCheck: Boolean =false) {
+    private fun doRefactorTest(newName: String = "cde", isApplicable: Boolean = true, skipCheck: Boolean = false) {
         configureByFile()
         val pydanticFieldRenameFactory = PydanticFieldRenameFactory()
         if (!skipCheck) {
@@ -18,7 +18,9 @@ open class PydanticRefactorTest : PydanticTestCase() {
             if (!isApplicable) return
         }
 
-        pydanticFieldRenameFactory.createRenamer(myFixture!!.elementAtCaret, newName, ArrayList()).renames.forEach { (t, u) ->
+        pydanticFieldRenameFactory.createRenamer(myFixture!!.elementAtCaret,
+            newName,
+            ArrayList()).renames.forEach { (t, u) ->
             if (t.name != newName) {
                 myFixture!!.renameElement(t, u)
             }

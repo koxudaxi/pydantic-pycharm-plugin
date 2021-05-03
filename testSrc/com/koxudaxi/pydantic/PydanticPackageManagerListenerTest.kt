@@ -8,7 +8,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.psi.types.TypeEvalContext
 import com.jetbrains.python.sdk.PythonSdkUtil
-import junit.framework.TestCase
 
 
 open class PydanticPackageManagerListenerTest : PydanticTestCase() {
@@ -20,7 +19,8 @@ open class PydanticPackageManagerListenerTest : PydanticTestCase() {
             pydanticStubDir = skeleton.createChildDirectory(null, "pydantic")
             assertTrue(pydanticStubDir!!.exists())
         }
-        BackgroundTaskUtil.syncPublisher(myFixture!!.project, PyPackageManager.PACKAGE_MANAGER_TOPIC).packagesRefreshed(sdk)
+        BackgroundTaskUtil.syncPublisher(myFixture!!.project, PyPackageManager.PACKAGE_MANAGER_TOPIC)
+            .packagesRefreshed(sdk)
         invokeLater {
             assertFalse(pydanticStubDir!!.exists())
         }
@@ -32,7 +32,7 @@ open class PydanticPackageManagerListenerTest : PydanticTestCase() {
         val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
 
         val pydanticVersion = PydanticVersionService.getVersion(project, context)
-        assertEquals(KotlinVersion(1, 0,1), pydanticVersion)
+        assertEquals(KotlinVersion(1, 0, 1), pydanticVersion)
 
         BackgroundTaskUtil.syncPublisher(project, PyPackageManager.PACKAGE_MANAGER_TOPIC).packagesRefreshed(sdk)
         invokeLater {

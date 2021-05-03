@@ -33,17 +33,20 @@ class PydanticVersionService {
         if (version != null) return version
         return getVersion(project, context).apply { version = this }
     }
+
     private fun clear() {
-       version = null
+        version = null
     }
 
     companion object {
         fun getVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
             return getInstance(project).getOrPutVersion(project, context)
         }
+
         fun clear(project: Project) {
             return getInstance(project).clear()
         }
+
         private fun getInstance(project: Project): PydanticVersionService {
             return ServiceManager.getService(project, PydanticVersionService::class.java)
         }

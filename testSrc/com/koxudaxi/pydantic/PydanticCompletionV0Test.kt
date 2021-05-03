@@ -21,48 +21,48 @@ open class PydanticCompletionV0Test : PydanticTestCase(version = "v0") {
 
     fun testFieldSchema() {
         doFieldTest(
-                listOf(
-                        Pair("a_id","str A"),
-                        Pair("abc", "str A"),
-                        Pair("b_id","str A"),
-                        Pair("c_id","str A"),
-                        Pair("cde", "str=str('abc') A"),
-                        Pair("d_id", "str A"),
-                        Pair("e_id", "str A"),
-                        Pair("efg", "str=str('abc') A"),
-                        Pair("f_id", "str A"),
-                        Pair("g_id", "str=get_alias() A"),
-                        Pair("hij", "Any A"),
-                        Pair("___slots__", "BaseModel"),
-                        Pair("__annotations__", "object"),
-                        Pair("__dict__", "object"),
-                        Pair("__slots__", "object")
-                )
+            listOf(
+                Pair("a_id", "str A"),
+                Pair("abc", "str A"),
+                Pair("b_id", "str A"),
+                Pair("c_id", "str A"),
+                Pair("cde", "str=str('abc') A"),
+                Pair("d_id", "str A"),
+                Pair("e_id", "str A"),
+                Pair("efg", "str=str('abc') A"),
+                Pair("f_id", "str A"),
+                Pair("g_id", "str=get_alias() A"),
+                Pair("hij", "Any A"),
+                Pair("___slots__", "BaseModel"),
+                Pair("__annotations__", "object"),
+                Pair("__dict__", "object"),
+                Pair("__slots__", "object")
+            )
         )
     }
 
 
     fun testKeywordArgumentSchema() {
         doFieldTest(
-                listOf(
-                        Pair("abc=", "str A"),
-                        Pair("alias_a_id=", "str A"),
-                        Pair("alias_b_id=", "str A"),
-                        Pair("c_id=", "str A"),
-                        Pair("cde=", "str=str('abc') A"),
-                        Pair("d_id=", "str A"),
-                        Pair("e_id=", "str A"),
-                        Pair("efg=", "str=str('abc') A"),
-                        Pair("f_id=", "str A"),
-                        Pair("g_id=", "str=get_alias() A"),
-                        Pair("hij=", "Any A"),
-                        Pair("Ellipsis", "builtins"),
-                        Pair("EnvironmentError", "builtins"),
-                        Pair("IOError", "builtins"),
-                        Pair("NotImplemented", "builtins"),
-                        Pair("WindowsError", "builtins"),
-                        Pair("b_id", "null")
-                )
+            listOf(
+                Pair("abc=", "str A"),
+                Pair("alias_a_id=", "str A"),
+                Pair("alias_b_id=", "str A"),
+                Pair("c_id=", "str A"),
+                Pair("cde=", "str=str('abc') A"),
+                Pair("d_id=", "str A"),
+                Pair("e_id=", "str A"),
+                Pair("efg=", "str=str('abc') A"),
+                Pair("f_id=", "str A"),
+                Pair("g_id=", "str=get_alias() A"),
+                Pair("hij=", "Any A"),
+                Pair("Ellipsis", "builtins"),
+                Pair("EnvironmentError", "builtins"),
+                Pair("IOError", "builtins"),
+                Pair("NotImplemented", "builtins"),
+                Pair("WindowsError", "builtins"),
+                Pair("b_id", "null")
+            )
         )
     }
 

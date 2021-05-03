@@ -13,11 +13,14 @@ import com.jetbrains.extensions.QNameResolveContext
 import com.jetbrains.extensions.resolveToElement
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.*
+import com.jetbrains.python.psi.impl.PyStarArgumentImpl
+import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.*
-import com.jetbrains.python.sdk.*
+import com.jetbrains.python.sdk.PythonSdkUtil
+import com.jetbrains.python.sdk.isAssociatedWithModule
+import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
 
@@ -348,7 +351,12 @@ fun validateConfig(pyClass: PyClass): List<PsiElement>? {
     return results
 }
 
-fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean, pydanticVersion: KotlinVersion? = null): HashMap<String, Any?> {
+fun getConfig(
+    pyClass: PyClass,
+    context: TypeEvalContext,
+    setDefault: Boolean,
+    pydanticVersion: KotlinVersion? = null,
+): HashMap<String, Any?> {
     val config = hashMapOf<String, Any?>()
     val version = pydanticVersion ?: PydanticVersionService.getVersion(pyClass.project, context)
     pyClass.getAncestorClasses(context)

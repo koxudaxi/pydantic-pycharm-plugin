@@ -41,53 +41,53 @@ class PydanticInitializer : StartupActivity {
 
         invokeAfterPsiEvents {
             LocalFileSystem.getInstance()
-                    .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
-                    ?.also { loadPyprojectToml(project, it, configService) }
-                    ?: run { clearPyProjectTomlConfig(configService) }
+                .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
+                ?.also { loadPyprojectToml(project, it, configService) }
+                ?: run { clearPyProjectTomlConfig(configService) }
             LocalFileSystem.getInstance()
-                    .findFileByPath(configService.mypyIni ?: defaultMypyIni)
-                    ?.also { loadMypyIni(it, configService) }
-                    ?: run { clearMypyIniConfig(configService) }
+                .findFileByPath(configService.mypyIni ?: defaultMypyIni)
+                ?.also { loadMypyIni(it, configService) }
+                ?: run { clearMypyIniConfig(configService) }
         }
 
         VirtualFileManager.getInstance().addAsyncFileListener(
-                { events ->
-                    object : AsyncFileListener.ChangeApplier {
-                        override fun afterVfsChange() {
-                            if (project.isDisposed) return
-                            try {
-                                val projectFiles = events
-                                        .asSequence()
-                                        .filter {
-                                            it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent || it is VFileCreateEvent || it is VFileDeleteEvent
-                                        }.mapNotNull { it.file }
-                                        .filter {
-                                            try {
-                                                ProjectFileIndex.getInstance(project).isInContent(it)
-                                            } catch (e: AlreadyDisposedException) {
-                                                false
-                                            }
-                                        }
-                                if (projectFiles.count() == 0) return
-                                val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
-                                val mypyIni = configService.mypyIni ?: defaultMypyIni
-                                invokeAfterPsiEvents {
-                                    projectFiles
-                                            .asSequence()
-                                            .forEach {
-                                                when (it.path) {
-                                                    pyprojectToml -> loadPyprojectToml(project, it, configService)
-                                                    mypyIni -> loadMypyIni(it, configService)
-                                                }
-                                            }
+            { events ->
+                object : AsyncFileListener.ChangeApplier {
+                    override fun afterVfsChange() {
+                        if (project.isDisposed) return
+                        try {
+                            val projectFiles = events
+                                .asSequence()
+                                .filter {
+                                    it is VFileContentChangeEvent || it is VFileMoveEvent || it is VFileCopyEvent || it is VFileCreateEvent || it is VFileDeleteEvent
+                                }.mapNotNull { it.file }
+                                .filter {
+                                    try {
+                                        ProjectFileIndex.getInstance(project).isInContent(it)
+                                    } catch (e: AlreadyDisposedException) {
+                                        false
+                                    }
                                 }
-
-                            } catch (e: AlreadyDisposedException) {
+                            if (projectFiles.count() == 0) return
+                            val pyprojectToml = configService.pyprojectToml ?: defaultPyProjectToml
+                            val mypyIni = configService.mypyIni ?: defaultMypyIni
+                            invokeAfterPsiEvents {
+                                projectFiles
+                                    .asSequence()
+                                    .forEach {
+                                        when (it.path) {
+                                            pyprojectToml -> loadPyprojectToml(project, it, configService)
+                                            mypyIni -> loadMypyIni(it, configService)
+                                        }
+                                    }
                             }
+
+                        } catch (e: AlreadyDisposedException) {
                         }
                     }
-                },
-                {}
+                }
+            },
+            {}
         )
     }
 
@@ -137,8 +137,10 @@ class PydanticInitializer : StartupActivity {
             configService.acceptableTypeMap = getTypeMap(project, "acceptable-types", table, it)
         }
 
-        configService.parsableTypeHighlightType = getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
-        configService.acceptableTypeHighlightType = getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)
+        configService.parsableTypeHighlightType =
+            getHighlightLevel(table, "parsable-type-highlight", ProblemHighlightType.WARNING)
+        configService.acceptableTypeHighlightType =
+            getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)
 
     }
 
@@ -151,17 +153,22 @@ class PydanticInitializer : StartupActivity {
         }
     }
 
-    private fun getTypeMap(project: Project, path: String, table: TomlTable, context: TypeEvalContext): Map<String, List<String>> {
+    private fun getTypeMap(
+        project: Project,
+        path: String,
+        table: TomlTable,
+        context: TypeEvalContext,
+    ): Map<String, List<String>> {
         return table.getTableOrEmpty(path).toMap().mapNotNull { entry ->
             getPsiElementByQualifiedName(QualifiedName.fromDottedString(entry.key), project, context)
-                    .let { psiElement -> (psiElement as? PyQualifiedNameOwner)?.qualifiedName ?: entry.key }
-                    .let { name ->
-                        (entry.value as? TomlArray)
-                                ?.toList()
-                                ?.filterIsInstance<String>()
-                                .takeIf { it?.isNotEmpty() == true }
-                                ?.let { name to it }
-                    }
+                .let { psiElement -> (psiElement as? PyQualifiedNameOwner)?.qualifiedName ?: entry.key }
+                .let { name ->
+                    (entry.value as? TomlArray)
+                        ?.toList()
+                        ?.filterIsInstance<String>()
+                        .takeIf { it?.isNotEmpty() == true }
+                        ?.let { name to it }
+                }
         }.toMap()
     }
 

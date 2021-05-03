@@ -17,14 +17,19 @@ import com.jetbrains.python.psi.types.PyLiteralType.Companion.promoteToLiteral
 import com.jetbrains.python.psi.types.PyTypedDictType.Companion.match
 
 class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
-    override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
+    override fun buildVisitor(
+        holder: ProblemsHolder,
+        isOnTheFly: Boolean,
+        session: LocalInspectionToolSession,
+    ): PsiElementVisitor {
         if (LOG.isDebugEnabled) {
             session.putUserData(TIME_KEY, System.nanoTime())
         }
         return Visitor(holder, session)
     }
 
-    class Visitor(holder: ProblemsHolder?, session: LocalInspectionToolSession) : PyTypeCheckerInspection.Visitor(holder, session) {
+    class Visitor(holder: ProblemsHolder?, session: LocalInspectionToolSession) :
+        PyTypeCheckerInspection.Visitor(holder, session) {
 
         val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
 
@@ -41,27 +46,34 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
 
         private fun checkCallSiteForPydantic(callSite: PyCallSiteExpression) {
             PyCallExpressionHelper.mapArguments(callSite, resolveContext)
-                    .filter { mapping: PyArgumentsMapping? -> mapping!!.unmappedArguments.isEmpty() && mapping.unmappedParameters.isEmpty() }
-                    .forEach { mapping: PyArgumentsMapping -> analyzeCallee(callSite, mapping) }
+                .filter { mapping: PyArgumentsMapping? -> mapping!!.unmappedArguments.isEmpty() && mapping.unmappedParameters.isEmpty() }
+                .forEach { mapping: PyArgumentsMapping -> analyzeCallee(callSite, mapping) }
         }
 
         private fun getParsableTypeFromTypeMap(typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
             return getTypeFromTypeMap(
-                    { project: Project -> PydanticConfigService.getInstance(project).parsableTypeMap },
-                    typeForParameter,
-                    cache
+                { project: Project -> PydanticConfigService.getInstance(project).parsableTypeMap },
+                typeForParameter,
+                cache
             )
         }
 
-        private fun getAcceptableTypeFromTypeMap(typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
+        private fun getAcceptableTypeFromTypeMap(
+            typeForParameter: PyType,
+            cache: MutableMap<PyType, PyType?>,
+        ): PyType? {
             return getTypeFromTypeMap(
-                    { project: Project -> PydanticConfigService.getInstance(project).acceptableTypeMap },
-                    typeForParameter,
-                    cache
+                { project: Project -> PydanticConfigService.getInstance(project).acceptableTypeMap },
+                typeForParameter,
+                cache
             )
         }
 
-        private fun getTypeFromTypeMap(getTypeMap: (project: Project) -> (Map<String, List<String>>), typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
+        private fun getTypeFromTypeMap(
+            getTypeMap: (project: Project) -> (Map<String, List<String>>),
+            typeForParameter: PyType,
+            cache: MutableMap<PyType, PyType?>,
+        ): PyType? {
             if (cache.containsKey(typeForParameter)) {
                 return cache[typeForParameter]
             }
@@ -99,60 +111,72 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                 val strictMatched = matchParameterAndArgument(expected, actual, argument, substitutions)
                 val strictResult = AnalyzeArgumentResult(expected, actual, strictMatched)
                 if (!strictResult.isMatched) {
-                    val expectedType = PythonDocumentationProvider.getTypeName(strictResult.expectedType, myTypeEvalContext)
+                    val expectedType =
+                        PythonDocumentationProvider.getTypeName(strictResult.expectedType, myTypeEvalContext)
                     val actualType = PythonDocumentationProvider.getTypeName(strictResult.actualType, myTypeEvalContext)
                     if (expected is PyType) {
                         val parsableType = getParsableTypeFromTypeMap(expected, cachedParsableTypeMap)
                         if (parsableType != null) {
-                            val parsableMatched = matchParameterAndArgument(parsableType, actual, argument, substitutions)
+                            val parsableMatched =
+                                matchParameterAndArgument(parsableType, actual, argument, substitutions)
                             if (AnalyzeArgumentResult(parsableType, actual, parsableMatched).isMatched) {
                                 registerProblem(
-                                        argument,
-                                        String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
-                                                expectedType,
-                                                actualType,
-                                                expectedType),
-                                        pydanticConfigService.parsableTypeHighlightType
+                                    argument,
+                                    String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
+                                        expectedType,
+                                        actualType,
+                                        expectedType),
+                                    pydanticConfigService.parsableTypeHighlightType
                                 )
                                 continue
                             }
                         }
                         val acceptableType = getAcceptableTypeFromTypeMap(expected, cachedAcceptableTypeMap)
                         if (acceptableType != null) {
-                            val acceptableMatched = matchParameterAndArgument(acceptableType, actual, argument, substitutions)
+                            val acceptableMatched =
+                                matchParameterAndArgument(acceptableType, actual, argument, substitutions)
                             if (AnalyzeArgumentResult(acceptableType, actual, acceptableMatched).isMatched) {
                                 registerProblem(
-                                        argument,
-                                        String.format("Field is of type '%s', '%s' is set as an acceptable type in pyproject.toml",
-                                                expectedType,
-                                                actualType,
-                                                expectedType),
-                                        pydanticConfigService.acceptableTypeHighlightType
+                                    argument,
+                                    String.format("Field is of type '%s', '%s' is set as an acceptable type in pyproject.toml",
+                                        expectedType,
+                                        actualType,
+                                        expectedType),
+                                    pydanticConfigService.acceptableTypeHighlightType
                                 )
                                 continue
                             }
                         }
                     }
                     registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
-                            expectedType,
-                            actualType)
+                        expectedType,
+                        actualType)
                     )
                 }
             }
         }
 
-        private fun matchParameterAndArgument(parameterType: PyType?,
-                                              argumentType: PyType?,
-                                              argument: PyExpression?,
-                                              substitutions: Map<PyGenericType, PyType>): Boolean {
-            return if (parameterType is PyTypedDictType && argument is PyDictLiteralExpression) match((parameterType as PyTypedDictType?)!!, (argument as PyDictLiteralExpression?)!!, myTypeEvalContext) else PyTypeChecker.match(parameterType, argumentType, myTypeEvalContext, substitutions) &&
+        private fun matchParameterAndArgument(
+            parameterType: PyType?,
+            argumentType: PyType?,
+            argument: PyExpression?,
+            substitutions: Map<PyGenericType, PyType>,
+        ): Boolean {
+            return if (parameterType is PyTypedDictType && argument is PyDictLiteralExpression) match((parameterType as PyTypedDictType?)!!,
+                (argument as PyDictLiteralExpression?)!!,
+                myTypeEvalContext) else PyTypeChecker.match(parameterType,
+                argumentType,
+                myTypeEvalContext,
+                substitutions) &&
                     !matchingProtocolDefinitions(parameterType, argumentType, myTypeEvalContext)
         }
     }
 
-    internal class AnalyzeArgumentResult(val expectedType: PyType?,
-                                         val actualType: PyType?,
-                                         val isMatched: Boolean)
+    internal class AnalyzeArgumentResult(
+        val expectedType: PyType?,
+        val actualType: PyType?,
+        val isMatched: Boolean,
+    )
 
     companion object {
         private val LOG = Logger.getInstance(PydanticTypeCheckerInspection::class.java.name)

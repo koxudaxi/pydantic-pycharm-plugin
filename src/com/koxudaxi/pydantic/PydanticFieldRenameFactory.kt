@@ -23,7 +23,8 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                 if (isPydanticModel(pyClass, true)) return true
             }
             is PyKeywordArgument -> {
-                val pyClass = getPyClassByPyKeywordArgument(element, TypeEvalContext.codeAnalysis(element.project, element.containingFile)) ?: return false
+                val pyClass = getPyClassByPyKeywordArgument(element,
+                    TypeEvalContext.codeAnalysis(element.project, element.containingFile)) ?: return false
                 if (isPydanticModel(pyClass, true)) return true
             }
         }
@@ -53,17 +54,18 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                 is PyTargetExpression ->
                     element.name?.let { name ->
                         element.containingClass
-                                ?.let { pyClass ->
-                                    addAllElement(pyClass, name, added)
-                                }
+                            ?.let { pyClass ->
+                                addAllElement(pyClass, name, added)
+                            }
                         suggestAllNames(name, newName)
                     }
                 is PyKeywordArgument ->
                     element.name?.let { name ->
-                        getPyClassByPyKeywordArgument(element, TypeEvalContext.userInitiated(element.project, element.containingFile))
-                                ?.let { pyClass ->
-                                    addAllElement(pyClass, name, added)
-                                }
+                        getPyClassByPyKeywordArgument(element,
+                            TypeEvalContext.userInitiated(element.project, element.containingFile))
+                            ?.let { pyClass ->
+                                addAllElement(pyClass, name, added)
+                            }
                         suggestAllNames(name, newName)
                     }
             }
@@ -74,12 +76,12 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
             addClassAttributes(pyClass, elementName)
             addKeywordArguments(pyClass, elementName)
             pyClass.getAncestorClasses(null)
-                    .filter { isPydanticModel(it, true) && !added.contains(it) }
-                    .forEach { addAllElement(it, elementName, added) }
+                .filter { isPydanticModel(it, true) && !added.contains(it) }
+                .forEach { addAllElement(it, elementName, added) }
 
             PyClassInheritorsSearch.search(pyClass, true)
-                    .filterNot { added.contains(it) }
-                    .forEach { addAllElement(it, elementName, added) }
+                .filterNot { added.contains(it) }
+                .forEach { addAllElement(it, elementName, added) }
         }
 
         private fun addClassAttributes(pyClass: PyClass, elementName: String) {
@@ -90,12 +92,12 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
         private fun addKeywordArguments(pyClass: PyClass, elementName: String) {
             ReferencesSearch.search(pyClass as PsiElement).forEach { psiReference ->
                 PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
-                        ?.let { callee ->
-                            callee.arguments
-                                    .filterIsInstance<PyKeywordArgument>()
-                                    .filter { it.name == elementName }
-                                    .forEach { myElements.add(it) }
-                        }
+                    ?.let { callee ->
+                        callee.arguments
+                            .filterIsInstance<PyKeywordArgument>()
+                            .filter { it.name == elementName }
+                            .forEach { myElements.add(it) }
+                    }
             }
         }
 

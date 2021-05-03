@@ -12,7 +12,7 @@ open class PydanticInspectionV18Test : PydanticInspectionBase(version = "v18") {
     fun testConfigDuplicate() {
         doTest()
     }
-    
+
     fun testKwargConfig() {
         doTest()
     }

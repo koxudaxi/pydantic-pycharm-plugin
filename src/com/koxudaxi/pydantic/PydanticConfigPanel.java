@@ -16,6 +16,12 @@ import javax.swing.text.html.StyleSheet;
 
 public class PydanticConfigPanel {
 
+    private JPanel configPanel;
+    private JCheckBox initTypedCheckBox;
+    private JTextPane ifEnabledIncludeTheTextPane;
+    private JCheckBox warnUntypedFieldsCheckBox;
+    private JTextPane ifEnabledRaiseATextPane;
+    private JTextPane textPane1;
     PydanticConfigPanel(Project project) {
         PydanticConfigService pydanticConfigService = PydanticConfigService.Companion.getInstance(project);
 
@@ -32,13 +38,6 @@ public class PydanticConfigPanel {
 
         setHyperlinkHtml(this.textPane1, "See <a href=\"https://koxudaxi.github.io/pydantic-pycharm-plugin/\">documentation</a> for more details.</p>");
     }
-
-    private JPanel configPanel;
-    private JCheckBox initTypedCheckBox;
-    private JTextPane ifEnabledIncludeTheTextPane;
-    private JCheckBox warnUntypedFieldsCheckBox;
-    private JTextPane ifEnabledRaiseATextPane;
-    private JTextPane textPane1;
 
     public Boolean getInitTyped() {
         return initTypedCheckBox.isSelected();

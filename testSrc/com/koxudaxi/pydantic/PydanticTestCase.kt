@@ -57,7 +57,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
         val fixtureBuilder = factory.createLightFixtureBuilder(projectDescriptor)
         val fixture = fixtureBuilder.fixture
         myFixture = IdeaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(fixture,
-                LightTempDirTestFixtureImpl(true))
+            LightTempDirTestFixtureImpl(true))
         myFixture!!.testDataPath = testDataPath
 
         myFixture!!.setUp()
@@ -72,9 +72,9 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
         runWriteAction {
             val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
             myFixture!!.tempDirFixture.findOrCreateDir(PythonSdkUtil.SKELETON_DIR_NAME)
-                    .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
+                .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
             val libDir = myFixture!!.tempDirFixture.findOrCreateDir("Lib")
-                    .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
+                .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
             libDir.createChildDirectory(null, PyNames.SITE_PACKAGES)
         }
 
@@ -89,7 +89,8 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
             removeSourceRoot(myFixture!!.module, packageDir!!)
             myFixture?.tearDown()
             myFixture = null
-            FilePropertyPusher.EP_NAME.findExtensionOrFail(PythonLanguageLevelPusher::class.java).flushLanguageLevelCache()
+            FilePropertyPusher.EP_NAME.findExtensionOrFail(PythonLanguageLevelPusher::class.java)
+                .flushLanguageLevelCache()
         } catch (e: Throwable) {
             addSuppressedException(e)
         } finally {

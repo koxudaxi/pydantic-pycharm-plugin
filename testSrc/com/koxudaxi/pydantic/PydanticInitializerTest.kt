@@ -53,10 +53,11 @@ open class PydanticInitializerTest : PydanticTestCase() {
             initializeFileLoader()
             invokeLater {
                 assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf(
-                        "pydantic.HttpUrl" to listOf("str"),
-                        "datetime.datetime" to listOf("int")
+                    "pydantic.HttpUrl" to listOf("str"),
+                    "datetime.datetime" to listOf("int")
                 ))
-                assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf("str" to listOf("int", "float")))
+                assertEquals(this.pydanticConfigService.acceptableTypeMap,
+                    mutableMapOf("str" to listOf("int", "float")))
                 assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
                 assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)
             }

@@ -21,7 +21,13 @@ import java.util.regex.Pattern
 
 class PydanticTypedValidatorMethodHandler : TypedHandlerDelegate() {
 
-    override fun beforeCharTyped(character: Char, project: Project, editor: Editor, file: PsiFile, fileType: FileType): Result {
+    override fun beforeCharTyped(
+        character: Char,
+        project: Project,
+        editor: Editor,
+        file: PsiFile,
+        fileType: FileType,
+    ): Result {
         if (DumbService.isDumb(project) || fileType !is PythonFileType) return Result.CONTINUE
         if (character == '(') {
             if (!PyCodeInsightSettings.getInstance().INSERT_SELF_FOR_METHODS) {
@@ -64,7 +70,10 @@ class PydanticTypedValidatorMethodHandler : TypedHandlerDelegate() {
                     if (caretOffset == chars.length || chars[caretOffset] != ':') {
                         textToType.append(':')
                     }
-                    EditorModificationUtil.insertStringAtCaret(editor, textToType.toString(), true, 3 + PyNames.CANONICAL_CLS.length)
+                    EditorModificationUtil.insertStringAtCaret(editor,
+                        textToType.toString(),
+                        true,
+                        3 + PyNames.CANONICAL_CLS.length)
                     return Result.STOP
                 }
             }

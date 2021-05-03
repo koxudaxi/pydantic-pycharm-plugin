@@ -7,6 +7,7 @@ class PydanticInsertArgumentsQuickFixTest : PydanticTestCase() {
         myFixture!!.checkResultByFile("${testDataMethodPath}_after.py")
 
     }
+
     private fun doTest(onlyRequired: Boolean) {
         configureByFile()
         val quickFix = PydanticInsertArgumentsQuickFix(onlyRequired)
@@ -19,24 +20,31 @@ class PydanticInsertArgumentsQuickFixTest : PydanticTestCase() {
     fun testNoArguments() {
         doTest(false)
     }
+
     fun testNoArgumentsOnlyRequired() {
         doTest(true)
     }
+
     fun testPartArguments() {
         doTest(false)
     }
+
     fun testNestedPartArguments() {
         doTest(false)
     }
+
     fun testNestedOtherObject() {
         doTest(false)
     }
+
     fun testPartArgumentsOnlyRequired() {
         doTest(true)
     }
+
     fun testLastChar() {
         doTest(false)
     }
+
     fun testLastCharOnlyRequired() {
         doTest(true)
     }
