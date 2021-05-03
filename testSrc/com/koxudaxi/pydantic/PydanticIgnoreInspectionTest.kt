@@ -7,7 +7,6 @@ import com.jetbrains.python.psi.types.TypeEvalContext
 open class PydanticIgnoreInspectionTest : PydanticTestCase() {
 
 
-
     private fun doTest(expected: Boolean) {
         configureByFile()
         val pyFunction = myFixture!!.elementAtCaret as PyFunction

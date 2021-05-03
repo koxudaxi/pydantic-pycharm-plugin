@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Project descriptor (extracted from {@link com.jetbrains.python.fixtures.PyTestCase}) and should be used with it.
+ *
  * @author Ilya.Kazakevich
  */
 public class PyLightProjectDescriptor extends LightProjectDescriptor {

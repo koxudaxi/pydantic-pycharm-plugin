@@ -11,7 +11,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.containers.nullize
-import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.PyCallExpression
+import com.jetbrains.python.psi.PyElementGenerator
+import com.jetbrains.python.psi.PyFile
 import com.jetbrains.python.psi.types.PyCallableParameter
 import com.jetbrains.python.psi.types.TypeEvalContext
 

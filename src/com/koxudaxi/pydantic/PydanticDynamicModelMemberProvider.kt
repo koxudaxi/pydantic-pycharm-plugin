@@ -3,7 +3,9 @@ package com.koxudaxi.pydantic
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.codeInsight.PyCustomMember
 import com.jetbrains.python.psi.resolve.PyResolveContext
-import com.jetbrains.python.psi.types.*
+import com.jetbrains.python.psi.types.PyClassMembersProviderBase
+import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.TypeEvalContext
 
 class PydanticDynamicModelMemberProvider : PyClassMembersProviderBase() {
     override fun resolveMember(

@@ -74,23 +74,23 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
-    fun testBaseSetting (){
+    fun testBaseSetting() {
         doTest()
     }
 
-    fun testInitAncestor () {
+    fun testInitAncestor() {
         doTest()
     }
 
-    fun testInitAncestorInvalid () {
+    fun testInitAncestorInvalid() {
         doTest()
     }
 
-    fun testInit () {
+    fun testInit() {
         doTest()
     }
 
-    fun testInitInvalid () {
+    fun testInitInvalid() {
         doTest()
     }
 

@@ -8,7 +8,8 @@ import com.intellij.psi.PsiLanguageInjectionHost
 import com.jetbrains.python.codeInsight.PyInjectionUtil
 import com.jetbrains.python.codeInsight.PyInjectorBase
 import com.jetbrains.python.codeInsight.regexp.PythonRegexpLanguage
-import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.PyFile
+import com.jetbrains.python.psi.StringLiteralExpression
 
 class PydanticRegexInjector : PyInjectorBase() {
     override fun registerInjection(

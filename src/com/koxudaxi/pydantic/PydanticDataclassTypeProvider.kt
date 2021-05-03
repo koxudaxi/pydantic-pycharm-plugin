@@ -3,7 +3,8 @@ package com.koxudaxi.pydantic
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.*
+import com.jetbrains.python.psi.impl.PyCallExpressionImpl
+import com.jetbrains.python.psi.impl.PyCallExpressionNavigator
 import com.jetbrains.python.psi.types.*
 
 /**
