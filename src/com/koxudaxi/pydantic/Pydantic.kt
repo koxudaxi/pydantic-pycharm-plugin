@@ -97,6 +97,7 @@ val DEFAULT_CONFIG = mapOf<String, Any?>(
     "allow_population_by_field_name" to false,
     "orm_mode" to false,
     "allow_mutation" to true,
+    "frozen" to false,
     "keep_untouched" to listOf<PyType>()
 )
 
@@ -105,6 +106,7 @@ val CONFIG_TYPES = mapOf(
     "allow_population_by_field_name" to ConfigType.BOOLEAN,
     "orm_mode" to ConfigType.BOOLEAN,
     "allow_mutation" to ConfigType.BOOLEAN,
+    "frozen" to ConfigType.BOOLEAN,
     "keep_untouched" to ConfigType.LIST_PYTYPE
 )
 
