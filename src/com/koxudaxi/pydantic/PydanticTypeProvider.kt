@@ -79,7 +79,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
-        val pydanticVersion =  PydanticVersionService.getVersion(pyClass.project, context)
+        val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, context)
         return getRefTypeFromFieldNameInPyClass(name, pyClass, context, ellipsis, pydanticVersion)
             ?: pyClass.getAncestorClasses(context)
                 .filter { isPydanticModel(it, false, context) }
@@ -208,7 +208,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     ): PydanticDynamicModelClassType? {
         val project = pyFunction.project
         val typed = getInstance(project).currentInitTyped
-        val pydanticVersion =  PydanticVersionService.getVersion(pyFunction.project, context)
+        val pydanticVersion = PydanticVersionService.getVersion(pyFunction.project, context)
         val collected = linkedMapOf<String, PydanticDynamicModel.Attribute>()
         val newVersion = pydanticVersion == null || pydanticVersion.isAtLeast(1, 5)
         val modelNameParameterName = if (newVersion) "__model_name" else "model_name"
@@ -341,7 +341,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             }
         }
 
-        val pydanticVersion =  PydanticVersionService.getVersion(pyClass.project, context)
+        val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, context)
         val config = getConfig(pyClass, context, true)
         for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
             if (currentType !is PyClassType) continue

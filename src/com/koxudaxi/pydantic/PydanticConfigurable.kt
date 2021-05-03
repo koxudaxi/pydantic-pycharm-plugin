@@ -25,7 +25,7 @@ class PydanticConfigurable internal constructor(project: Project) : Configurable
 
     override fun isModified(): Boolean {
         if (configPanel.initTyped == null || configPanel.warnUntypedFields == null) return false
-        return  (pydanticConfigService.initTyped != configPanel.initTyped) ||
+        return (pydanticConfigService.initTyped != configPanel.initTyped) ||
                 (pydanticConfigService.warnUntypedFields != configPanel.warnUntypedFields)
     }
 

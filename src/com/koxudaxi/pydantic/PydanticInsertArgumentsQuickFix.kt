@@ -15,15 +15,16 @@ import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.types.PyCallableParameter
 import com.jetbrains.python.psi.types.TypeEvalContext
 
-class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : LocalQuickFix, IntentionAction, HighPriorityAction {
+class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : LocalQuickFix, IntentionAction,
+    HighPriorityAction {
     private val pydanticTypeProvider = PydanticTypeProvider()
     override fun getText(): String = name
 
     override fun getFamilyName(): String =
-            when {
-                onlyRequired -> "Insert required arguments"
-                else -> "Insert all arguments"
-            }
+        when {
+            onlyRequired -> "Insert required arguments"
+            else -> "Insert all arguments"
+        }
 
     override fun isAvailable(project: Project, editor: Editor, file: PsiFile): Boolean = true
 
@@ -37,7 +38,12 @@ class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : Local
 
     override fun startInWriteAction(): Boolean = true
 
-    fun runFix(project: Project, file: PsiFile, originalElement: PsiElement, context: TypeEvalContext): PyCallExpression? {
+    fun runFix(
+        project: Project,
+        file: PsiFile,
+        originalElement: PsiElement,
+        context: TypeEvalContext,
+    ): PyCallExpression? {
         if (originalElement !is PyCallExpression) return null
         if (file !is PyFile) return null
         val newEl = originalElement.copy() as PyCallExpression

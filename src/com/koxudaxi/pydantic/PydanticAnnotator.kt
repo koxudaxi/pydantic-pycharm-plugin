@@ -20,15 +20,20 @@ class PydanticAnnotator : PyAnnotator() {
     private fun annotatePydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
         val context = TypeEvalContext.userInitiated(pyCallExpression.project, pyCallExpression.containingFile)
         val pyClass = getPydanticPyClass(pyCallExpression, context) ?: return
-        val unFilledArguments = getPydanticUnFilledArguments(pyClass, pyCallExpression, pydanticTypeProvider, context).nullize()
+        val unFilledArguments =
+            getPydanticUnFilledArguments(pyClass, pyCallExpression, pydanticTypeProvider, context).nullize()
                 ?: return
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).withFix(PydanticInsertArgumentsQuickFix(false)).create()
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).withFix(PydanticInsertArgumentsQuickFix(false))
+            .create()
         unFilledArguments.filter { it.required }.nullize() ?: return
         val highlight = when {
-            isSubClassOfBaseSetting(pyClass, context) || pyCallExpression.arguments.any {(it as? PyStarArgument)?.isKeyword == true} -> HighlightSeverity.INFORMATION
+            isSubClassOfBaseSetting(pyClass,
+                context) || pyCallExpression.arguments.any { (it as? PyStarArgument)?.isKeyword == true } -> HighlightSeverity.INFORMATION
             else -> HighlightSeverity.WARNING
         }
-        holder.newSilentAnnotation(highlight).withFix(PydanticInsertArgumentsQuickFix(true)).range(TextRange.from(pyCallExpression.textOffset + pyCallExpression.textLength  - 1,1)).create()
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).withFix(PydanticInsertArgumentsQuickFix(true)).range(TextRange.from(pyCallExpression.textOffset,pyCallExpression.textLength  - 2)).create()
+        holder.newSilentAnnotation(highlight).withFix(PydanticInsertArgumentsQuickFix(true))
+            .range(TextRange.from(pyCallExpression.textOffset + pyCallExpression.textLength - 1, 1)).create()
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).withFix(PydanticInsertArgumentsQuickFix(true))
+            .range(TextRange.from(pyCallExpression.textOffset, pyCallExpression.textLength - 2)).create()
     }
 }

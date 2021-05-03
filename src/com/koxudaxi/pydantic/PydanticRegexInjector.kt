@@ -13,7 +13,7 @@ import com.jetbrains.python.psi.*
 class PydanticRegexInjector : PyInjectorBase() {
     override fun registerInjection(
         registrar: MultiHostRegistrar,
-        context: PsiElement
+        context: PsiElement,
     ): PyInjectionUtil.InjectionResult {
         val result = super.registerInjection(registrar, context)
         return if (result === PyInjectionUtil.InjectionResult.EMPTY &&
@@ -33,10 +33,10 @@ class PydanticRegexInjector : PyInjectorBase() {
     companion object {
         private fun registerPyElementInjection(
             registrar: MultiHostRegistrar,
-            host: PsiLanguageInjectionHost
+            host: PsiLanguageInjectionHost,
         ): PyInjectionUtil.InjectionResult {
             val text = host.text
-            registrar.startInjecting( PythonRegexpLanguage.INSTANCE)
+            registrar.startInjecting(PythonRegexpLanguage.INSTANCE)
             registrar.addPlace("", "", host, TextRange(0, text.length))
             registrar.doneInjecting()
             return PyInjectionUtil.InjectionResult(true, true)

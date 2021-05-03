@@ -348,7 +348,12 @@ fun validateConfig(pyClass: PyClass): List<PsiElement>? {
     return results
 }
 
-fun getConfig(pyClass: PyClass, context: TypeEvalContext, setDefault: Boolean, pydanticVersion: KotlinVersion? = null): HashMap<String, Any?> {
+fun getConfig(
+    pyClass: PyClass,
+    context: TypeEvalContext,
+    setDefault: Boolean,
+    pydanticVersion: KotlinVersion? = null,
+): HashMap<String, Any?> {
     val config = hashMapOf<String, Any?>()
     val version = pydanticVersion ?: PydanticVersionService.getVersion(pyClass.project, context)
     pyClass.getAncestorClasses(context)
