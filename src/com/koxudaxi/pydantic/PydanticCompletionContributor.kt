@@ -70,7 +70,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             isDataclass: Boolean,
-            genericTypeMap: Map<PyType, PyType>?,
+            genericTypeMap: Map<PyType, PyType>,
         ): String {
 
             val parameter = typeProvider.fieldToParameter(pyTargetExpression,
@@ -105,7 +105,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             config: HashMap<String, Any?>,
             excludes: HashSet<String>?,
             isDataclass: Boolean,
-            genericTypeMap: Map<PyType, PyType>?,
+            genericTypeMap: Map<PyType, PyType>,
         ) {
             val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
@@ -138,7 +138,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             pyClass: PyClass, typeEvalContext: TypeEvalContext,
             ellipsis: PyNoneLiteralExpression,
             config: HashMap<String, Any?>,
-            genericTypeMap: Map<PyType, PyType>?,
+            genericTypeMap: Map<PyType, PyType>,
             excludes: HashSet<String>? = null,
             isDataclass: Boolean,
         ) {
@@ -248,29 +248,28 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pyArgumentList = parameters.position.parent?.parent as? PyArgumentList ?: return
 
             val typeEvalContext = parameters.getTypeEvalContext()
-            val pyClassType =
-                (pyArgumentList.parent as? PyCallExpression)?.let { typeEvalContext.getType(it) } as? PyClassType
+            val pyCallExpression = pyArgumentList.parent as? PyCallExpression
+            val pyClass =
+                pyCallExpression?.let { (typeEvalContext.getType(it) as? PyClassType)?.pyClass }
                     ?: return
 
-            if (!isPydanticModel(pyClassType.pyClass, true, typeEvalContext)) return
+            if (!isPydanticModel(pyClass, true, typeEvalContext)) return
 
             val definedSet = pyArgumentList.children
                 .mapNotNull { (it as? PyKeywordArgument)?.name }
                 .map { "${it}=" }
                 .toHashSet()
-            val config = getConfig(pyClassType.pyClass, typeEvalContext, true)
-            val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
-            val genericTypeMap = typeProvider.getGenericTypeMap(pyClassType.pyClass, typeEvalContext)
+
             addAllFieldElement(
                 parameters,
                 result,
-                pyClassType.pyClass,
+                pyClass,
                 typeEvalContext,
-                ellipsis,
-                config,
-                genericTypeMap,
+                PyElementGenerator.getInstance(pyClass.project).createEllipsis(),
+                getConfig(pyClass, typeEvalContext, true),
+                typeProvider.getGenericTypeMap(pyClass, typeEvalContext, pyCallExpression),
                 definedSet,
-                isPydanticDataclass(pyClassType.pyClass),
+                isPydanticDataclass(pyClass),
             )
         }
     }
@@ -293,28 +292,27 @@ class PydanticCompletionContributor : CompletionContributor() {
             result: CompletionResultSet,
         ) {
             val typeEvalContext = parameters.getTypeEvalContext()
-            val pyType =
-                (parameters.position.parent?.firstChild as? PyTypedElement)?.let { typeEvalContext.getType(it) }
-                    ?: return
+            val pyTypedElement = parameters.position.parent?.firstChild as? PyTypedElement ?: return
+            val pyType = typeEvalContext.getType(pyTypedElement) ?: return
 
             val pyClassType = getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, true) }
                 ?: return
-            val config = getConfig(pyClassType.pyClass, typeEvalContext, true)
+            val pyClass = pyClassType.pyClass
+            val config = getConfig(pyClass, typeEvalContext, true)
             if (pyClassType.isDefinition) { // class
-                removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields, config)
+                removeAllFieldElement(parameters, result, pyClass, typeEvalContext, excludeFields, config)
                 return
             }
-            val genericTypeMap = typeProvider.getGenericTypeMap(pyClassType.pyClass, typeEvalContext)
-            val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
+            val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
             addAllFieldElement(
                 parameters,
                 result,
-                pyClassType.pyClass,
+                pyClass,
                 typeEvalContext,
                 ellipsis,
                 config,
-                genericTypeMap,
-                isDataclass = isPydanticDataclass(pyClassType.pyClass),
+                typeProvider.getGenericTypeMap(pyClass, typeEvalContext, pyTypedElement as? PyCallExpression),
+                isDataclass = isPydanticDataclass(pyClass),
             )
         }
     }

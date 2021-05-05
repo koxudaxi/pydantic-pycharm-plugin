@@ -136,7 +136,8 @@ fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context:
 
 fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext? = null): Boolean {
     return (isSubClassOfPydanticBaseModel(pyClass,
-        context) || (includeDataclass && isPydanticDataclass(pyClass))) && !isPydanticBaseModel(pyClass) && !isPydanticGenericModel(pyClass)
+        context) || (includeDataclass && isPydanticDataclass(pyClass))) && !isPydanticBaseModel(pyClass) && !isPydanticGenericModel(
+        pyClass)
 }
 
 fun isPydanticBaseModel(pyClass: PyClass): Boolean {
@@ -495,7 +496,8 @@ fun getPydanticUnFilledArguments(
     context: TypeEvalContext,
 ): List<PyCallableParameter> {
     val pydanticClass = pyClass ?: getPydanticPyClass(pyCallExpression, context) ?: return emptyList()
-    val pydanticType = pydanticTypeProvider.getPydanticTypeForClass(pydanticClass, context, true) ?: return emptyList()
+    val pydanticType = pydanticTypeProvider.getPydanticTypeForClass(pydanticClass, context, true, pyCallExpression)
+        ?: return emptyList()
     val currentArguments =
         pyCallExpression.arguments.filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
             .mapNotNull { it.name }.toSet()
