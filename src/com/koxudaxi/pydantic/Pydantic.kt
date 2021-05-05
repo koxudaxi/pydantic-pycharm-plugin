@@ -25,6 +25,7 @@ import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
+const val GENERIC_MODEL_Q_NAME = "pydantic.generics.GenericModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
 const val DATA_CLASS_SHORT_Q_NAME = "pydantic.dataclass"
 const val VALIDATOR_Q_NAME = "pydantic.class_validators.validator"
@@ -52,6 +53,8 @@ const val OPTIONAL_Q_NAME = "typing.Optional"
 const val UNION_Q_NAME = "typing.Union"
 const val ANNOTATED_Q_NAME = "typing.Annotated"
 const val CLASSVAR_Q_NAME = "typing.ClassVar"
+const val GENERIC_Q_NAME = "typing.Generic"
+const val TYPE_Q_NAME = "typing.Type"
 
 
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
@@ -133,11 +136,19 @@ fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context:
 
 fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext? = null): Boolean {
     return (isSubClassOfPydanticBaseModel(pyClass,
-        context) || (includeDataclass && isPydanticDataclass(pyClass))) && !isPydanticBaseModel(pyClass)
+        context) || (includeDataclass && isPydanticDataclass(pyClass))) && !isPydanticBaseModel(pyClass) && !isPydanticGenericModel(pyClass)
 }
 
 fun isPydanticBaseModel(pyClass: PyClass): Boolean {
     return pyClass.qualifiedName == BASE_MODEL_Q_NAME
+}
+
+fun isPydanticGenericModel(pyClass: PyClass): Boolean {
+    return pyClass.qualifiedName == GENERIC_MODEL_Q_NAME
+}
+
+internal fun isSubClassOfPydanticGenericModel(pyClass: PyClass, context: TypeEvalContext?): Boolean {
+    return pyClass.isSubclass(GENERIC_MODEL_Q_NAME, context)
 }
 
 internal fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalContext?): Boolean {
@@ -500,6 +511,7 @@ fun getPyTypeFromPyExpression(pyExpression: PyExpression, context: TypeEvalConte
         is PyType -> pyExpression
         is PyReferenceExpression -> {
             getResolvedPsiElements(pyExpression, context)
+                .asSequence()
                 .filterIsInstance<PyClass>()
                 .map { pyClass -> pyClass.getType(context)?.getReturnType(context) }
                 .firstOrNull()
@@ -576,14 +588,11 @@ internal fun getDefaultFactoryFromField(field: PyCallExpression): PyExpression? 
 internal fun getQualifiedName(pyExpression: PyExpression, context: TypeEvalContext): String? {
     return when (pyExpression) {
         is PySubscriptionExpression -> pyExpression.qualifier?.let { getQualifiedName(it, context) }
-        is PyReferenceExpression -> {
-            return getResolvedPsiElements(pyExpression, context)
-                .filterIsInstance<PyQualifiedNameOwner>()
-                .mapNotNull { it.qualifiedName }
-                .firstOrNull()
-        }
-        else -> {
-            return null
-        }
+        is PyReferenceExpression -> return getResolvedPsiElements(pyExpression, context)
+            .asSequence()
+            .filterIsInstance<PyQualifiedNameOwner>()
+            .mapNotNull { it.qualifiedName }
+            .firstOrNull()
+        else -> return null
     }
 }

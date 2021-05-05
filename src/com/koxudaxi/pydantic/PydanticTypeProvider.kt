@@ -3,6 +3,8 @@ package com.koxudaxi.pydantic
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.jetbrains.python.PyCustomType
+import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.*
 import com.jetbrains.python.psi.types.*
@@ -10,6 +12,7 @@ import com.koxudaxi.pydantic.PydanticConfigService.Companion.getInstance
 import one.util.streamex.StreamEx
 
 class PydanticTypeProvider : PyTypeProviderBase() {
+    private val pyTypingTypeProvider = PyTypingTypeProvider()
     override fun getReferenceExpressionType(
         referenceExpression: PyReferenceExpression,
         context: TypeEvalContext,
@@ -71,20 +74,22 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         context: TypeEvalContext,
         ellipsis: PyNoneLiteralExpression,
         pydanticVersion: KotlinVersion?,
+        genericTypeMap: Map<PyType, PyType>?,
     ): Ref<PyType>? {
         return pyClass.findClassAttribute(name, false, context)
-            ?.let { return getRefTypeFromField(it, ellipsis, context, pyClass, pydanticVersion) }
+            ?.let { return getRefTypeFromField(it, ellipsis, context, pyClass, pydanticVersion, genericTypeMap) }
     }
 
     private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass): Ref<PyType>? {
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
         val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, context)
-        return getRefTypeFromFieldNameInPyClass(name, pyClass, context, ellipsis, pydanticVersion)
+        val genericTypeMap = getGenericTypeMap(pyClass, context)
+        return getRefTypeFromFieldNameInPyClass(name, pyClass, context, ellipsis, pydanticVersion, genericTypeMap)
             ?: pyClass.getAncestorClasses(context)
                 .filter { isPydanticModel(it, false, context) }
                 .mapNotNull { ancestor ->
-                    getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion)
+                    getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion, genericTypeMap)
                 }.firstOrNull()
     }
 
@@ -92,6 +97,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
         context: TypeEvalContext, pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
+        genericTypeMap: Map<PyType, PyType>?,
     ): Ref<PyType>? {
         return fieldToParameter(
             pyTargetExpression,
@@ -99,10 +105,90 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             context,
             pyClass,
             pydanticVersion,
-            getConfig(pyClass, context, true)
+            getConfig(pyClass, context, true),
+            genericTypeMap
         )
             ?.let { parameter -> Ref.create(parameter.getType(context)) }
 
+    }
+
+    private fun getInjectedGenericType(
+        pyExpression: PyExpression,
+        context: TypeEvalContext,
+    ): PyType? {
+        return when (pyExpression) {
+            is PySubscriptionExpression -> {
+                val typingType = (pyExpression.rootOperand as? PyReferenceExpression)
+                    ?.let { pyReferenceExpression ->
+                        getResolvedPsiElements(pyReferenceExpression, context)
+                            .filterIsInstance<PyQualifiedNameOwner>()
+                            .any { it.qualifiedName == TYPE_Q_NAME }
+                    }
+                return if (typingType == true) {
+                    (pyExpression.indexExpression as? PyTypedElement)?.let { context.getType(it) }
+                } else {
+                    (context.getType(pyExpression) as? PyClassLikeType)?.toInstance()
+                }
+            }
+            else -> (context.getType(pyExpression) as? PyClassLikeType)?.toInstance()
+        }
+    }
+
+    private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyType?> {
+        return pyClass.superClassExpressions
+            .mapNotNull {
+                when (it) {
+                    is PySubscriptionExpression -> it
+                    is PyReferenceExpression -> getResolvedPsiElements(it, context)
+                        .asSequence()
+                        .filterIsInstance<PySubscriptionExpression>()
+                        .firstOrNull()
+                    else -> null
+                }
+            }.flatMap { pySubscriptionExpression ->
+                val referenceExpression =
+                    pySubscriptionExpression.rootOperand as? PyReferenceExpression ?: return@flatMap emptyList()
+                val rootOperandType = context.getType(referenceExpression) ?: return@flatMap emptyList()
+                val isGenericModel =
+                    rootOperandType is PyClassType && isSubClassOfPydanticGenericModel(rootOperandType.pyClass, context)
+                if (!isGenericModel && (rootOperandType as? PyCustomType)?.classQName != GENERIC_Q_NAME) return@flatMap emptyList()
+
+                when (val indexExpression = pySubscriptionExpression.indexExpression) {
+                    is PyTupleExpression -> indexExpression.elements
+                        .map { context.getType(it) }.filterIsInstance<PyGenericType>().toList()
+                    is PyGenericType -> listOf(context.getType(indexExpression))
+                    else -> null
+                }
+            }.filterNotNull().distinct()
+    }
+
+    override fun prepareCalleeTypeForCall(
+        type: PyType?,
+        call: PyCallExpression,
+        context: TypeEvalContext,
+    ): Ref<PyCallableType?>? {
+        val pyClassType = type as? PyClassType ?: return null
+        val pyClass = pyClassType.pyClass
+        if (!isSubClassOfPydanticGenericModel(pyClass, context) || isPydanticGenericModel(pyClass)) return null
+        val pySubscriptionExpression = call.node.firstChildNode.psi as? PySubscriptionExpression ?: return null
+
+
+        val injectedTypes = (pySubscriptionExpression.indexExpression as? PyTupleExpression)
+            ?.elements
+            ?.map { getInjectedGenericType(it, context) }
+            ?: listOf((pySubscriptionExpression.indexExpression?.let { getInjectedGenericType(it, context) }))
+
+
+        val genericTypeMap = collectGenericTypes(pyClass, context)
+            .take(injectedTypes.size)
+            .mapIndexed { index, genericType -> genericType to injectedTypes[index] }
+            .filterIsInstance<Pair<PyType, PyType>>().toMap()
+
+        return getPydanticTypeForClass(
+            pyClass,
+            context,
+            getInstance(pyClass.project).currentInitTyped,
+            genericTypeMap)?.let { Ref.create(it) }
     }
 
     private fun getPydanticTypeForCallee(
@@ -225,6 +311,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         } ?: return null
         val modelName = when (modelNameArgument) {
             is PyReferenceExpression -> getResolvedPsiElements(modelNameArgument, context)
+                .asSequence()
                 .filterIsInstance<PyTargetExpression>()
                 .map { it.findAssignedValue() }
                 .firstOrNull()
@@ -238,6 +325,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             when (val baseArgument = (keywordArguments["__base__"] as? PyKeywordArgument)?.valueExpression) {
                 is PyReferenceExpression -> {
                     getResolvedPsiElements(baseArgument, context)
+                        .asSequence()
                         .map {
                             when (it) {
                                 is PyTargetExpression -> getPydanticDynamicModelPyClass(it, context)
@@ -324,7 +412,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return null
     }
 
-    fun getPydanticTypeForClass(pyClass: PyClass, context: TypeEvalContext, init: Boolean = false): PyCallableType? {
+    fun getGenericTypeMap(pyClass: PyClass, context: TypeEvalContext): Map<PyType, PyType> {
+        if (!PyTypingTypeProvider.isGeneric(pyClass, context)) return emptyMap()
+        return pyTypingTypeProvider.getGenericSubstitutions(pyClass, context).filterValues { it is PyType }
+    }
+
+
+    fun getPydanticTypeForClass(
+        pyClass: PyClass,
+        context: TypeEvalContext,
+        init: Boolean = false,
+        genericTypeMap: Map<PyType, PyType>? = null,
+    ): PyCallableType? {
         if (!isPydanticModel(pyClass, false, context)) return null
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
@@ -335,12 +434,17 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (isSubClassOfBaseSetting(pyClass, context)) {
             getBaseSetting(pyClass, context)?.let { baseSetting ->
                 getBaseSettingInitParameters(baseSetting, context, typed)
-                    ?.map { parameter -> Pair(parameter.name, parameter) }
+                    ?.map { parameter -> parameter.name to parameter }
                     ?.filterIsInstance<Pair<String, PyCallableParameter>>()
                     ?.let { collected.putAll(it) }
             }
         }
-
+        val pyClassGenericTypeMap = getGenericTypeMap(pyClass, context)
+        val mergedGenericTypeMap = if (genericTypeMap is Map) {
+            pyClassGenericTypeMap.toMutableMap().apply { this.putAll(genericTypeMap) }
+        } else {
+            pyClassGenericTypeMap
+        }
         val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, context)
         val config = getConfig(pyClass, context, true)
         for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
@@ -351,7 +455,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
             getClassVariables(current, context)
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, context) }
-                .mapNotNull { fieldToParameter(it, ellipsis, context, current, pydanticVersion, config, typed) }
+                .mapNotNull {
+                    fieldToParameter(
+                        it,
+                        ellipsis,
+                        context,
+                        current,
+                        pydanticVersion,
+                        config,
+                        mergedGenericTypeMap,
+                        typed,
+                    )
+                }
                 .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
                 .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
@@ -371,6 +486,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
         config: HashMap<String, Any?>,
+        genericTypeMap: Map<PyType, PyType>?,
         typed: Boolean = true,
         isDataclass: Boolean = false,
     ): PyCallableParameter? {
@@ -385,15 +501,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val typeForParameter = when {
             !typed -> null
-            !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> {
-                // get type from default value
-                context.getType(defaultValueFromField)
-            }
-            else -> {
-                // get type from annotation
-                getTypeForParameter(field, context)
+            !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> context.getType(
+                defaultValueFromField)
+            else -> getTypeForParameter(field, context)
+        }?.let {
+            if (genericTypeMap == null) {
+                it
+            } else {
+                genericTypeMap[it] ?: it
             }
         }
+        // get type from default value
+        // get type from annotation
 
         return PyCallableParameterImpl.nonPsi(
             getFieldName(field, context, config, pydanticVersion),

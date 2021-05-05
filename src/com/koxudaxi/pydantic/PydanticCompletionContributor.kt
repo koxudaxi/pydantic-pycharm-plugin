@@ -12,6 +12,7 @@ import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHin
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
 
@@ -69,6 +70,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             isDataclass: Boolean,
+            genericTypeMap: Map<PyType, PyType>?,
         ): String {
 
             val parameter = typeProvider.fieldToParameter(pyTargetExpression,
@@ -77,6 +79,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                 pyClass,
                 pydanticVersion,
                 config,
+                genericTypeMap,
                 isDataclass = isDataclass)
             val defaultValue = parameter?.defaultValue?.let {
                 when {
@@ -102,6 +105,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             config: HashMap<String, Any?>,
             excludes: HashSet<String>?,
             isDataclass: Boolean,
+            genericTypeMap: Map<PyType, PyType>?,
         ) {
             val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
@@ -121,7 +125,8 @@ class PydanticCompletionContributor : CompletionContributor() {
                                     ellipsis,
                                     pydanticVersion,
                                     config,
-                                    isDataclass))
+                                    isDataclass,
+                                    genericTypeMap))
                                 .withIcon(icon), 1)
                         results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
                     }
@@ -133,6 +138,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             pyClass: PyClass, typeEvalContext: TypeEvalContext,
             ellipsis: PyNoneLiteralExpression,
             config: HashMap<String, Any?>,
+            genericTypeMap: Map<PyType, PyType>?,
             excludes: HashSet<String>? = null,
             isDataclass: Boolean,
         ) {
@@ -141,9 +147,25 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             pyClass.getAncestorClasses(typeEvalContext)
                 .filter { isPydanticModel(it, true) }
-                .forEach { addFieldElement(it, newElements, typeEvalContext, ellipsis, config, excludes, isDataclass) }
+                .forEach {
+                    addFieldElement(it,
+                        newElements,
+                        typeEvalContext,
+                        ellipsis,
+                        config,
+                        excludes,
+                        isDataclass,
+                        genericTypeMap)
+                }
 
-            addFieldElement(pyClass, newElements, typeEvalContext, ellipsis, config, excludes, isDataclass)
+            addFieldElement(pyClass,
+                newElements,
+                typeEvalContext,
+                ellipsis,
+                config,
+                excludes,
+                isDataclass,
+                genericTypeMap)
 
             result.runRemainingContributors(parameters)
             { completionResult ->
@@ -238,14 +260,18 @@ class PydanticCompletionContributor : CompletionContributor() {
                 .toHashSet()
             val config = getConfig(pyClassType.pyClass, typeEvalContext, true)
             val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
-            addAllFieldElement(parameters,
+            val genericTypeMap = typeProvider.getGenericTypeMap(pyClassType.pyClass, typeEvalContext)
+            addAllFieldElement(
+                parameters,
                 result,
                 pyClassType.pyClass,
                 typeEvalContext,
                 ellipsis,
                 config,
+                genericTypeMap,
                 definedSet,
-                isPydanticDataclass(pyClassType.pyClass))
+                isPydanticDataclass(pyClassType.pyClass),
+            )
         }
     }
 
@@ -278,14 +304,18 @@ class PydanticCompletionContributor : CompletionContributor() {
                 removeAllFieldElement(parameters, result, pyClassType.pyClass, typeEvalContext, excludeFields, config)
                 return
             }
+            val genericTypeMap = typeProvider.getGenericTypeMap(pyClassType.pyClass, typeEvalContext)
             val ellipsis = PyElementGenerator.getInstance(pyClassType.pyClass.project).createEllipsis()
-            addAllFieldElement(parameters,
+            addAllFieldElement(
+                parameters,
                 result,
                 pyClassType.pyClass,
                 typeEvalContext,
                 ellipsis,
                 config,
-                isDataclass = isPydanticDataclass(pyClassType.pyClass))
+                genericTypeMap,
+                isDataclass = isPydanticDataclass(pyClassType.pyClass),
+            )
         }
     }
 
