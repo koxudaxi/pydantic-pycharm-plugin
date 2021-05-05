@@ -501,8 +501,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val typeForParameter = when {
             !typed -> null
+            // get type from default value
             !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> context.getType(
                 defaultValueFromField)
+            // get type from annotation
             else -> getTypeForParameter(field, context)
         }?.let {
             if (genericTypeMap == null) {
@@ -511,8 +513,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 genericTypeMap[it] ?: it
             }
         }
-        // get type from default value
-        // get type from annotation
 
         return PyCallableParameterImpl.nonPsi(
             getFieldName(field, context, config, pydanticVersion),
