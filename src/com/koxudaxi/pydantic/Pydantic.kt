@@ -55,7 +55,7 @@ const val ANNOTATED_Q_NAME = "typing.Annotated"
 const val CLASSVAR_Q_NAME = "typing.ClassVar"
 const val GENERIC_Q_NAME = "typing.Generic"
 const val TYPE_Q_NAME = "typing.Type"
-
+const val TUPLE_Q_NAME = "typing.Tuple"
 
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 

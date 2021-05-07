@@ -53,7 +53,7 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
 
         return when {
             callSite is PyCallExpression && definition -> dataclassCallableType
-            definition -> (dataclassType.declarationElement as? PyTypedElement)?.let { context.getType(it) }
+            definition -> dataclassType.toClass()
             else -> dataclassType
         }
     }

@@ -12,6 +12,7 @@ import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHin
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyGenericType
 import com.jetbrains.python.psi.types.PyType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
@@ -70,7 +71,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             isDataclass: Boolean,
-            genericTypeMap: Map<PyType, PyType>,
+            genericTypeMap: Map<PyGenericType, PyType>?,
         ): String {
 
             val parameter = typeProvider.fieldToParameter(pyTargetExpression,
@@ -105,7 +106,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             config: HashMap<String, Any?>,
             excludes: HashSet<String>?,
             isDataclass: Boolean,
-            genericTypeMap: Map<PyType, PyType>,
+            genericTypeMap: Map<PyGenericType, PyType>?,
         ) {
             val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
@@ -138,7 +139,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             pyClass: PyClass, typeEvalContext: TypeEvalContext,
             ellipsis: PyNoneLiteralExpression,
             config: HashMap<String, Any?>,
-            genericTypeMap: Map<PyType, PyType>,
+            genericTypeMap: Map<PyGenericType, PyType>?,
             excludes: HashSet<String>? = null,
             isDataclass: Boolean,
         ) {
