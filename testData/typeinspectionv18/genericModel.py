@@ -189,3 +189,11 @@ y = int
 Model[y, Optional[y]](a=1, b=2)
 
 Model[y, Optional[y]](<warning descr="Expected type 'int', got 'str' instead">a='1'</warning>, <warning descr="Expected type 'Optional[int]', got 'str' instead">b='2'</warning>)
+
+
+class Model(GenericModel, Generic[CT, DT, ET, FT, aaaaaaaaaa]):
+    a: Type[CT]
+    b: List[aaaaa]
+    c: Dict[ET, aaaaaaaa]
+
+Model[aaaaaaaaaa, List[aaaaaa], Tuple[aaaaaaaaaa], Type[aaaaaaaaaaa]](a=int, b=[2], <warning descr="Expected type 'Dict[Tuple[Any], Any]', got 'Dict[str, int]' instead">c={'c': 3}</warning>)

@@ -99,11 +99,11 @@ class PydanticInspection : PyInspection() {
                 is PyClass -> type
                 is PyClassType -> getPyClassTypeByPyTypes(type).firstOrNull {
                     isPydanticModel(it.pyClass,
-                        false)
+                        false, myTypeEvalContext)
                 }?.pyClass
                 else -> null
             } ?: return
-            if (!isPydanticModel(pyClass, false)) return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["orm_mode"] != true) {
                 registerProblem(pyCallExpression,

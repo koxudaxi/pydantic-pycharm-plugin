@@ -147,7 +147,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
 
             pyClass.getAncestorClasses(typeEvalContext)
-                .filter { isPydanticModel(it, true) }
+                .filter { isPydanticModel(it, true, typeEvalContext) }
                 .forEach {
                     addFieldElement(it,
                         newElements,
@@ -183,12 +183,12 @@ class PydanticCompletionContributor : CompletionContributor() {
             excludes: HashSet<String>, config: HashMap<String, Any?>,
         ) {
 
-            if (!isPydanticModel(pyClass, true)) return
+            if (!isPydanticModel(pyClass, true, typeEvalContext)) return
 
             val fieldElements: HashSet<String> = HashSet()
 
             pyClass.getAncestorClasses(typeEvalContext)
-                .filter { isPydanticModel(it, true) }
+                .filter { isPydanticModel(it, true, typeEvalContext) }
                 .forEach {
                     fieldElements.addAll(it.classAttributes
                         .filterNot { attribute ->
@@ -294,10 +294,12 @@ class PydanticCompletionContributor : CompletionContributor() {
         ) {
             val typeEvalContext = parameters.getTypeEvalContext()
             val pyTypedElement = parameters.position.parent?.firstChild as? PyTypedElement ?: return
+
             val pyType = typeEvalContext.getType(pyTypedElement) ?: return
 
-            val pyClassType = getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, true) }
-                ?: return
+            val pyClassType =
+                getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, true, typeEvalContext) }
+                    ?: return
             val pyClass = pyClassType.pyClass
             val config = getConfig(pyClass, typeEvalContext, true)
             if (pyClassType.isDefinition) { // class
@@ -357,8 +359,9 @@ class PydanticCompletionContributor : CompletionContributor() {
             val configClass = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
             if (!isConfigClass(configClass)) return
             val pydanticModel = getPyClassByAttribute(configClass) ?: return
-            if (!isPydanticModel(pydanticModel, true)) return
             val typeEvalContext = parameters.getTypeEvalContext()
+            if (!isPydanticModel(pydanticModel, true, typeEvalContext)) return
+
 
             val definedSet = configClass.classAttributes
                 .mapNotNull { it.name }
@@ -383,7 +386,8 @@ class PydanticCompletionContributor : CompletionContributor() {
             result: CompletionResultSet,
         ) {
             val pydanticModel = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
-            if (!isPydanticModel(pydanticModel, true)) return
+            val typeEvalContext = parameters.getTypeEvalContext()
+            if (!isPydanticModel(pydanticModel, true, typeEvalContext)) return
             if (pydanticModel.findNestedClass("Config", false) != null) return
             val element = PrioritizedLookupElement.withGrouping(
                 LookupElementBuilder

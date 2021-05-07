@@ -126,7 +126,11 @@ fun getPyClassByPyCallExpression(
         is PyClassType -> type
         else -> (callee.reference?.resolve() as? PyTypedElement)?.let { context.getType(it) } ?: return null
     }
-    return getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, includeDataclass) }?.pyClass
+    return getPyClassTypeByPyTypes(pyType).firstOrNull {
+        isPydanticModel(it.pyClass,
+            includeDataclass,
+            context)
+    }?.pyClass
 }
 
 fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
@@ -134,9 +138,10 @@ fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context:
     return getPyClassByPyCallExpression(pyCallExpression, true, context)
 }
 
-fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext? = null): Boolean {
+fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): Boolean {
     return (isSubClassOfPydanticBaseModel(pyClass,
-        context) || (includeDataclass && isPydanticDataclass(pyClass))) && !isPydanticBaseModel(pyClass) && !isPydanticGenericModel(
+        context) || isSubClassOfPydanticGenericModel(pyClass, context) || (includeDataclass && isPydanticDataclass(
+        pyClass))) && !isPydanticBaseModel(pyClass) && !isPydanticGenericModel(
         pyClass)
 }
 
@@ -148,11 +153,11 @@ fun isPydanticGenericModel(pyClass: PyClass): Boolean {
     return pyClass.qualifiedName == GENERIC_MODEL_Q_NAME
 }
 
-internal fun isSubClassOfPydanticGenericModel(pyClass: PyClass, context: TypeEvalContext?): Boolean {
+internal fun isSubClassOfPydanticGenericModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(GENERIC_MODEL_Q_NAME, context)
 }
 
-internal fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalContext?): Boolean {
+internal fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(BASE_MODEL_Q_NAME, context)
 }
 
@@ -375,7 +380,7 @@ fun getConfig(
     val version = pydanticVersion ?: PydanticVersionService.getVersion(pyClass.project, context)
     pyClass.getAncestorClasses(context)
         .reversed()
-        .filter { isPydanticModel(it, false) }
+        .filter { isPydanticModel(it, false, context) }
         .map { getConfig(it, context, false, version) }
         .forEach {
             it.entries.forEach { entry ->
