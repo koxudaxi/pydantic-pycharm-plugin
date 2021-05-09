@@ -115,18 +115,20 @@ val CONFIG_TYPES = mapOf(
 
 const val CUSTOM_ROOT_FIELD = "__root__"
 
+fun PyTypedElement.getType(context: TypeEvalContext): PyType? = context.getType(this)
+
 fun getPyClassByPyCallExpression(
     pyCallExpression: PyCallExpression,
     includeDataclass: Boolean,
     context: TypeEvalContext,
 ): PyClass? {
     val callee = pyCallExpression.callee ?: return null
-    val pyType = when (val type = context.getType(callee)) {
+    val pyType = when (val type = callee.getType(context)) {
         is PyClass -> return type
         is PyClassType -> type
-        else -> (callee.reference?.resolve() as? PyTypedElement)?.let { context.getType(it) } ?: return null
+        else -> (callee.reference?.resolve() as? PyTypedElement)?.getType(context) ?: return null
     }
-    return getPyClassTypeByPyTypes(pyType).firstOrNull {
+    return pyType.pyClassTypes.firstOrNull {
         isPydanticModel(it.pyClass,
             includeDataclass,
             context)
@@ -140,18 +142,15 @@ fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context:
 
 fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): Boolean {
     return (isSubClassOfPydanticBaseModel(pyClass,
-        context) || isSubClassOfPydanticGenericModel(pyClass, context) || (includeDataclass && isPydanticDataclass(
-        pyClass))) && !isPydanticBaseModel(pyClass) && !isPydanticGenericModel(
-        pyClass)
+        context) || isSubClassOfPydanticGenericModel(pyClass,
+        context) || (includeDataclass && pyClass.isPydanticDataclass)) && !pyClass.isPydanticBaseModel && !pyClass.isPydanticGenericModel
 }
 
-fun isPydanticBaseModel(pyClass: PyClass): Boolean {
-    return pyClass.qualifiedName == BASE_MODEL_Q_NAME
-}
+val PyClass.isPydanticBaseModel: Boolean get() = qualifiedName == BASE_MODEL_Q_NAME
 
-fun isPydanticGenericModel(pyClass: PyClass): Boolean {
-    return pyClass.qualifiedName == GENERIC_MODEL_Q_NAME
-}
+
+val PyClass.isPydanticGenericModel: Boolean get() = qualifiedName == GENERIC_MODEL_Q_NAME
+
 
 internal fun isSubClassOfPydanticGenericModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(GENERIC_MODEL_Q_NAME, context)
@@ -165,9 +164,8 @@ internal fun isSubClassOfBaseSetting(pyClass: PyClass, context: TypeEvalContext)
     return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
 }
 
-internal fun isBaseSetting(pyClass: PyClass): Boolean {
-    return pyClass.qualifiedName == BASE_SETTINGS_Q_NAME
-}
+internal val PyClass.isBaseSetting: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME
+
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean {
     return pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.any {
@@ -177,42 +175,33 @@ internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<Qualified
     } ?: false
 }
 
-internal fun isPydanticDataclass(pyClass: PyClass): Boolean {
-    return hasDecorator(pyClass, DATA_CLASS_QUALIFIED_NAMES)
-}
+internal val PyClass.isPydanticDataclass: Boolean get() = hasDecorator(this, DATA_CLASS_QUALIFIED_NAMES)
+
 
 internal fun isPydanticSchema(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(SCHEMA_Q_NAME, context)
 }
 
-internal fun isPydanticField(pyFunction: PyFunction): Boolean {
-    return pyFunction.qualifiedName == FIELD_Q_NAME || pyFunction.qualifiedName == DEPRECATED_SCHEMA_Q_NAME
-}
-
-internal fun isDataclassField(pyFunction: PyFunction): Boolean {
-    return pyFunction.qualifiedName == DATACLASS_FIELD_Q_NAME
-}
+internal val PyFunction.isPydanticField: Boolean get() = qualifiedName == FIELD_Q_NAME || qualifiedName == DEPRECATED_SCHEMA_Q_NAME
 
 
-internal fun isPydanticCreateModel(pyFunction: PyFunction): Boolean {
-    return pyFunction.qualifiedName == CREATE_MODEL
-}
+internal val PyFunction.isDataclassField: Boolean get() = qualifiedName == DATACLASS_FIELD_Q_NAME
+
+
+internal val PyFunction.isPydanticCreateModel: Boolean get() = qualifiedName == CREATE_MODEL
+
 
 internal fun isDataclassMissing(pyTargetExpression: PyTargetExpression): Boolean {
     return pyTargetExpression.qualifiedName == DATACLASS_MISSING
 }
 
-internal fun isValidatorMethod(pyFunction: PyFunction): Boolean {
-    return hasDecorator(pyFunction, VALIDATOR_QUALIFIED_NAMES)
-}
+internal val PyFunction.isValidatorMethod: Boolean get() = hasDecorator(this, VALIDATOR_QUALIFIED_NAMES)
 
-internal fun isConfigClass(pyClass: PyClass): Boolean {
-    return pyClass.name == "Config"
-}
 
-internal fun isConStr(pyFunction: PyFunction): Boolean {
-    return pyFunction.qualifiedName == CON_STR_Q_NAME
-}
+internal val PyClass.isConfigClass: Boolean get() = name == "Config"
+
+
+internal val PyFunction.isConStr: Boolean get() = qualifiedName == CON_STR_Q_NAME
 
 internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): Boolean {
     val pyKeywordArgument = stringLiteralExpression.parent as? PyKeywordArgument ?: return false
@@ -222,7 +211,7 @@ internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): 
     val context = TypeEvalContext.userInitiated(referenceExpression.project, referenceExpression.containingFile)
     return getResolvedPsiElements(referenceExpression, context)
         .filterIsInstance<PyFunction>()
-        .filter { pyFunction -> isPydanticField(pyFunction) || isConStr(pyFunction) }
+        .filter { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr }
         .any()
 }
 
@@ -268,13 +257,13 @@ fun getResolvedPsiElements(referenceExpression: PyReferenceExpression, context: 
     return getResolveElements(referenceExpression, context).let { PyUtil.filterTopPriorityResults(it) }
 }
 
-fun getPyClassTypeByPyTypes(pyType: PyType): List<PyClassType> {
-    return when (pyType) {
-        is PyUnionType -> pyType.members.mapNotNull { it }.flatMap { getPyClassTypeByPyTypes(it) }
-        is PyClassType -> listOf(pyType)
+val PyType.pyClassTypes: List<PyClassType>
+    get() = when (this) {
+        is PyUnionType -> this.members.mapNotNull { it }.flatMap { it.pyClassTypes }
+        is PyClassType -> listOf(this)
         else -> listOf()
+
     }
-}
 
 
 fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeEvalContext): Boolean {
@@ -294,28 +283,28 @@ inline fun <reified T : PsiElement> validatePsiElementByFunction(
     }
 }
 
-fun isPydanticFieldByPsiElement(psiElement: PsiElement): Boolean {
-    return validatePsiElementByFunction(psiElement, ::isPydanticField)
-}
+val PsiElement.isPydanticField: Boolean
+    get() = validatePsiElementByFunction(this) { pyFunction: PyFunction ->
+        pyFunction.isPydanticField
+    }
 
-fun isDataclassFieldByPsiElement(psiElement: PsiElement): Boolean {
-    return validatePsiElementByFunction(psiElement, ::isDataclassField)
-}
 
-fun isDataclassMissingByPsiElement(psiElement: PsiElement): Boolean {
-    return validatePsiElementByFunction(psiElement, ::isDataclassMissing)
-}
+val PsiElement.isDataclassField: Boolean
+    get() = validatePsiElementByFunction(this) { pyFunction: PyFunction ->
+        pyFunction.isDataclassField
+    }
 
-fun getSdk(project: Project): Sdk? {
-    return project.pythonSdk ?: project.modules.mapNotNull { PythonSdkUtil.findPythonSdk(it) }.firstOrNull()
-}
+val PsiElement.isDataclassMissing: Boolean get() = validatePsiElementByFunction(this, ::isDataclassMissing)
+
+val Project.sdk: Sdk? get() = pythonSdk ?: modules.mapNotNull { PythonSdkUtil.findPythonSdk(it) }.firstOrNull()
+
 
 fun getPsiElementByQualifiedName(
     qualifiedName: QualifiedName,
     project: Project,
     context: TypeEvalContext,
 ): PsiElement? {
-    val pythonSdk = getSdk(project) ?: return null
+    val pythonSdk = project.sdk ?: return null
     val module = project.modules.firstOrNull { pythonSdk.isAssociatedWithModule(it) } ?: project.modules.firstOrNull()
     ?: return null
     val contextAnchor = ModuleBasedContextAnchor(module)
@@ -323,16 +312,15 @@ fun getPsiElementByQualifiedName(
 }
 
 fun isValidField(field: PyTargetExpression, context: TypeEvalContext): Boolean {
-    if (!isValidFieldName(field.name)) return false
+    if (field.name?.isValidFieldName != true) return false
 
     val annotationValue = field.annotation?.value ?: return true
     // TODO Support a variable.
     return getQualifiedName(annotationValue, context) != CLASSVAR_Q_NAME
 }
 
-fun isValidFieldName(name: String?): Boolean {
-    return name?.let { !it.startsWith('_') || it == CUSTOM_ROOT_FIELD } ?: false
-}
+val String.isValidFieldName: Boolean get() = !startsWith('_') || this == CUSTOM_ROOT_FIELD
+
 
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
@@ -360,7 +348,7 @@ fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
 }
 
 fun validateConfig(pyClass: PyClass): List<PsiElement>? {
-    val configClass = pyClass.nestedClasses.firstOrNull { isConfigClass(it) } ?: return null
+    val configClass = pyClass.nestedClasses.firstOrNull { it.isConfigClass } ?: return null
 
     val configKwargs = pyClass.superClassExpressions.filterIsInstance<PyKeywordArgument>()
         .takeIf { it.isNotEmpty() } ?: return null
@@ -389,7 +377,7 @@ fun getConfig(
                 }
             }
         }
-    pyClass.nestedClasses.firstOrNull { isConfigClass(it) }?.let {
+    pyClass.nestedClasses.firstOrNull { it.isConfigClass }?.let {
         it.classAttributes.forEach { attribute ->
             attribute.findAssignedValue()?.let { value ->
                 attribute.name?.let { name ->
@@ -562,7 +550,7 @@ internal fun getFieldFromPyExpression(
     if (!getResolvedPsiElements(callee, context).any {
             when {
                 versionZero -> isPydanticSchemaByPsiElement(it, context)
-                else -> isPydanticFieldByPsiElement(it)
+                else -> it.isPydanticField
             }
         }) return null
     return psiElement

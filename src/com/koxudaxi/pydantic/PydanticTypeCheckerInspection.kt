@@ -87,7 +87,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                     }?.let { PyCollectionTypeImpl(typeForParameter.pyClass, typeForParameter.isDefinition, it) }
                 else -> {
                     val project = holder!!.project
-                    PyUnionType.union(getPyClassTypeByPyTypes(typeForParameter).toSet().flatMap { type ->
+                    PyUnionType.union(typeForParameter.pyClassTypes.toSet().flatMap { type ->
                         getTypeMap(project)[type.classQName]?.mapNotNull {
                             createPyClassTypeImpl(it, project, myTypeEvalContext)
                         } as? List<PyType> ?: listOf()

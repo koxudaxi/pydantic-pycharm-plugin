@@ -83,12 +83,11 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                         psiReference.element.project,
                         psiReference.element.containingFile))
                         ?.let { pyType ->
-                            getPyClassTypeByPyTypes(pyType)
-                                .firstOrNull { pyClassType ->
-                                    isPydanticModel(pyClassType.pyClass,
-                                        true,
-                                        typeEvalContext)
-                                }
+                            pyType.pyClassTypes.firstOrNull { pyClassType ->
+                                isPydanticModel(pyClassType.pyClass,
+                                    true,
+                                    typeEvalContext)
+                            }
                                 ?.let {
                                     ReferencesSearch.search(param as PsiElement).forEach {
                                         searchKeywordArgumentByPsiReference(it, elementName, consumer)
@@ -129,7 +128,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         searchField(pyClass, elementName, consumer, context)
         searchKeywordArgument(pyClass, elementName, consumer, context)
         pyClass.getAncestorClasses(null)
-            .filter { !isPydanticBaseModel(it) && !added.contains(it) }
+            .filter { !it.isPydanticBaseModel && !added.contains(it) }
             .forEach { searchField(it, elementName, consumer, context) }
 
         PyClassInheritorsSearch.search(pyClass, true)

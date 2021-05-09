@@ -52,7 +52,7 @@ class PydanticTypedValidatorMethodHandler : TypedHandlerDelegate() {
                 val defNode = maybeDef.node
                 if (defNode != null && defNode.elementType === PyTokenTypes.DEF_KEYWORD) {
                     val pyFunction = token.parent as? PyFunction ?: return Result.CONTINUE
-                    if (!isValidatorMethod(pyFunction)) return Result.CONTINUE
+                    if (!pyFunction.isValidatorMethod) return Result.CONTINUE
                     val settings = CodeStyle.getLanguageSettings(file, PythonLanguage.getInstance())
                     val textToType = StringBuilder()
                     textToType.append("(")

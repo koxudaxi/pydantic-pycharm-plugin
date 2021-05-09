@@ -49,7 +49,7 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
         val callSite = PyCallExpressionNavigator.getPyCallExpressionByCallee(pyReferenceExpression)
         val dataclassCallableType = getDataclassCallableType(referenceTarget, context, callSite) ?: return null
         val dataclassType = (dataclassCallableType).getReturnType(context) as? PyClassType ?: return null
-        if (!isPydanticDataclass(dataclassType.pyClass)) return null
+        if (!dataclassType.pyClass.isPydanticDataclass) return null
 
         return when {
             callSite is PyCallExpression && definition -> dataclassCallableType
@@ -64,12 +64,11 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
             .asSequence()
             .mapNotNull {
                 when {
-                    it is PyClass && isPydanticDataclass(it) ->
+                    it is PyClass && it.isPydanticDataclass ->
                         getPydanticDataclassType(it, context, referenceExpression, true)
                     it is PyTargetExpression -> (it as? PyTypedElement)
-                        ?.let { pyTypedElement -> context.getType(pyTypedElement) }
-                        ?.let { pyType -> getPyClassTypeByPyTypes(pyType) }
-                        ?.filter { pyClassType -> isPydanticDataclass(pyClassType.pyClass) }
+                        ?.getType(context)?.pyClassTypes
+                        ?.filter { pyClassType -> pyClassType.pyClass.isPydanticDataclass }
                         ?.mapNotNull { pyClassType ->
                             getPydanticDataclassType(pyClassType.pyClass,
                                 context,
