@@ -7,6 +7,7 @@
     <h2>version 0.3.1</h2>
     <p>Features</p>
     <ul>
+        <li>Support GenericModel [#289]</li>
         <li>Support frozen on config [#288]</li>
         <li>Fix format [#287]</li>
         <li>Improve handling pydantic version [#286]</li>

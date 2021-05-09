@@ -20,4 +20,8 @@ open class PydanticTypeInspectionV18Test : PydanticInspectionBase("v18") {
     fun testBaseSetting() {
         doTest()
     }
+
+    fun testGenericModel() {
+        doTest()
+    }
 }
