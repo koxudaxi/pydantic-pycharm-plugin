@@ -270,7 +270,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                 getConfig(pyClass, typeEvalContext, true),
                 typeProvider.getGenericTypeMap(pyClass, typeEvalContext, pyCallExpression),
                 definedSet,
-                isPydanticDataclass(pyClass),
+                pyClass.isPydanticDataclass,
             )
         }
     }
@@ -298,7 +298,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pyType = typeEvalContext.getType(pyTypedElement) ?: return
 
             val pyClassType =
-                getPyClassTypeByPyTypes(pyType).firstOrNull { isPydanticModel(it.pyClass, true, typeEvalContext) }
+                pyType.pyClassTypes.firstOrNull { isPydanticModel(it.pyClass, true, typeEvalContext) }
                     ?: return
             val pyClass = pyClassType.pyClass
             val config = getConfig(pyClass, typeEvalContext, true)
@@ -315,7 +315,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                 ellipsis,
                 config,
                 typeProvider.getGenericTypeMap(pyClass, typeEvalContext, pyTypedElement as? PyCallExpression),
-                isDataclass = isPydanticDataclass(pyClass),
+                isDataclass = pyClass.isPydanticDataclass,
             )
         }
     }
@@ -357,7 +357,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             result: CompletionResultSet,
         ) {
             val configClass = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
-            if (!isConfigClass(configClass)) return
+            if (configClass.isConfigClass != true) return
             val pydanticModel = getPyClassByAttribute(configClass) ?: return
             val typeEvalContext = parameters.getTypeEvalContext()
             if (!isPydanticModel(pydanticModel, true, typeEvalContext)) return

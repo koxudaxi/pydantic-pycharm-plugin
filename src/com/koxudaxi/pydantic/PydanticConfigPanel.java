@@ -22,6 +22,7 @@ public class PydanticConfigPanel {
     private JCheckBox warnUntypedFieldsCheckBox;
     private JTextPane ifEnabledRaiseATextPane;
     private JTextPane textPane1;
+
     PydanticConfigPanel(Project project) {
         PydanticConfigService pydanticConfigService = PydanticConfigService.Companion.getInstance(project);
 
