@@ -5,7 +5,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.extensions.ModuleBasedContextAnchor
@@ -245,16 +244,9 @@ private fun getAliasedFieldName(
 }
 
 
-fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
-    return PyResolveContext.defaultContext().withTypeEvalContext(context).let {
-        referenceExpression.getReference(it).multiResolve(false)
-    }
-
-}
-
-
 fun getResolvedPsiElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): List<PsiElement> {
-    return getResolveElements(referenceExpression, context).let { PyUtil.filterTopPriorityResults(it) }
+    return PyUtil.multiResolveTopPriority(referenceExpression,
+        PyResolveContext.defaultContext().withTypeEvalContext(context))
 }
 
 val PyType.pyClassTypes: List<PyClassType>

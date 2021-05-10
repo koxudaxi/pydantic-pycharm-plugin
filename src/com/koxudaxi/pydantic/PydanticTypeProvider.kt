@@ -201,7 +201,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         return getResolvedPsiElements(referenceExpression, context)
             .asSequence()
-            .map {
+            .mapNotNull {
                 when {
                     it is PyClass -> getPydanticTypeForClass(it, context, true, pyCallExpression)
                     it is PyParameter && it.isSelf ->
@@ -672,9 +672,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return assignedValue
         val referenceExpression = callee.reference?.element as? PyReferenceExpression ?: return ellipsis
 
-        val resolveResults = getResolveElements(referenceExpression, context)
+        val resolveResults = getResolvedPsiElements(referenceExpression, context)
         if (isDataclass) {
-            PyUtil.filterTopPriorityResults(resolveResults)
+            resolveResults
                 .any {
                     it.isDataclassField
                 }
@@ -687,7 +687,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         } else {
 
             val versionZero = pydanticVersion?.major == 0
-            PyUtil.filterTopPriorityResults(resolveResults)
+            resolveResults
                 .any {
                     when {
                         versionZero -> isPydanticSchemaByPsiElement(it, context)
