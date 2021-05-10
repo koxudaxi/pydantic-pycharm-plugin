@@ -23,6 +23,10 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 * Support typing.Annotated (PEP 593)
 * Regex arguments in `Field` and `constr` are treated as Python's regex string literals
 
+#### pydantic.generics.GenericModel
+* Support same features as `pydantic.BaseModel`
+  * (This plugin version 0.3.1 or later)
+
 #### pydantic.dataclasses.dataclass
 * Support same features as `pydantic.BaseModel`
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
