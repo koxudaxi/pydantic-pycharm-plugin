@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin" require-restart="true">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.3.1</version>
+    <version>0.3.2</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.3.2</h2>
+    <p>BugFixes</p>
+    <ul>
+        <li>Fix wrong an error for a duplicate in config. [#297]</li>
+    </ul>
     <h2>version 0.3.1</h2>
     <p>Features</p>
     <ul>
@@ -340,7 +345,7 @@
         <projectService
                         serviceImplementation="com.koxudaxi.pydantic.PydanticConfigService"/>
         <projectService
-                serviceImplementation="com.koxudaxi.pydantic.PydanticVersionService"/>
+                serviceImplementation="com.koxudaxi.pydantic.PydanticCacheService"/>
 
         <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
         <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer" order="last"/>

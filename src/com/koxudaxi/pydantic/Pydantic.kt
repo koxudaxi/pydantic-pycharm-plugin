@@ -339,10 +339,11 @@ fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     }
 }
 
-fun validateConfig(pyClass: PyClass): List<PsiElement>? {
+fun validateConfig(pyClass: PyClass, context: TypeEvalContext): List<PsiElement>? {
     val configClass = pyClass.nestedClasses.firstOrNull { it.isConfigClass } ?: return null
-
+    val allowedConfigKwargs = PydanticCacheService.getAllowedConfigKwargs(pyClass.project, context) ?: return null
     val configKwargs = pyClass.superClassExpressions.filterIsInstance<PyKeywordArgument>()
+        .filter { allowedConfigKwargs.contains(it.name) }
         .takeIf { it.isNotEmpty() } ?: return null
 
     val results: MutableList<PsiElement> = configKwargs.toMutableList()
@@ -357,7 +358,7 @@ fun getConfig(
     pydanticVersion: KotlinVersion? = null,
 ): HashMap<String, Any?> {
     val config = hashMapOf<String, Any?>()
-    val version = pydanticVersion ?: PydanticVersionService.getVersion(pyClass.project, context)
+    val version = pydanticVersion ?: PydanticCacheService.getVersion(pyClass.project, context)
     pyClass.getAncestorClasses(context)
         .reversed()
         .filter { isPydanticModel(it, false, context) }

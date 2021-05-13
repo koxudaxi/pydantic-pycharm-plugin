@@ -31,14 +31,14 @@ open class PydanticPackageManagerListenerTest : PydanticTestCase() {
         val context = TypeEvalContext.userInitiated(project, null)
         val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
 
-        val pydanticVersion = PydanticVersionService.getVersion(project, context)
+        val pydanticVersion = PydanticCacheService.getVersion(project, context)
         assertEquals(KotlinVersion(1, 0, 1), pydanticVersion)
 
         BackgroundTaskUtil.syncPublisher(project, PyPackageManager.PACKAGE_MANAGER_TOPIC).packagesRefreshed(sdk)
         invokeLater {
-            val privateVersionField = PydanticVersionService::class.java.getDeclaredField("version")
+            val privateVersionField = PydanticCacheService::class.java.getDeclaredField("version")
             privateVersionField.trySetAccessible()
-            val pydanticVersionService = ServiceManager.getService(project, PydanticVersionService::class.java)
+            val pydanticVersionService = ServiceManager.getService(project, PydanticCacheService::class.java)
             val actual = privateVersionField.get(pydanticVersionService)
             assertNull(actual)
         }

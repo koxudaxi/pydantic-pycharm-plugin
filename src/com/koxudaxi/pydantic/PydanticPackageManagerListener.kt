@@ -14,7 +14,7 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
     private fun clearVersion(sdk: Sdk) {
         ProjectManager.getInstance().openProjects
             .filter { it.sdks.contains(sdk) }
-            .forEach { PydanticVersionService.clear(it) }
+            .forEach { PydanticCacheService.clear(it) }
     }
 
     override fun packagesRefreshed(sdk: Sdk) {

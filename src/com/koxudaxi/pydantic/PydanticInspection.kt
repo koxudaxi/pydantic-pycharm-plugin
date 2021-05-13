@@ -116,10 +116,10 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectConfig(pyClass: PyClass) {
-            val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, myTypeEvalContext)
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, myTypeEvalContext)
             if (pydanticVersion?.isAtLeast(1, 8) != true) return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
-            validateConfig(pyClass)?.forEach {
+            validateConfig(pyClass, myTypeEvalContext)?.forEach {
                 registerProblem(it,
                     "Specifying config in two places is ambiguous, use either Config attribute or class kwargs",
                     ProblemHighlightType.GENERIC_ERROR)
@@ -134,7 +134,7 @@ class PydanticInspection : PyInspection() {
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return
             val config = getConfig(pyClass, myTypeEvalContext, true)
-            val version = PydanticVersionService.getVersion(pyClass.project, myTypeEvalContext)
+            val version = PydanticCacheService.getVersion(pyClass.project, myTypeEvalContext)
             if (config["allow_mutation"] == false || (version?.isAtLeast(1, 8) == true && config["frozen"] == true)) {
                 registerProblem(node,
                     "Property \"${attributeName}\" defined in \"${pyClass.name}\" is read-only",

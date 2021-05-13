@@ -108,7 +108,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             isDataclass: Boolean,
             genericTypeMap: Map<PyGenericType, PyType>?,
         ) {
-            val pydanticVersion = PydanticVersionService.getVersion(pyClass.project, typeEvalContext)
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
                 .filter { it.name != null }
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
