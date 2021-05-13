@@ -76,5 +76,15 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
                 Pair("ET", "null"))
         )
     }
+    fun testOverrideInitKeywordArgument() {
+        doFieldTest(
+            listOf()
+        )
+    }
+    fun testOverrideInitField() {
+        doFieldTest(
+            listOf(Pair("abc", "str='123' A"))
+        )
+    }
 
 }
