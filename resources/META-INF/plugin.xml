@@ -340,7 +340,7 @@
         <projectService
                         serviceImplementation="com.koxudaxi.pydantic.PydanticConfigService"/>
         <projectService
-                serviceImplementation="com.koxudaxi.pydantic.PydanticVersionService"/>
+                serviceImplementation="com.koxudaxi.pydantic.PydanticCacheService"/>
 
         <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
         <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer" order="last"/>

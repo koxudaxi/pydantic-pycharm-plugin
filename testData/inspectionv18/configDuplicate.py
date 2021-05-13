@@ -1,3 +1,5 @@
+import abc
+
 from pydantic import BaseModel
 
 
@@ -11,3 +13,7 @@ class F(BaseModel, allow_mutation=True):
 class G(BaseModel):
     class Config:
         allow_mutation=True
+
+class H(BaseModel, metaclass=abc.ABCMeta, <error descr="Specifying config in two places is ambiguous, use either Config attribute or class kwargs">allow_mutation=True</error>):
+    class <error descr="Specifying config in two places is ambiguous, use either Config attribute or class kwargs">Config</error>:
+        allow_mutation= True
