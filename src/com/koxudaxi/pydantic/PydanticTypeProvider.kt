@@ -409,7 +409,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getBaseSetting(pyClass: PyClass, context: TypeEvalContext): PyClass? {
         return pyClass.getSuperClasses(context).mapNotNull {
-            if (it.isBaseSetting) {
+            if (it.isBaseSettings) {
                 it
             } else {
                 getBaseSetting(it, context)
@@ -464,6 +464,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     ): PyCallableType? {
         if (!isPydanticModel(pyClass, false, context)) return null
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
+
+        getPydanticModelInit(pyClass, context)?.let {
+            val callParameters = it.parameterList.parameters
+                .filterNot { parameter -> parameter.isSelf }
+                .map { parameter -> PyCallableParameterImpl.psi(parameter) }
+            return PyCallableTypeImpl(callParameters, clsType.toInstance())
+        }
+
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
         val typed = !init || getInstance(pyClass.project).currentInitTyped

@@ -142,7 +142,8 @@ fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context:
 fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): Boolean {
     return (isSubClassOfPydanticBaseModel(pyClass,
         context) || isSubClassOfPydanticGenericModel(pyClass,
-        context) || (includeDataclass && pyClass.isPydanticDataclass)) && !pyClass.isPydanticBaseModel && !pyClass.isPydanticGenericModel
+        context) || (includeDataclass && pyClass.isPydanticDataclass)) && !pyClass.isPydanticBaseModel
+            && !pyClass.isPydanticGenericModel && !pyClass.isBaseSettings
 }
 
 val PyClass.isPydanticBaseModel: Boolean get() = qualifiedName == BASE_MODEL_Q_NAME
@@ -163,7 +164,7 @@ internal fun isSubClassOfBaseSetting(pyClass: PyClass, context: TypeEvalContext)
     return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
 }
 
-internal val PyClass.isBaseSetting: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME
+internal val PyClass.isBaseSettings: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME
 
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean {
@@ -583,4 +584,12 @@ internal fun getQualifiedName(pyExpression: PyExpression, context: TypeEvalConte
             .firstOrNull()
         else -> return null
     }
+}
+
+fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction? {
+    val pyFunction = pyClass.findInitOrNew(true, context) ?: return null
+    if (pyFunction.name != "__init__") return null
+    val containingClass = pyFunction.containingClass ?: return null
+    if (!isPydanticModel(containingClass, false, context)) return null
+    return pyFunction
 }

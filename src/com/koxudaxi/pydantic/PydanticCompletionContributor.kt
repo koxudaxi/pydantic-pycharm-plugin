@@ -255,6 +255,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                     ?: return
 
             if (!isPydanticModel(pyClass, true, typeEvalContext)) return
+            if (getPydanticModelInit(pyClass, typeEvalContext) is PyFunction) return
 
             val definedSet = pyArgumentList.children
                 .mapNotNull { (it as? PyKeywordArgument)?.name }
