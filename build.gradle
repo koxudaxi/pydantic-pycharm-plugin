@@ -57,7 +57,7 @@ allprojects {
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
         compile "org.apache.tuweni:tuweni-toml:1.1.0"
         compile group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.7.1'
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.7.2'
         compile group: 'org.jetbrains', name: 'annotations', version: '20.1.0'
     }
 
