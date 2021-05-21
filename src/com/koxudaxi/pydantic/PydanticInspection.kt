@@ -81,6 +81,7 @@ class PydanticInspection : PyInspection() {
 
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
             val pyClass = getPydanticPyClass(pyCallExpression, myTypeEvalContext) ?: return
+            if (getPydanticModelInit(pyClass, myTypeEvalContext) != null) return
             pyCallExpression.arguments
                 .filterNot { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
                 .forEach {
