@@ -466,9 +466,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val clsType = (context.getType(pyClass) as? PyClassLikeType) ?: return null
 
         getPydanticModelInit(pyClass, context)?.let {
-            val callParameters = it.parameterList.parameters
+            val callParameters = it.getParameters(context)
                 .filterNot { parameter -> parameter.isSelf }
-                .map { parameter -> PyCallableParameterImpl.psi(parameter) }
             return PyCallableTypeImpl(callParameters, clsType.toInstance())
         }
 

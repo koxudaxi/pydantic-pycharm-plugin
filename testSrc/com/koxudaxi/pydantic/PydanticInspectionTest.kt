@@ -17,6 +17,10 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
+    fun testAcceptsOnlyKeywordArgumentsInit() {
+        doTest()
+    }
+
     fun testAcceptsOnlyKeywordArgumentsSingleStarArgument() {
         doTest()
     }

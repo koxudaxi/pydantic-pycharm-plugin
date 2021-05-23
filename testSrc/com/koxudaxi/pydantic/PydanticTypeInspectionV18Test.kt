@@ -24,8 +24,4 @@ open class PydanticTypeInspectionV18Test : PydanticInspectionBase("v18") {
     fun testGenericModel() {
         doTest()
     }
-
-    fun testOverrideInit() {
-        doTest()
-    }
 }

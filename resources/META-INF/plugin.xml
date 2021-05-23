@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin" require-restart="true">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.3.2</version>
+    <version>0.3.3</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.3.3</h2>
+    <p>BugFixes</p>
+    <ul>
+        <li>Fix wrong call parameter with **kwargs [#306]</li>
+    </ul>
     <h2>version 0.3.2</h2>
     <p>BugFixes</p>
     <ul>
