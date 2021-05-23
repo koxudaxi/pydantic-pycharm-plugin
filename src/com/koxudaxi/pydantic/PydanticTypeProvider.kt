@@ -4,6 +4,7 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.PyCustomType
+import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.*
@@ -51,7 +52,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     override fun getParameterType(param: PyNamedParameter, func: PyFunction, context: TypeEvalContext): Ref<PyType>? {
         return when {
-            !param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == "__init__" -> {
+            !param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == PyNames.INIT -> {
                 val pyClass = func.containingClass ?: return null
                 if (!isPydanticModel(pyClass, false, context)) return null
                 val name = param.name ?: return null
@@ -507,7 +508,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         typed,
                     )
                 }
-                .filter { parameter -> parameter.name?.let { !collected.containsKey(it) } ?: false }
+                .filter { parameter ->
+                    parameter.name?.let {
+                       PyNames.isIdentifier(it) && !collected.containsKey(it)
+                    } ?: false
+                }
                 .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
 

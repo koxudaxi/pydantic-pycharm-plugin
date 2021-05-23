@@ -6,6 +6,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.util.ProcessingContext
+import com.jetbrains.python.PyNames
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHint
@@ -72,7 +73,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             config: HashMap<String, Any?>,
             isDataclass: Boolean,
             genericTypeMap: Map<PyGenericType, PyType>?,
-        ): String {
+        ): String? {
 
             val parameter = typeProvider.fieldToParameter(pyTargetExpression,
                 ellipsis,
@@ -82,14 +83,16 @@ class PydanticCompletionContributor : CompletionContributor() {
                 config,
                 genericTypeMap,
                 isDataclass = isDataclass)
-            val defaultValue = parameter?.defaultValue?.let {
+            val parameterName = parameter?.name ?: return null
+            if (!PyNames.isIdentifier(parameterName)) return null
+            val defaultValue = parameter.defaultValue?.let {
                 when {
                     parameter.defaultValue is PyNoneLiteralExpression && !isSubClassOfBaseSetting(pyClass,
                         typeEvalContext) -> "=None"
                     else -> parameter.defaultValueText?.let { "=$it" } ?: ""
                 }
             } ?: ""
-            return getTypeHint(parameter?.getType(typeEvalContext), typeEvalContext)
+            return getTypeHint(parameter.getType(typeEvalContext), typeEvalContext)
                 .let { typeHint -> "${typeHint}$defaultValue ${pyClass.name}" }
         }
 
@@ -117,19 +120,22 @@ class PydanticCompletionContributor : CompletionContributor() {
                 .forEach {
                     val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion, config)
                     if (excludes == null || !excludes.contains(elementName)) {
-                        val element = PrioritizedLookupElement.withGrouping(
-                            LookupElementBuilder
-                                .createWithSmartPointer(elementName, it)
-                                .withTypeText(getTypeText(pyClass,
-                                    typeEvalContext,
-                                    it,
-                                    ellipsis,
-                                    pydanticVersion,
-                                    config,
-                                    isDataclass,
-                                    genericTypeMap))
-                                .withIcon(icon), 1)
-                        results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+                        val typeText = getTypeText(pyClass,
+                            typeEvalContext,
+                            it,
+                            ellipsis,
+                            pydanticVersion,
+                            config,
+                            isDataclass,
+                            genericTypeMap)
+                        if (typeText is String) {
+                            val element = PrioritizedLookupElement.withGrouping(
+                                LookupElementBuilder
+                                    .createWithSmartPointer(elementName, it)
+                                    .withTypeText(typeText)
+                                    .withIcon(icon), 1)
+                            results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+                        }
                     }
                 }
         }

@@ -164,7 +164,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
             listOf(
                 Pair("abc", "str A"),
                 Pair("cde", "str=s A"),
-                Pair("efg", "Any A"),
+                Pair("efg", "A"),
                 Pair("___slots__", "BaseModel")
             )
         )

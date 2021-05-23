@@ -10,6 +10,7 @@ import com.intellij.psi.util.QualifiedName
 import com.jetbrains.extensions.ModuleBasedContextAnchor
 import com.jetbrains.extensions.QNameResolveContext
 import com.jetbrains.extensions.resolveToElement
+import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyStarArgumentImpl
@@ -588,7 +589,7 @@ internal fun getQualifiedName(pyExpression: PyExpression, context: TypeEvalConte
 
 fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction? {
     val pyFunction = pyClass.findInitOrNew(true, context) ?: return null
-    if (pyFunction.name != "__init__") return null
+    if (pyFunction.name != PyNames.INIT) return null
     val containingClass = pyFunction.containingClass ?: return null
     if (!isPydanticModel(containingClass, false, context)) return null
     return pyFunction
