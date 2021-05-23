@@ -86,5 +86,12 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
             listOf(Pair("abc", "str='123' A"))
         )
     }
-
+    fun testAliasNameKeywordArgument() {
+        doFieldTest(
+            listOf(
+                Pair("abc=", "str='123' A"),
+                Pair("klm=", "str A")
+            )
+        )
+    }
 }
