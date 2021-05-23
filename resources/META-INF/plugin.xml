@@ -7,6 +7,7 @@
     <h2>version 0.3.3</h2>
     <p>BugFixes</p>
     <ul>
+        <li>Ignore invalid alias name [#307]</li>
         <li>Fix wrong call parameter with **kwargs [#306]</li>
     </ul>
     <h2>version 0.3.2</h2>
