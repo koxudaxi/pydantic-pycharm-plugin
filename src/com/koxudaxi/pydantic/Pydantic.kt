@@ -569,8 +569,15 @@ internal fun getTypeExpressionFromAnnotated(annotated: PyExpression): PyExpressi
         ?.getOrNull(0)
         ?.let { it as? PyExpression }
 
-internal fun getDefaultFromField(field: PyCallExpression): PyExpression? = field.getKeywordArgument("default")
-    ?: field.getArgument(0, PyExpression::class.java).takeIf { it?.name == null }
+internal fun getDefaultFromField(field: PyCallExpression, context: TypeEvalContext): PyExpression? =
+    field.getKeywordArgument("default")
+        ?: field.getArgument(0, PyExpression::class.java)?.let {
+            when {
+                it is PyReferenceExpression -> getResolvedPsiElements(it, context).firstOrNull() as? PyExpression
+                it.name == null -> it
+                else -> null
+            }
+        }
 
 internal fun getDefaultFactoryFromField(field: PyCallExpression): PyExpression? =
     field.getKeywordArgument("default_factory")

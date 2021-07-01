@@ -184,7 +184,7 @@ class PydanticInspection : PyInspection() {
             if (qualifiedName != ANNOTATED_Q_NAME) return
 
             val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
-            val default = getDefaultFromField(annotatedField)
+            val default = getDefaultFromField(annotatedField, myTypeEvalContext)
             if (default != null) {
                 registerProblem(
                     default.parent,
@@ -204,7 +204,7 @@ class PydanticInspection : PyInspection() {
             val assignedValueField =
                 assignedValue?.let { getFieldFromPyExpression(assignedValue, myTypeEvalContext, null) }
             if (assignedValueField != null) {
-                val default: PyExpression? = getDefaultFromField(assignedValueField)
+                val default: PyExpression? = getDefaultFromField(assignedValueField, myTypeEvalContext)
                 val defaultFactory: PyExpression? = getDefaultFactoryFromField(assignedValueField)
                 if (!validateDefaultAndDefaultFactory(default, defaultFactory)) return
             }
@@ -221,7 +221,7 @@ class PydanticInspection : PyInspection() {
                 return
             }
             val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
-            val default = getDefaultFromField(annotatedField)
+            val default = getDefaultFromField(annotatedField, myTypeEvalContext)
             val defaultFactory = getDefaultFactoryFromField(annotatedField)
             if (!validateDefaultAndDefaultFactory(assignedValue, defaultFactory)) return
             if (default != null) {
