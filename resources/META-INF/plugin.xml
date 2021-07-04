@@ -9,6 +9,10 @@
     <ul>
         <li>Support error for extra attribute with extra = 'forbid' option [#324]</li>
     </ul>
+    <p>BugFixes</p>
+    <ul>
+        <li>Fix default value by variable for Field is not recognized [#323]</li>
+    </ul>
     <h2>version 0.3.3</h2>
     <p>BugFixes</p>
     <ul>
