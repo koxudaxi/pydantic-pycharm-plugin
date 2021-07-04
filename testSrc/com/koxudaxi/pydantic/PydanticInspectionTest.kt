@@ -79,4 +79,8 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     fun testKwargConfig() {
         doTest()
     }
+
+    fun testExtra() {
+        doTest()
+    }
 }
