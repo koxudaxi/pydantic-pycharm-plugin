@@ -53,6 +53,7 @@ class PydanticInspection : PyInspection() {
 
             inspectPydanticModelCallableExpression(node)
             inspectFromOrm(node)
+            inspectExtraForbid(node)
 
         }
 
@@ -87,6 +88,28 @@ class PydanticInspection : PyInspection() {
                 .forEach {
                     registerProblem(it,
                         "class '${pyClass.name}' accepts only keyword arguments")
+                }
+        }
+
+        private fun inspectExtraForbid(pyCallExpression: PyCallExpression) {
+            val pyClass = getPydanticPyClass(pyCallExpression, myTypeEvalContext) ?: return
+            if (getPydanticModelInit(pyClass, myTypeEvalContext) != null) return
+            val config = getConfig(pyClass, myTypeEvalContext, true)
+            if (config["extra"] != EXTRA.FORBID) return
+            pyClass.getAncestorClasses(myTypeEvalContext)
+            val parameters = (pyClass.getAncestorClasses(myTypeEvalContext) + pyClass)
+                .flatMap { getClassVariables(pyClass, myTypeEvalContext)
+                    .filter { it.name != null }
+                    .filter { isValidField(it, myTypeEvalContext) }
+                    .map { it.name }
+                }.toSet()
+            pyCallExpression.arguments
+                .filter { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
+                .filterNot { it.name in parameters }
+                .forEach {
+                    registerProblem(it,
+                        "'${it.name}' extra fields not permitted",
+                        ProblemHighlightType.GENERIC_ERROR)
                 }
         }
 

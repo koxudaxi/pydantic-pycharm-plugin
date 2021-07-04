@@ -92,16 +92,20 @@ val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
 val pydanticVersionCache: HashMap<String, KotlinVersion> = hashMapOf()
 
 enum class ConfigType {
-    BOOLEAN, LIST_PYTYPE
+    BOOLEAN, LIST_PYTYPE, EXTRA
 }
 
+enum class EXTRA {
+    ALLOW, IGNORE, FORBID
+}
 val DEFAULT_CONFIG = mapOf<String, Any?>(
     "allow_population_by_alias" to false,
     "allow_population_by_field_name" to false,
     "orm_mode" to false,
     "allow_mutation" to true,
     "frozen" to false,
-    "keep_untouched" to listOf<PyType>()
+    "keep_untouched" to listOf<PyType>(),
+    "extra" to EXTRA.IGNORE
 )
 
 val CONFIG_TYPES = mapOf(
@@ -110,7 +114,8 @@ val CONFIG_TYPES = mapOf(
     "orm_mode" to ConfigType.BOOLEAN,
     "allow_mutation" to ConfigType.BOOLEAN,
     "frozen" to ConfigType.BOOLEAN,
-    "keep_untouched" to ConfigType.LIST_PYTYPE
+    "keep_untouched" to ConfigType.LIST_PYTYPE,
+    "extra" to ConfigType.EXTRA
 )
 
 const val CUSTOM_ROOT_FIELD = "__root__"
@@ -336,6 +341,14 @@ fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
                     else -> null
                 }
             } else null
+        }
+        ConfigType.EXTRA -> {
+            when ((value as? PyStringLiteralExpression)?.stringValue) {
+                "allow" -> EXTRA.ALLOW
+                "ignore" -> EXTRA.IGNORE
+                "forbid" -> EXTRA.FORBID
+                else -> EXTRA.IGNORE
+            }
         }
         else -> null
     }

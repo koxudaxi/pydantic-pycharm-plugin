@@ -1,5 +1,8 @@
 from typing import *
 
+from enum import Enum
+
+
 class BaseModel:
     class Config:
         pass
@@ -11,7 +14,7 @@ class BaseModel:
         pass
 
 
-class Extra(str):
+class Extra(str, Enum):
     allow = 'allow'
     ignore = 'ignore'
     forbid = 'forbid'
