@@ -98,6 +98,11 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
+    fun testIgnoreInitArguments() {
+        PydanticConfigService.getInstance(myFixture!!.project).ignoreInitMethodArguments = true
+        doTest()
+    }
+
     fun testUnResolve() {
         doTest()
     }

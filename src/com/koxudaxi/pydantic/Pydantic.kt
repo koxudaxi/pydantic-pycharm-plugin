@@ -608,6 +608,7 @@ internal fun getQualifiedName(pyExpression: PyExpression, context: TypeEvalConte
 }
 
 fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction? {
+    if (PydanticConfigService.getInstance(pyClass.project).ignoreInitMethodArguments) return null
     val pyFunction = pyClass.findInitOrNew(true, context) ?: return null
     if (pyFunction.name != PyNames.INIT) return null
     val containingClass = pyFunction.containingClass ?: return null

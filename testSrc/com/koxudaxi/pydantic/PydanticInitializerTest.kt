@@ -60,6 +60,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
                     mutableMapOf("str" to listOf("int", "float")))
                 assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
                 assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)
+                assertEquals(this.pydanticConfigService.ignoreInitMethodArguments, true)
             }
         }
     }
@@ -95,7 +96,8 @@ open class PydanticInitializerTest : PydanticTestCase() {
             invokeLater {
                 assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
                 assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
-            }
+                assertEquals(this.pydanticConfigService.ignoreInitMethodArguments, false)
+           }
         }
     }
 

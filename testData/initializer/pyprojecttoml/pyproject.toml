@@ -3,6 +3,8 @@
 parsable-type-highlight = "weak_warning"
 acceptable-type-highlight = "warning"
 
+ignore-init-method-arguments = true
+
 [tool.pydantic-pycharm-plugin.parsable-types]
 ## datetime.datetime field may parse int
 "datetime.datetime" = ["int"]
@@ -10,3 +12,5 @@ acceptable-type-highlight = "warning"
 [tool.pydantic-pycharm-plugin.acceptable-types]
 # str field accepts to parse int and float
 str = ["int", "float"]
+
+
