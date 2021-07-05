@@ -3,7 +3,7 @@ import xml.etree.ElementTree
 from enum import Enum
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
@@ -32,6 +32,8 @@ class HistoryHTMLParser(HTMLParser):
         super().__init__()
         self.current_tag: Tag = Tag.Version
         self.markdown: str = ''
+        self.markdown_latest_log: str = ''
+        self.latest: Optional[bool] = None
 
     def handle_starttag(self, tag: str, attrs):
         self.current_tag = Tag(tag)
@@ -43,6 +45,11 @@ class HistoryHTMLParser(HTMLParser):
         if not data.strip():
             return
         if self.current_tag == Tag.Version:
+            if self.latest is None:
+                self.latest = True
+            elif self.latest is True:
+                self.latest = False
+                self.markdown_latest_log = '\n'.join(self.markdown.splitlines()[1:])
             self.markdown += f'## {data.replace("version ", "")}\n'
         elif self.current_tag == Tag.ChangeType:
             self.markdown += f'### {data}\n'
