@@ -20,7 +20,7 @@ class PydanticConfigService : PersistentStateComponent<PydanticConfigService> {
     var parsableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WARNING
     var acceptableTypeMap = mapOf<String, List<String>>()
     var acceptableTypeHighlightType: ProblemHighlightType = ProblemHighlightType.WEAK_WARNING
-
+    var ignoreInitMethodArguments: Boolean = false
     val currentInitTyped: Boolean
         get() = this.mypyInitTyped ?: this.initTyped
     val currentWarnUntypedFields: Boolean

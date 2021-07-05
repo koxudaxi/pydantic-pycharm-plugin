@@ -24,6 +24,7 @@ nav:
     - Usage:
         - Type checker for pydantic: type-checker-for-pydantic.md
         - Mypy compatible: mypy-compatible.md
+        - Ignore __init__ arguments: ignore-init-arguments.md
     - Development: development.md
     - Changelog: changelog.md
 

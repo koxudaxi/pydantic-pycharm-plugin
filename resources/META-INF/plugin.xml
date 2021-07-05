@@ -7,6 +7,7 @@
     <h2>version 0.3.4</h2>
     <p>Features</p>
     <ul>
+        <li>Support ignore-init-method-arguments [#328]</li>
         <li>Support error for extra attribute with extra = 'forbid' option [#324]</li>
     </ul>
     <p>BugFixes</p>
