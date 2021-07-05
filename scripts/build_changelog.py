@@ -62,7 +62,8 @@ def main():
     html_parser.feed(history)
     with open(PROJECT_ROOT / 'docs/changelog.md', 'w') as f:
         f.write(html_parser.markdown)
-
+    with open(PROJECT_ROOT / 'docs/changelog_latest.md', 'w') as f:
+        f.write(html_parser.markdown_latest_log)
 
 if __name__ == '__main__':
     main()
