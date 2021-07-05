@@ -26,11 +26,16 @@ jobs:
      - name: Install dependencies
        run: |
          pip install -r requirements.txt
-     - name: build changelog 
+     - name: build changelog
+       env:
+         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
        run: |
          python scripts/build_changelog.py
-         echo ::set-env name=CHANGELOG_LATEST::$(cat docs/changelog_latest.md)
-
+         CHANGELOG_LATEST=$(cat docs/changelog_latest.md)
+         CHANGELOG_LATEST="${CHANGELOG_LATEST//'%'/'%25'}"
+         CHANGELOG_LATEST="${CHANGELOG_LATEST//$'\n'/'%0A'}"
+         CHANGELOG_LATEST="${CHANGELOG_LATEST//$'\r'/'%0D'}"
+         echo ::set-env name=CHANGELOG_LATEST::$CHANGELOG_LATEST
      - name: Cache
        uses: actions/cache@v1.1.2
        with:
