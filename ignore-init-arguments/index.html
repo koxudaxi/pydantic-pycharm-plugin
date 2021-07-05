@@ -11,14 +11,14 @@
       
       
       
-        <link rel="canonical" href="https://koxudaxi.github.io/pydantic-pycharm-plugin/mypy-compatible/">
+        <link rel="canonical" href="https://koxudaxi.github.io/pydantic-pycharm-plugin/ignore-init-arguments/">
       
       <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.2.1, mkdocs-material-7.1.9">
     
     
       
-        <title>Mypy compatible - Pydantic PyCharm Plugin</title>
+        <title>Ignore __init__ arguments - Pydantic PyCharm Plugin</title>
       
     
     
@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#mypy-compatible" class="md-skip">
+        <a href="#ignore-__init__-method-arguments" class="md-skip">
           Skip to content
         </a>
       
@@ -99,7 +99,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Mypy compatible
+              Ignore __init__ arguments
             
           </span>
         </div>
@@ -268,6 +268,18 @@
             
   
   
+  
+    <li class="md-nav__item">
+      <a href="../mypy-compatible/" class="md-nav__link">
+        Mypy compatible
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
     
   
   
@@ -279,79 +291,10 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Mypy compatible
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
-        Mypy compatible
-      </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#support-features" class="md-nav__link">
-    Support features
-  </a>
-  
-    <nav class="md-nav" aria-label="Support features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#init_typed" class="md-nav__link">
-    init_typed
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#warn_untyped_fields" class="md-nav__link">
-    warn_untyped_fields
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#settings" class="md-nav__link">
-    Settings
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ignore-init-arguments/" class="md-nav__link">
         Ignore __init__ arguments
       </a>
+      
     </li>
   
 
@@ -411,48 +354,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#support-features" class="md-nav__link">
-    Support features
-  </a>
-  
-    <nav class="md-nav" aria-label="Support features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#init_typed" class="md-nav__link">
-    init_typed
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#warn_untyped_fields" class="md-nav__link">
-    warn_untyped_fields
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#settings" class="md-nav__link">
-    Settings
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -463,34 +364,26 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/koxudaxi/pydantic-pycharm-plugin/edit/master/docs/mypy-compatible.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/koxudaxi/pydantic-pycharm-plugin/edit/master/docs/ignore-init-arguments.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="mypy-compatible">Mypy Compatible<a class="headerlink" href="#mypy-compatible" title="Permanent link">🔗</a></h1>
+                <h1 id="ignore-__init__-method-arguments">Ignore <code>__init__</code> method arguments<a class="headerlink" href="#ignore-__init__-method-arguments" title="Permanent link">🔗</a></h1>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p><strong>This feature is in version 0.1.4 or later</strong></p>
+<p><strong>This feature is in version 0.3.4 or later</strong></p>
 </div>
-<p>This plugin is compatible with the <a href="https://pydantic-docs.helpmanual.io/mypy_plugin/">pydantic-mypy plugin</a>, which is included in pydantic package.</p>
-<p>If you set supported features in mypy.ini then, the pycharm plugin performs the same inspects.</p>
-<h2 id="support-features">Support features<a class="headerlink" href="#support-features" title="Permanent link">🔗</a></h2>
-<ul>
-<li>init_typed</li>
-<li>warn_untyped_fields</li>
-</ul>
-<h3 id="init_typed">init_typed<a class="headerlink" href="#init_typed" title="Permanent link">🔗</a></h3>
-<p>If enabled, include the field types as type hints in the generated signature for the <strong>init</strong> method. This means that you'll get errors if you pass an argument that is not already the right type to <strong>init</strong>, even if parsing could safely convert the type.</p>
-<h3 id="warn_untyped_fields">warn_untyped_fields<a class="headerlink" href="#warn_untyped_fields" title="Permanent link">🔗</a></h3>
-<p>If enabled, raise a error whenever a field is declared on a model without explicitly specifying its type.</p>
-<h2 id="settings">Settings<a class="headerlink" href="#settings" title="Permanent link">🔗</a></h2>
-<p>You can toggle these features in PyCharm's Settings.</p>
-<p><img alt="settings 1" src="../settings1.png" /></p>
-<div class="admonition tips">
-<p class="admonition-title">Tips</p>
-<p><strong>If there is mypy.ini in your project, this plugin use values in mypy.ini</strong></p>
-</div>
+<p>You can write <code>__init__</code> method on a model for adding some logic.</p>
+<p>However, default arguments on <code>__init__</code> method will be overridden, And you will lose autocompletion for <code>__init__</code> methods by the plugin.  </p>
+<p><img alt="options_init" src="../init_arguments.png" /></p>
+<p><code>ignore-init-method-arguments</code> option resolves this problem.
+The option ignore arguments on <code>__init__</code> method.</p>
+<p><img alt="options_ignore_init" src="../ignore_init_arguments.png" /></p>
+<p>The option has to be defined in pyproject.toml</p>
+<div class="codehilite"><pre><span></span><code><span class="k">[tool.pydantic-pycharm-plugin]</span>
+<span class="n">ignore-init-method-arguments</span> <span class="o">=</span> <span class="kc">true</span>
+</code></pre></div>
                 
               
               
@@ -510,7 +403,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../type-checker-for-pydantic/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Type checker for pydantic" rel="prev">
+        <a href="../mypy-compatible/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Mypy compatible" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -519,20 +412,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Type checker for pydantic
+              Mypy compatible
             </div>
           </div>
         </a>
       
       
         
-        <a href="../ignore-init-arguments/" class="md-footer__link md-footer__link--next" aria-label="Next: Ignore __init__ arguments" rel="next">
+        <a href="../development/" class="md-footer__link md-footer__link--next" aria-label="Next: Development" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Ignore __init__ arguments
+              Development
             </div>
           </div>
           <div class="md-footer__button md-icon">
