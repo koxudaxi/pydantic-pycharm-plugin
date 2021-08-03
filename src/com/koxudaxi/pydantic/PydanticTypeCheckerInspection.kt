@@ -108,7 +108,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             for ((argument, parameter) in PyCallExpressionHelper.getRegularMappedParameters(mappedParameters)) {
                 val expected = parameter.getArgumentType(myTypeEvalContext)
                 val actual = promoteToLiteral(argument, expected, myTypeEvalContext)
-                val strictMatched = matchParameterAndArgument(expected, actual, argument, substitutions)
+                val strictMatched = matchParameterAndArgument(expected, actual, substitutions)
                 val strictResult = AnalyzeArgumentResult(expected, actual, strictMatched)
                 if (!strictResult.isMatched) {
                     val expectedType =
@@ -118,7 +118,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                         val parsableType = getParsableTypeFromTypeMap(expected, cachedParsableTypeMap)
                         if (parsableType != null) {
                             val parsableMatched =
-                                matchParameterAndArgument(parsableType, actual, argument, substitutions)
+                                matchParameterAndArgument(parsableType, actual, substitutions)
                             if (AnalyzeArgumentResult(parsableType, actual, parsableMatched).isMatched) {
                                 registerProblem(
                                     argument,
@@ -134,7 +134,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                         val acceptableType = getAcceptableTypeFromTypeMap(expected, cachedAcceptableTypeMap)
                         if (acceptableType != null) {
                             val acceptableMatched =
-                                matchParameterAndArgument(acceptableType, actual, argument, substitutions)
+                                matchParameterAndArgument(acceptableType, actual, substitutions)
                             if (AnalyzeArgumentResult(acceptableType, actual, acceptableMatched).isMatched) {
                                 registerProblem(
                                     argument,
@@ -159,12 +159,9 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         private fun matchParameterAndArgument(
             parameterType: PyType?,
             argumentType: PyType?,
-            argument: PyExpression?,
             substitutions: Map<PyGenericType, PyType>,
         ): Boolean {
-            return if (parameterType is PyTypedDictType && argument is PyDictLiteralExpression) match((parameterType as PyTypedDictType?)!!,
-                (argument as PyDictLiteralExpression?)!!,
-                myTypeEvalContext) else PyTypeChecker.match(parameterType,
+            return PyTypeChecker.match(parameterType,
                 argumentType,
                 myTypeEvalContext,
                 substitutions) &&
