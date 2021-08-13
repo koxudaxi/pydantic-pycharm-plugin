@@ -58,7 +58,7 @@ allprojects {
         compile "org.apache.tuweni:tuweni-toml:1.1.0"
         compile group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.7.2'
-        compile group: 'org.jetbrains', name: 'annotations', version: '21.0.1'
+        compile group: 'org.jetbrains', name: 'annotations', version: '22.0.0'
     }
 
     jacocoTestReport {
