@@ -515,13 +515,13 @@ And, you define parsable-type like a example.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">[tool.pydantic-pycharm-plugin.parsable-types]</span>
 
 <span class="c1"># str field may parse int and float</span>
-<span class="n">str</span> <span class="o">=</span> <span class="k">[&quot;int&quot;, &quot;float&quot;]</span>
+<span class="n">str</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;int&quot;</span><span class="p">,</span> <span class="s">&quot;float&quot;</span><span class="p">]</span>
 
 <span class="c1"># datetime.datetime field may parse int</span>
-<span class="s">&quot;datetime.datetime&quot;</span> <span class="o">=</span> <span class="k">[ &quot;int&quot; ]</span>
+<span class="s">&quot;datetime.datetime&quot;</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&quot;int&quot;</span> <span class="p">]</span>
 
 <span class="c1"># your_module.your_type field may parse str</span>
-<span class="s">&quot;your_module.your_type&quot;</span> <span class="o">=</span> <span class="k">[ &quot;str&quot; ]</span>
+<span class="s">&quot;your_module.your_type&quot;</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&quot;str&quot;</span> <span class="p">]</span>
 
 <span class="k">[tool.pydantic-pycharm-plugin]</span>
 <span class="c1"># You can set higlith level (default is &quot;warning&quot;)</span>
@@ -547,10 +547,10 @@ And, you define acceptable-type like a example.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">[tool.pydantic-pycharm-plugin.acceptable-types]</span>
 
 <span class="c1"># str field accepts to parse int and float</span>
-<span class="n">str</span> <span class="o">=</span> <span class="k">[&quot;int&quot;, &quot;float&quot;]</span>
+<span class="n">str</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;int&quot;</span><span class="p">,</span> <span class="s">&quot;float&quot;</span><span class="p">]</span>
 
 <span class="c1"># datetime.datetime field may parse int</span>
-<span class="s">&quot;datetime.datetime&quot;</span> <span class="o">=</span> <span class="k">[ &quot;int&quot; ]</span>
+<span class="s">&quot;datetime.datetime&quot;</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&quot;int&quot;</span> <span class="p">]</span>
 
 <span class="k">[tool.pydantic-pycharm-plugin]</span>
 <span class="c1"># You can set higlith level (default is &quot;weak_warning&quot;)</span>
