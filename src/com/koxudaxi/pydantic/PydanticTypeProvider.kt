@@ -356,7 +356,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                 continue
                             }
                             baseClassCollected.putAll(getClassVariables(current, context)
-                                .mapNotNull { it to fieldToParameter(it, context, typed) }
+                                .map { it to fieldToParameter(it, context, typed) }
                                 .mapNotNull { (field, parameter) ->
                                     parameter.name?.let { name -> Triple(field, parameter, name) }
                                 }
