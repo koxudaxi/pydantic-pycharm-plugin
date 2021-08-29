@@ -115,7 +115,7 @@ class PydanticInspection : PyInspection() {
 
         private fun inspectFromOrm(pyCallExpression: PyCallExpression) {
             if (!pyCallExpression.isCalleeText("from_orm")) return
-            val resolveContext = PyResolveContext.defaultContext().withTypeEvalContext(myTypeEvalContext)
+            val resolveContext = PyResolveContext.defaultContext(myTypeEvalContext)
             val pyCallable = pyCallExpression.multiResolveCalleeFunction(resolveContext).firstOrNull() ?: return
             if (pyCallable.asMethod()?.qualifiedName != "pydantic.main.BaseModel.from_orm") return
             val type =

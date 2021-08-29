@@ -19,6 +19,7 @@ import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.*
 import com.jetbrains.python.sdk.PythonSdkUtil
+import com.jetbrains.python.sdk.associatedModulePath
 import com.jetbrains.python.sdk.isAssociatedWithModule
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
@@ -216,9 +217,7 @@ internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): 
     val referenceExpression = pyCallExpression.callee as? PyReferenceExpression ?: return false
     val context = TypeEvalContext.userInitiated(referenceExpression.project, referenceExpression.containingFile)
     return getResolvedPsiElements(referenceExpression, context)
-        .filterIsInstance<PyFunction>()
-        .filter { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr }
-        .any()
+        .filterIsInstance<PyFunction>().any { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr }
 }
 
 internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
@@ -253,7 +252,7 @@ private fun getAliasedFieldName(
 
 fun getResolvedPsiElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): List<PsiElement> {
     return PyUtil.multiResolveTopPriority(referenceExpression,
-        PyResolveContext.defaultContext().withTypeEvalContext(context))
+        PyResolveContext.defaultContext(context))
 }
 
 val PyType.pyClassTypes: List<PyClassType>
@@ -304,7 +303,7 @@ fun getPsiElementByQualifiedName(
     context: TypeEvalContext,
 ): PsiElement? {
     val pythonSdk = project.sdk ?: return null
-    val module = project.modules.firstOrNull { pythonSdk.isAssociatedWithModule(it) } ?: project.modules.firstOrNull()
+    val module = project.modules.firstOrNull { it.pythonSdk == pythonSdk } ?: project.modules.firstOrNull()
     ?: return null
     val contextAnchor = ModuleBasedContextAnchor(module)
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
@@ -542,7 +541,7 @@ internal fun isUntouchedClass(
     if (pyExpression == null) return false
     val keepUntouchedClasses =
         (config["keep_untouched"] as? List<*>)?.filterIsInstance<PyType>()?.toList() ?: return false
-    if (keepUntouchedClasses.isNullOrEmpty()) return false
+    if (keepUntouchedClasses.isEmpty()) return false
     return (hasTargetPyType(pyExpression, keepUntouchedClasses, context))
 }
 
