@@ -3,9 +3,7 @@ package com.koxudaxi.pydantic
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.psi.types.TypeEvalContext
 import com.jetbrains.python.sdk.PythonSdkUtil
 
@@ -19,8 +17,7 @@ open class PydanticPackageManagerListenerTest : PydanticTestCase() {
             pydanticStubDir = skeleton.createChildDirectory(null, "pydantic")
             assertTrue(pydanticStubDir!!.exists())
         }
-        BackgroundTaskUtil.syncPublisher(myFixture!!.project, PyPackageManager.PACKAGE_MANAGER_TOPIC)
-            .packagesRefreshed(sdk)
+        PydanticPackageManagerListener().packagesRefreshed(sdk)
         invokeLater {
             assertFalse(pydanticStubDir!!.exists())
         }
@@ -34,7 +31,8 @@ open class PydanticPackageManagerListenerTest : PydanticTestCase() {
         val pydanticVersion = PydanticCacheService.getVersion(project, context)
         assertEquals(KotlinVersion(1, 0, 1), pydanticVersion)
 
-        BackgroundTaskUtil.syncPublisher(project, PyPackageManager.PACKAGE_MANAGER_TOPIC).packagesRefreshed(sdk)
+        PydanticPackageManagerListener().packagesRefreshed(sdk)
+
         invokeLater {
             val privateVersionField = PydanticCacheService::class.java.getDeclaredField("version")
             privateVersionField.trySetAccessible()

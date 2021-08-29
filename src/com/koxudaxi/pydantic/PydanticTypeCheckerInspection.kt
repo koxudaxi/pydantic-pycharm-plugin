@@ -9,12 +9,14 @@ import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.codeInsight.typing.matchingProtocolDefinitions
 import com.jetbrains.python.documentation.PythonDocumentationProvider
 import com.jetbrains.python.inspections.PyTypeCheckerInspection
-import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyCallExpression.PyArgumentsMapping
+import com.jetbrains.python.psi.PyCallSiteExpression
+import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.impl.PyCallExpressionHelper
 import com.jetbrains.python.psi.types.*
 import com.jetbrains.python.psi.types.PyLiteralType.Companion.promoteToLiteral
-import com.jetbrains.python.psi.types.PyTypedDictType.Companion.match
+
 
 class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
     override fun buildVisitor(
@@ -107,7 +109,8 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             val cachedAcceptableTypeMap = mutableMapOf<PyType, PyType?>()
             for ((argument, parameter) in PyCallExpressionHelper.getRegularMappedParameters(mappedParameters)) {
                 val expected = parameter.getArgumentType(myTypeEvalContext)
-                val actual = promoteToLiteral(argument, expected, myTypeEvalContext)
+                val promotedToLiteral = promoteToLiteral(argument, expected, myTypeEvalContext)
+                val actual = promotedToLiteral ?: myTypeEvalContext.getType(argument)!!
                 val strictMatched = matchParameterAndArgument(expected, actual, substitutions)
                 val strictResult = AnalyzeArgumentResult(expected, actual, strictMatched)
                 if (!strictResult.isMatched) {
