@@ -25,7 +25,7 @@ intellij {
 
 patchPluginXml {
     sinceBuild = "212.4746.13"
-//    untilBuild = "212.*"
+    untilBuild = "212.*"
 }
 
 
