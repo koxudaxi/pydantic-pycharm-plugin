@@ -8,6 +8,8 @@
     <p>Features</p>
     <ul>
         <li>Support PyCharm 2021.2 [#355]</li>
+        <li>PyCharm 2021.2.1 API changes [#345] by @lada-gagina </li>
+        Thanks to @lada-gagina
     </ul>
     <h2>version 0.3.4</h2>
     <p>Features</p>
