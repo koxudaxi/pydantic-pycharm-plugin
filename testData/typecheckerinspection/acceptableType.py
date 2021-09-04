@@ -16,3 +16,8 @@ def get_unknown_type_value():
 
 A(a=get_unknown_type_value())
 A(<warning descr="Expected type 'str', got 'None' instead">a=None</warning>)
+
+class B:
+    pass
+
+A(<warning descr="Expected type 'str', got 'B' instead">a=B()</warning>)
