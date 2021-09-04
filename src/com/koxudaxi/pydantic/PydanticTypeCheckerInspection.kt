@@ -110,7 +110,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             for ((argument, parameter) in PyCallExpressionHelper.getRegularMappedParameters(mappedParameters)) {
                 val expected = parameter.getArgumentType(myTypeEvalContext)
                 val promotedToLiteral = promoteToLiteral(argument, expected, myTypeEvalContext)
-                val actual = promotedToLiteral ?: myTypeEvalContext.getType(argument)!!
+                val actual = promotedToLiteral ?: myTypeEvalContext.getType(argument)
                 val strictMatched = matchParameterAndArgument(expected, actual, substitutions)
                 val strictResult = AnalyzeArgumentResult(expected, actual, strictMatched)
                 if (!strictResult.isMatched) {
