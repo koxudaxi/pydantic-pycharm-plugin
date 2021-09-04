@@ -7,6 +7,7 @@
     <h2>version 0.3.6</h2>
     <p>BugFixes</p>
     <ul>
+        <li>Fix Outdated Stub in index error on PydanticAnnotator.kt [#363]</li>
         <li>Fix NullPointerException in PydanticTypeCheckerInspection.kt [#362]</li>
     </ul>
     <h2>version 0.3.5</h2>
