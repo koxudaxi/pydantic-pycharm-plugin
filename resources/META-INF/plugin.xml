@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin" require-restart="true">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.3.5</version>
+    <version>0.3.6</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.3.6</h2>
+    <p>BugFixes</p>
+    <ul>
+        <li>Fix NullPointerException in PydanticTypeCheckerInspection.kt [#362]</li>
+    </ul>
     <h2>version 0.3.5</h2>
     <p>Features</p>
     <ul>
