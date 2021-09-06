@@ -152,8 +152,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
 
-            pyClass.getAncestorClasses(typeEvalContext)
-                .filter { isPydanticModel(it, true, typeEvalContext) }
+            getAncestorPydanticModels(pyClass, true, typeEvalContext)
                 .forEach {
                     addFieldElement(it,
                         newElements,
@@ -193,8 +192,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             val fieldElements: HashSet<String> = HashSet()
 
-            pyClass.getAncestorClasses(typeEvalContext)
-                .filter { isPydanticModel(it, true, typeEvalContext) }
+            getAncestorPydanticModels(pyClass, true, typeEvalContext)
                 .forEach {
                     fieldElements.addAll(it.classAttributes
                         .filterNot { attribute ->
