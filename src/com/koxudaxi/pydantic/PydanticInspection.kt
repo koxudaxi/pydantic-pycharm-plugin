@@ -97,8 +97,9 @@ class PydanticInspection : PyInspection() {
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["extra"] != EXTRA.FORBID) return
             pyClass.getAncestorClasses(myTypeEvalContext)
-            val parameters = (pyClass.getAncestorClasses(myTypeEvalContext) + pyClass)
-                .flatMap { getClassVariables(pyClass, myTypeEvalContext)
+            val ancestorPydanticModels =  pyClass.getAncestorClasses(myTypeEvalContext).filter {  isPydanticModel(it, false, myTypeEvalContext) }
+            val parameters = (ancestorPydanticModels + pyClass)
+                .flatMap { pydanticModel -> getClassVariables(pydanticModel, myTypeEvalContext)
                     .filter { it.name != null }
                     .filter { isValidField(it, myTypeEvalContext) }
                     .map { it.name }
