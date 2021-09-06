@@ -24,7 +24,8 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
         referenceExpression: PyReferenceExpression,
         context: TypeEvalContext,
     ): PyType? {
-        return getPydanticDataclass(referenceExpression, context)
+        return getPydanticDataclass(referenceExpression,
+            TypeEvalContext.codeInsightFallback(referenceExpression.project))
     }
 
 
