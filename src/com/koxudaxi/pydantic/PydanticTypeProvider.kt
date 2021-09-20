@@ -83,8 +83,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, context)
         return getRefTypeFromFieldNameInPyClass(name, pyClass, context, ellipsis, pydanticVersion)
-            ?: pyClass.getAncestorClasses(context)
-                .filter { isPydanticModel(it, false, context) }
+            ?: getAncestorPydanticModels(pyClass, false, context)
                 .mapNotNull { ancestor ->
                     getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion)
                 }.firstOrNull()

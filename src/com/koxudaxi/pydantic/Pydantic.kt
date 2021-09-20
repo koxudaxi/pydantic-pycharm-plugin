@@ -373,9 +373,8 @@ fun getConfig(
 ): HashMap<String, Any?> {
     val config = hashMapOf<String, Any?>()
     val version = pydanticVersion ?: PydanticCacheService.getVersion(pyClass.project, context)
-    pyClass.getAncestorClasses(context)
+    getAncestorPydanticModels(pyClass, false, context)
         .reversed()
-        .filter { isPydanticModel(it, false, context) }
         .map { getConfig(it, context, false, version) }
         .forEach {
             it.entries.forEach { entry ->
@@ -467,6 +466,9 @@ fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalCont
     return pyClass
 }
 
+fun getAncestorPydanticModels(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): List<PyClass> {
+    return pyClass.getAncestorClasses(context).filter {  isPydanticModel(it, includeDataclass, context) }
+}
 fun getParentOfPydanticCallableExpression(file: PsiFile, offset: Int, context: TypeEvalContext): PyCallExpression? {
     var pyCallExpression: PyCallExpression? =
         PsiTreeUtil.getParentOfType(file.findElementAt(offset), PyCallExpression::class.java, true)

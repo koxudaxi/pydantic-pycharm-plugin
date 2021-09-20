@@ -108,9 +108,9 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     ): Boolean {
         if (searchField(pyClass, elementName, consumer, context)) return true
 
-        return pyClass.getAncestorClasses(null)
+        return getAncestorPydanticModels(pyClass, true, context)
             .firstOrNull {
-                isPydanticModel(it, true, context) && searchDirectReferenceField(it,
+                searchDirectReferenceField(it,
                     elementName,
                     consumer,
                     context)
@@ -127,8 +127,8 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         added.add(pyClass)
         searchField(pyClass, elementName, consumer, context)
         searchKeywordArgument(pyClass, elementName, consumer, context)
-        pyClass.getAncestorClasses(null)
-            .filter { !it.isPydanticBaseModel && !added.contains(it) }
+        getAncestorPydanticModels(pyClass, true, context)
+            .filterNot { added.contains(it)  }
             .forEach { searchField(it, elementName, consumer, context) }
 
         PyClassInheritorsSearch.search(pyClass, true)
