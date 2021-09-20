@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = "1.5.10"
+    ext.kotlin_version = "1.5.30"
     repositories {
         mavenCentral()
     }
@@ -15,7 +15,7 @@ plugins {
 
 intellij {
     pluginName = project.name
-    version = "2021.2.1"
+    version = "2021.2.2"
     type = "PC"
     updateSinceUntilBuild = false
     downloadSources = true
@@ -24,7 +24,7 @@ intellij {
 
 
 patchPluginXml {
-    sinceBuild = "212.4746.13"
+    sinceBuild = "212.5284.19"
     untilBuild = "212.*"
 }
 
