@@ -40,7 +40,7 @@ class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : Local
 
     override fun startInWriteAction(): Boolean = true
 
-    fun runFix(
+    private fun runFix(
         project: Project,
         file: PsiFile,
         originalElement: PsiElement,

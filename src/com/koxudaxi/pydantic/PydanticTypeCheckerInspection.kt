@@ -8,6 +8,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.codeInsight.typing.matchingProtocolDefinitions
 import com.jetbrains.python.documentation.PythonDocumentationProvider
+import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.PyTypeCheckerInspection
 import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyCallExpression.PyArgumentsMapping
@@ -27,11 +28,11 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         if (LOG.isDebugEnabled) {
             session.putUserData(TIME_KEY, System.nanoTime())
         }
-        return Visitor(holder, session)
+        return Visitor(holder, PyInspectionVisitor.getContext(session))
     }
 
-    class Visitor(holder: ProblemsHolder?, session: LocalInspectionToolSession) :
-        PyTypeCheckerInspection.Visitor(holder, session) {
+    class Visitor(holder: ProblemsHolder?, context: TypeEvalContext) :
+        PyTypeCheckerInspection.Visitor(holder, context) {
 
         val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
 
@@ -103,7 +104,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         private fun analyzeCallee(callSite: PyCallSiteExpression, mapping: PyArgumentsMapping) {
             val callableType = mapping.callableType ?: return
             val receiver = callSite.getReceiver(callableType.callable)
-            val substitutions = PyTypeChecker.unifyReceiver(receiver, myTypeEvalContext)
+            val substitutions = PyTypeChecker.unifyReceiverWithParamSpecs(receiver, myTypeEvalContext)
             val mappedParameters = mapping.mappedParameters
             val cachedParsableTypeMap = mutableMapOf<PyType, PyType?>()
             val cachedAcceptableTypeMap = mutableMapOf<PyType, PyType?>()
@@ -162,7 +163,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         private fun matchParameterAndArgument(
             parameterType: PyType?,
             argumentType: PyType?,
-            substitutions: Map<PyGenericType, PyType>,
+            substitutions: PyTypeChecker.GenericSubstitutions,
         ): Boolean {
             return PyTypeChecker.match(parameterType,
                 argumentType,

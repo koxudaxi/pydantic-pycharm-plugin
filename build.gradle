@@ -15,7 +15,7 @@ plugins {
 
 intellij {
     pluginName = project.name
-    version = "2021.2.2"
+    version = "2021.3"
     type = "PC"
     updateSinceUntilBuild = false
     downloadSources = true
@@ -24,8 +24,8 @@ intellij {
 
 
 patchPluginXml {
-    sinceBuild = "212.5284.19"
-    untilBuild = "212.*"
+    sinceBuild = "213.5744.248"
+    untilBuild = "213.*"
 }
 
 

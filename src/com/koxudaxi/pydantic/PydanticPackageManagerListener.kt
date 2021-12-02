@@ -30,7 +30,7 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
                 runWriteAction {
                     try {
                         pydanticStub.delete(this)
-                    } catch (e: java.io.IOException) {
+                    } catch (_: java.io.IOException) {
                     } finally {
                         pydanticStub.refresh(true, true) {
                             clearVersion(sdk)

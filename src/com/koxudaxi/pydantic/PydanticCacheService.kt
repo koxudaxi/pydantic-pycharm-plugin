@@ -66,7 +66,7 @@ class PydanticCacheService {
         }
 
         private fun getInstance(project: Project): PydanticCacheService {
-            return ServiceManager.getService(project, PydanticCacheService::class.java)
+            return project.getService(PydanticCacheService::class.java)
         }
     }
 
