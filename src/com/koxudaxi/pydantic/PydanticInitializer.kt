@@ -82,7 +82,7 @@ class PydanticInitializer : StartupActivity {
                                     }
                             }
 
-                        } catch (e: AlreadyDisposedException) {
+                        } catch (_: AlreadyDisposedException) {
                         }
                     }
                 }
@@ -179,7 +179,7 @@ class PydanticInitializer : StartupActivity {
         DumbService.getInstance(project).smartInvokeLater {
             try {
                 initializeFileLoader(project)
-            } catch (e: AlreadyDisposedException) {
+            } catch (_: AlreadyDisposedException) {
             }
         }
     }

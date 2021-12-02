@@ -565,7 +565,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         )
     }
 
-    internal fun argumentToParameter(
+    private fun argumentToParameter(
         parameter: PyNamedParameter,
         context: TypeEvalContext,
         typed: Boolean = true,

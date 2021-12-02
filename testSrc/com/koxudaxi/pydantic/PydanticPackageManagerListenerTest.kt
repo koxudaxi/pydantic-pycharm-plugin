@@ -36,7 +36,7 @@ open class PydanticPackageManagerListenerTest : PydanticTestCase() {
         invokeLater {
             val privateVersionField = PydanticCacheService::class.java.getDeclaredField("version")
             privateVersionField.trySetAccessible()
-            val pydanticVersionService = ServiceManager.getService(project, PydanticCacheService::class.java)
+            val pydanticVersionService = project.getService(PydanticCacheService::class.java)
             val actual = privateVersionField.get(pydanticVersionService)
             assertNull(actual)
         }

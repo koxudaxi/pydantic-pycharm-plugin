@@ -13,6 +13,7 @@ import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.PyClassTypeImpl
+import com.jetbrains.python.psi.types.TypeEvalContext
 
 
 class PydanticInspection : PyInspection() {
@@ -21,10 +22,10 @@ class PydanticInspection : PyInspection() {
         holder: ProblemsHolder,
         isOnTheFly: Boolean,
         session: LocalInspectionToolSession,
-    ): PsiElementVisitor = Visitor(holder, session)
+    ): PsiElementVisitor = Visitor(holder, PyInspectionVisitor.getContext(session))
 
-    inner class Visitor(holder: ProblemsHolder, session: LocalInspectionToolSession) :
-        PyInspectionVisitor(holder, session) {
+    inner class Visitor(holder: ProblemsHolder, context: TypeEvalContext) :
+        PyInspectionVisitor(holder, context) {
 
         val pydanticConfigService = PydanticConfigService.getInstance(holder.project)
 
