@@ -15,6 +15,7 @@ import com.jetbrains.python.fixtures.PyLightProjectDescriptor
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.impl.PythonLanguageLevelPusher
 import com.jetbrains.python.sdk.PythonSdkUtil
+import org.junit.Test
 
 abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
@@ -104,6 +105,8 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
         PythonLanguageLevelPusher.setForcedLanguageLevel(myFixture!!.project, languageLevel)
     }
 
-
+    @Test
+    private fun dummyTest() {
+    }
 }
 
