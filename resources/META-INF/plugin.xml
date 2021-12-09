@@ -1,9 +1,14 @@
 <idea-plugin url="https://github.com/koxudaxi/pydantic-pycharm-plugin" require-restart="true">
     <id>com.koxudaxi.pydantic</id>
     <name>Pydantic</name>
-    <version>0.3.9</version>
+    <version>0.3.10</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
+    <h2>version 0.3.10</h2>
+    <p>Features</p>
+    <ul>
+        <li>Support IntelliJ IDEA 2021.3 [#407]</li>
+    </ul>
     <h2>version 0.3.9</h2>
     <p>Features</p>
     <ul>
