@@ -61,7 +61,7 @@
             <properties>
               <editable value="false"/>
               <opaque value="false"/>
-              <text value="If enabled, raise a error whenever a field is declared on a model without explicitly specifying its type."/>
+              <text value="If enabled, raise an error whenever a field is declared on a model without explicitly specifying its type."/>
             </properties>
           </component>
           <component id="35726" class="javax.swing.JTextPane" binding="textPane1" default-binding="true">

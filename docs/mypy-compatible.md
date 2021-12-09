@@ -15,7 +15,7 @@ If you set supported features in mypy.ini then, the pycharm plugin performs the 
 If enabled, include the field types as type hints in the generated signature for the __init__ method. This means that you'll get errors if you pass an argument that is not already the right type to __init__, even if parsing could safely convert the type.
 
 ### warn_untyped_fields
-If enabled, raise a error whenever a field is declared on a model without explicitly specifying its type.
+If enabled, raise an error whenever a field is declared on a model without explicitly specifying its type.
 
 
 ## Settings

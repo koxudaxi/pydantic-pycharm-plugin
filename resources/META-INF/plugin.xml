@@ -9,6 +9,10 @@
     <ul>
         <li>Support IntelliJ IDEA 2021.3 [#407]</li>
     </ul>
+    <p>BugFixes</p>
+    <ul>
+        <li>Fix a typo in the settings [#408]</li>
+    </ul>
     <h2>version 0.3.9</h2>
     <p>Features</p>
     <ul>
