@@ -10,6 +10,10 @@
 ## Interview
 I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.jetbrains.com/pycharm/2020/04/interview-koudai-aono-author-of-pydantic-plugin-for-pycharm/).
 
+## Sponsors
+[![JetBrains](https://avatars.githubusercontent.com/u/60931315?s=200&v=4)](https://github.com/JetBrainsOfficial)
+
+
 ##  Features
 ### Implemented
 #### pydantic.BaseModel
