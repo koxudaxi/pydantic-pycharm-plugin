@@ -13,6 +13,10 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 ## Help
 See [documentation](https://koxudaxi.github.io/pydantic-pycharm-plugin/) for more details.
 
+## Sponsors
+[![JetBrains](https://avatars.githubusercontent.com/u/60931315?s=200&v=4)](https://github.com/JetBrainsOfficial)
+
+
 ## Quick Installation
 
 The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic))
