@@ -1,10 +1,11 @@
 buildscript {
-    ext.kotlin_version = "1.5.30"
+    ext.kotlin_version = "1.6.10"
+    ext.tuweni_toml_verison = "2.1.0"
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version", "org.apache.tuweni:tuweni-toml:2.1.0"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version", "org.apache.tuweni:tuweni-toml:$tuweni_toml_verison"
     }
 }
 
@@ -15,7 +16,7 @@ plugins {
 
 intellij {
     pluginName = project.name
-    version = "2021.3"
+    version = "221.3427-EAP-CANDIDATE-SNAPSHOT"
     type = "PC"
     updateSinceUntilBuild = false
     downloadSources = true
@@ -24,52 +25,52 @@ intellij {
 
 
 patchPluginXml {
-    sinceBuild = "213.5744.223"
-    untilBuild = "213.*"
+    sinceBuild = "221.*"
+    untilBuild = "221.*"
 }
 
 
-allprojects {
-    apply plugin: "org.jetbrains.intellij"
-    apply plugin: "kotlin"
-    apply plugin: "jacoco"
-    repositories {
-        mavenCentral()
-    }
 
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = "11"
-            languageVersion = "1.4"
-            apiVersion = "1.4"
-        }
-    }
-
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "11"
-            languageVersion = "1.4"
-            apiVersion = "1.4"
-        }
-    }
-
-    dependencies {
-        implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21'
-        compile 'org.apache.tuweni:tuweni-toml:2.0.0'
-        compile group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
-        compile group: 'org.jetbrains', name: 'annotations', version: '23.0.0'
-    }
-
-    jacocoTestReport {
-        reports {
-            xml.enabled true
-            html.enabled true
-        }
-    }
-    sourceCompatibility = 11
-    targetCompatibility = 11
+apply plugin: "org.jetbrains.intellij"
+apply plugin: "kotlin"
+apply plugin: "jacoco"
+repositories {
+    mavenCentral()
 }
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+        languageVersion = "1.4"
+        apiVersion = "1.4"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+        languageVersion = "1.4"
+        apiVersion = "1.4"
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.apache.tuweni:tuweni-toml:$tuweni_toml_verison"
+    compile group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
+    compile group: 'org.jetbrains', name: 'annotations', version: '23.0.0'
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+}
+sourceCompatibility = 11
+targetCompatibility = 11
+
 
 sourceSets {
     main {

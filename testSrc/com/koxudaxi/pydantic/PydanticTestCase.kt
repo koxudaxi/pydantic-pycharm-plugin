@@ -55,7 +55,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
     override fun setUp() {
         super.setUp()
         val factory = IdeaTestFixtureFactory.getFixtureFactory()
-        val fixtureBuilder = factory.createLightFixtureBuilder(projectDescriptor)
+        val fixtureBuilder = factory.createLightFixtureBuilder(projectDescriptor, "MockSdkWithBinaryModules")
         val fixture = fixtureBuilder.fixture
         myFixture = IdeaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(fixture,
             LightTempDirTestFixtureImpl(true))
