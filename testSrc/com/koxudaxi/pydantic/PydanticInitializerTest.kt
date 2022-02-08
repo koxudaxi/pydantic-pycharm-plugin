@@ -23,7 +23,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
         setUpConfig()
         val target = createTempFile(testMethodName).toFile()
         try {
-            val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.toLowerCase()}/pyproject.toml")
+            val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.lowercase()}/pyproject.toml")
             pydanticConfigService.pyprojectToml = target.path
             invokeLater {
                 target.writeText(source.bufferedReader().readText())
@@ -39,7 +39,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
         setUpConfig()
         val target = createTempFile(testMethodName).toFile()
         try {
-            val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.toLowerCase()}/mypy.ini")
+            val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.lowercase()}/mypy.ini")
             pydanticConfigService.mypyIni = target.path
             target.writeText(source.bufferedReader().readText())
             runnable()

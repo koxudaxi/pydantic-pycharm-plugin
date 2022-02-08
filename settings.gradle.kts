@@ -1,1 +1,1 @@
-rootProject.name = 'pydantic-pycharm-plugin'
+rootProject.name = "pydantic-pycharm-plugin"

@@ -1,4 +1,4 @@
-# Type checker for pydnatic
+# Type checker for Pydnatic
 
 !!! warning
     **Experimental feature**
@@ -8,7 +8,7 @@
 
 !!! tips
     **This plugin supports type-checking to pydantic with a built-in type checker.
-      Plus, this type-checker supplies a special feature to pydnatic. **
+      Plus, this type-checker supplies a special feature to Pydnatic. **
           
 This plugin provides a type-checker for pydantic.
 

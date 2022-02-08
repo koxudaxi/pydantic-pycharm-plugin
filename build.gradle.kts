@@ -1,83 +1,132 @@
-buildscript {
-    ext.kotlin_version = "1.5.30"
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version", "org.apache.tuweni:tuweni-toml:2.1.0"
-    }
-}
+import org.jetbrains.changelog.markdownToHTML
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
-    id "org.jetbrains.intellij" version "1.3.1"
+    // Kotlin support
+    kotlin("jvm") version "1.6.10"
+    // Gradle IntelliJ Plugin
+    id("org.jetbrains.intellij") version "1.4.0"
+    // Gradle Changelog Plugin
+    id("org.jetbrains.changelog") version "1.3.1"
+    // Gradle Qodana Plugin
+    id("org.jetbrains.qodana") version "0.1.13"
+    jacoco
 }
 
+group = properties("pluginGroup")
+version = properties("pluginVersion")
+
+// Configure project's dependencies
+repositories {
+    mavenCentral()
+}
+
+// Configure Gradle IntelliJ Plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
 intellij {
-    pluginName = project.name
-    version = "2021.3"
-    type = "PC"
-    updateSinceUntilBuild = false
-    downloadSources = true
-    plugins = ["python-ce"]
+    pluginName.set(properties("pluginName"))
+    version.set(properties("platformVersion"))
+    type.set(properties("platformType"))
+
+    plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
 }
 
-
-patchPluginXml {
-    sinceBuild = "213.5744.223"
-    untilBuild = "213.*"
+// Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
+changelog {
+    version.set(properties("pluginVersion"))
+    groups.set(emptyList())
 }
 
+// Configure Gradle Qodana Plugin - read more: https://github.com/JetBrains/gradle-qodana-plugin
+qodana {
+    cachePath.set(projectDir.resolve(".qodana").canonicalPath)
+    reportPath.set(projectDir.resolve("build/reports/inspections").canonicalPath)
+    saveReport.set(true)
+    showReport.set(System.getenv("QODANA_SHOW_REPORT")?.toBoolean() ?: false)
+}
 
-allprojects {
-    apply plugin: "org.jetbrains.intellij"
-    apply plugin: "kotlin"
-    apply plugin: "jacoco"
-    repositories {
-        mavenCentral()
+tasks {
+    // Set the JVM compatibility versions
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = properties("javaVersion")
     }
 
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = "11"
-            languageVersion = "1.4"
-            apiVersion = "1.4"
-        }
+    wrapper {
+        gradleVersion = properties("gradleVersion")
     }
 
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "11"
-            languageVersion = "1.4"
-            apiVersion = "1.4"
-        }
-    }
+    patchPluginXml {
+        version.set(properties("pluginVersion"))
+        sinceBuild.set(properties("pluginSinceBuild"))
+        untilBuild.set(properties("pluginUntilBuild"))
 
-    dependencies {
-        implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21'
-        compile 'org.apache.tuweni:tuweni-toml:2.0.0'
-        compile group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
-        compile group: 'org.jetbrains', name: 'annotations', version: '23.0.0'
+        // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
+        pluginDescription.set(
+            projectDir.resolve("README.md").readText().lines().run {
+                val start = "<!-- Plugin description -->"
+                val end = "<!-- Plugin description end -->"
+
+                if (!containsAll(listOf(start, end))) {
+                    throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
+                }
+                subList(indexOf(start) + 1, indexOf(end))
+            }.joinToString("\n").run { markdownToHTML(this) }
+        )
+
+        // Get the latest available change notes from the changelog file
+        changeNotes.set(provider {
+            changelog.run {
+                getOrNull(properties("pluginVersion")) ?: getLatest()
+            }.toHTML()
+        })
     }
 
     jacocoTestReport {
         reports {
-            xml.enabled true
-            html.enabled true
+            xml.required.set(true)
+            html.required.set(true)
         }
     }
-    sourceCompatibility = 11
-    targetCompatibility = 11
+
+    // Configure UI tests plugin
+    // Read more: https://github.com/JetBrains/intellij-ui-test-robot
+    runIdeForUiTests {
+        systemProperty("robot-server.port", "8082")
+        systemProperty("ide.mac.message.dialogs.as.sheets", "false")
+        systemProperty("jb.privacy.policy.text", "<!--999.999-->")
+        systemProperty("jb.consents.confirmation.enabled", "false")
+    }
+
+    signPlugin {
+        certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
+        privateKey.set(System.getenv("PRIVATE_KEY"))
+        password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
+    }
+
+    publishPlugin {
+        dependsOn("patchChangelog")
+        token.set(System.getenv("PUBLISH_TOKEN"))
+        // pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
+        // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
+        // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
+        channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
+    }
+}
+
+dependencies {
+    compileOnly("org.apache.tuweni:tuweni-toml:2.1.0")
+    compileOnly(group = "org.ini4j", name = "ini4j", version = "0.5.4")
+    testImplementation(kotlin("test"))
 }
 
 sourceSets {
     main {
-        java.srcDir 'src'
-        resources.srcDir 'resources'
+        java.srcDir("src")
+        resources.srcDir("resources")
     }
     test {
-        java.srcDir 'testSrc'
-        resources.srcDir 'testData'
+        java.srcDir("testSrc")
+        resources.srcDir("testData")
     }
 }

@@ -15,7 +15,7 @@ import com.jetbrains.python.fixtures.PyLightProjectDescriptor
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.impl.PythonLanguageLevelPusher
 import com.jetbrains.python.sdk.PythonSdkUtil
-import org.junit.Test
+import kotlin.test.Test
 
 abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
@@ -31,7 +31,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
     protected val testClassName: String
         get() {
-            return this.javaClass.simpleName.replace("Pydantic", "").replace("Test", "").toLowerCase()
+            return this.javaClass.simpleName.replace("Pydantic", "").replace("Test", "").lowercase()
         }
 
     protected val testDataMethodPath: String

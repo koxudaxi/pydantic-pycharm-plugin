@@ -13,66 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jetbrains.python.fixtures;
+package com.jetbrains.python.fixtures
 
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.LightProjectDescriptor;
-import com.jetbrains.python.PythonMockSdk;
-import com.jetbrains.python.psi.LanguageLevel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.testFramework.LightProjectDescriptor
+import com.intellij.openapi.projectRoots.Sdk
+import com.jetbrains.python.PythonMockSdk
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.roots.ModifiableRootModel
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.roots.OrderRootType
+import com.jetbrains.python.psi.LanguageLevel
 
 /**
- * Project descriptor (extracted from {@link com.jetbrains.python.fixtures.PyTestCase}) and should be used with it.
+ * Project descriptor (extracted from [com.jetbrains.python.fixtures.PyTestCase]) and should be used with it.
  *
  * @author Ilya.Kazakevich
  */
-public class PyLightProjectDescriptor extends LightProjectDescriptor {
+class PyLightProjectDescriptor private constructor(private val myName: String?, private val myLevel: LanguageLevel) :
+    LightProjectDescriptor() {
+    constructor(level: LanguageLevel) : this(null, level)
+    constructor(name: String) : this(name, LanguageLevel.getLatest())
 
-    @Nullable
-    private final String myName;
-
-    @NotNull
-    private final LanguageLevel myLevel;
-
-    public PyLightProjectDescriptor(@NotNull LanguageLevel level) {
-        this(null, level);
-    }
-
-    public PyLightProjectDescriptor(@NotNull String name) {
-        this(name, LanguageLevel.getLatest());
-    }
-
-    private PyLightProjectDescriptor(@Nullable String name, @NotNull LanguageLevel level) {
-        myName = name;
-        myLevel = level;
-    }
-
-    @Override
-    public Sdk getSdk() {
-        return myName == null ? PythonMockSdk.create(myLevel, getAdditionalRoots()) : PythonMockSdk.create(myName);
+    override fun getSdk(): Sdk {
+        return if (myName == null) PythonMockSdk.create(myLevel, *additionalRoots) else PythonMockSdk.create(myName)
     }
 
     /**
      * @return additional roots to add to mock python
      * @apiNote ignored when name is provided.
      */
-    protected VirtualFile @NotNull [] getAdditionalRoots() {
-        return VirtualFile.EMPTY_ARRAY;
-    }
+    private val additionalRoots: Array<VirtualFile>
+        get() = VirtualFile.EMPTY_ARRAY
 
-    protected void createLibrary(ModifiableRootModel model, final String name, final String path) {
-        final Library.ModifiableModel modifiableModel = model.getModuleLibraryTable().createLibrary(name).getModifiableModel();
-        final VirtualFile home =
-                LocalFileSystem.getInstance().refreshAndFindFileByPath(PathManager.getHomePath() + path);
-
-        modifiableModel.addRoot(home, OrderRootType.CLASSES);
-        modifiableModel.commit();
+    fun createLibrary(model: ModifiableRootModel, name: String?, path: String) {
+        val modifiableModel = model.moduleLibraryTable.createLibrary(name).modifiableModel
+        val home = LocalFileSystem.getInstance().refreshAndFindFileByPath(PathManager.getHomePath() + path)
+        modifiableModel.addRoot(home!!, OrderRootType.CLASSES)
+        modifiableModel.commit()
     }
 }
