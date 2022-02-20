@@ -20,7 +20,7 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 * Model-specific `__init__`-signature inspection and autocompletion for subclasses of `pydantic.BaseModel`
 * Model-specific `__init__`-arguments type-checking for subclasses of `pydantic.BaseModel` 
 * Refactor support for renaming fields for subclasses of `BaseModel`
-  * (If the field name is refactored from the model definition or `__init__` call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.
+  * (If the field name is refactored from the model definition or `__init__` call keyword arguments, PyCharm will present a dialog offering the choice to automatically rename the keyword where it occurs in a model initialization call.)
 * Search related-fields by class attributes and keyword arguments of `__init__` with `Ctrl+B` and `Cmd+B`
 * Provide an inspection for type-checking which is compatible with pydantic. the inspection supports `parsable-type`. the detail is at [Inspection for type-checking section](https://koxudaxi.github.io/pydantic-pycharm-plugin/type-checking/)
 * Insert unfilled arguments with a QuickFix for subclasses of `pydantic.BaseModel`
@@ -45,7 +45,7 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 ## Quick Installation
 The plugin is in Jetbrains repository ([Pydantic Plugin Page](https://plugins.jetbrains.com/plugin/12861-pydantic))
 
-You can install the stable version on PyCharm's `Marketplace` (Preference -> Plugins -> Marketplace) [Offical Document](https://www.jetbrains.com/help/idea/managing-plugins.html)
+You can install the stable version on PyCharm's `Marketplace` (Preference -> Plugins -> Marketplace) [Official Documentation](https://www.jetbrains.com/help/idea/managing-plugins.html)
 
 **The plugin requires PyCharm 2020.2 or later (include other JetBrains IDEs)**
  

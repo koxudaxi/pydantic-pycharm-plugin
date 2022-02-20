@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jetbrains.python;
+package com.jetbrains.python
 
 /**
  * @author yole
  */
-public class PythonTestUtil {
-    private PythonTestUtil() {
-    }
-
-    public static String getTestDataPath() {
-        return System.getProperty("user.dir") + "/testData";
-    }
+object PythonTestUtil {
+    val testDataPath: String
+        get() = System.getProperty("user.dir") + "/testData"
 }

@@ -26,7 +26,7 @@ nav:
         - Mypy compatible: mypy-compatible.md
         - Ignore __init__ arguments: ignore-init-arguments.md
     - Development: development.md
-    - Changelog: changelog.md
+    - Changelog: CHANGELOG.md
 
 plugins:
   - search
