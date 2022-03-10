@@ -36,6 +36,7 @@ const val ROOT_VALIDATOR_SHORT_Q_NAME = "pydantic.root_validator"
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.fields.Field"
 const val DATACLASS_FIELD_Q_NAME = "dataclasses.field"
+const val SQL_MODEL_FIELD_Q_NAME = "sqlmodel.main.Field"
 const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
@@ -58,6 +59,15 @@ const val GENERIC_Q_NAME = "typing.Generic"
 const val TYPE_Q_NAME = "typing.Type"
 const val TUPLE_Q_NAME = "typing.Tuple"
 
+const val SQL_MODEL_Q_NAME = "sqlmodel.main.SQLModel"
+
+val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
+    SQL_MODEL_Q_NAME
+)
+
+val CUSTOM_MODEL_FIELD_Q_NAMES = listOf(
+    SQL_MODEL_FIELD_Q_NAME
+)
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
 val BASE_CONFIG_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_CONFIG_Q_NAME)
@@ -75,6 +85,8 @@ val ROOT_VALIDATOR_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(ROOT_VA
 val DATA_CLASS_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_Q_NAME)
 
 val DATA_CLASS_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_SHORT_Q_NAME)
+
+val SQL_MODEL_QUALIFIED_NAME = QualifiedName.fromDottedString(SQL_MODEL_Q_NAME)
 
 val DATA_CLASS_QUALIFIED_NAMES = listOf(
     DATA_CLASS_QUALIFIED_NAME,
@@ -147,14 +159,16 @@ fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context:
 }
 
 fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): Boolean {
-    return (isSubClassOfPydanticBaseModel(pyClass,
-        context) || isSubClassOfPydanticGenericModel(pyClass,
-        context) || (includeDataclass && pyClass.isPydanticDataclass)) && !pyClass.isPydanticBaseModel
-            && !pyClass.isPydanticGenericModel && !pyClass.isBaseSettings
+    return ((isSubClassOfPydanticBaseModel(pyClass,
+        context) && !pyClass.isPydanticCustomBaseModel) || isSubClassOfPydanticGenericModel(pyClass,
+        context) || (includeDataclass && pyClass.isPydanticDataclass) || isSubClassOfCustomBaseModel(pyClass,
+        context)) && !pyClass.isPydanticBaseModel
+            && !pyClass.isPydanticGenericModel && !pyClass.isBaseSettings && !pyClass.isPydanticCustomBaseModel
 }
 
 val PyClass.isPydanticBaseModel: Boolean get() = qualifiedName == BASE_MODEL_Q_NAME
 
+val PyClass.isPydanticCustomBaseModel: Boolean get() = qualifiedName in CUSTOM_BASE_MODEL_Q_NAMES
 
 val PyClass.isPydanticGenericModel: Boolean get() = qualifiedName == GENERIC_MODEL_Q_NAME
 
@@ -169,6 +183,10 @@ internal fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalCo
 
 internal fun isSubClassOfBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
+}
+
+internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
+    return CUSTOM_BASE_MODEL_Q_NAMES.any { pyClass.isSubclass(it, context) }
 }
 
 internal val PyClass.isBaseSettings: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME
@@ -191,9 +209,9 @@ internal fun isPydanticSchema(pyClass: PyClass, context: TypeEvalContext): Boole
 
 internal val PyFunction.isPydanticField: Boolean get() = qualifiedName == FIELD_Q_NAME || qualifiedName == DEPRECATED_SCHEMA_Q_NAME
 
-
 internal val PyFunction.isDataclassField: Boolean get() = qualifiedName == DATACLASS_FIELD_Q_NAME
 
+internal val PyFunction.isCustomModelField: Boolean get() = qualifiedName in CUSTOM_MODEL_FIELD_Q_NAMES
 
 internal val PyFunction.isPydanticCreateModel: Boolean get() = qualifiedName == CREATE_MODEL
 
@@ -217,7 +235,7 @@ internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): 
     val referenceExpression = pyCallExpression.callee as? PyReferenceExpression ?: return false
     val context = TypeEvalContext.userInitiated(referenceExpression.project, referenceExpression.containingFile)
     return getResolvedPsiElements(referenceExpression, context)
-        .filterIsInstance<PyFunction>().any { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr }
+        .filterIsInstance<PyFunction>().any { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr || pyFunction.isCustomModelField }
 }
 
 internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
@@ -290,6 +308,11 @@ val PsiElement.isPydanticField: Boolean
 val PsiElement.isDataclassField: Boolean
     get() = validatePsiElementByFunction(this) { pyFunction: PyFunction ->
         pyFunction.isDataclassField
+    }
+
+val PsiElement.isCustomModelField: Boolean
+    get() = validatePsiElementByFunction(this) { pyFunction: PyFunction ->
+        pyFunction.isCustomModelField
     }
 
 val PsiElement.isDataclassMissing: Boolean get() = validatePsiElementByFunction(this, ::isDataclassMissing)
@@ -559,7 +582,7 @@ internal fun getFieldFromPyExpression(
     if (!getResolvedPsiElements(callee, context).any {
             when {
                 versionZero -> isPydanticSchemaByPsiElement(it, context)
-                else -> it.isPydanticField
+                else -> it.isPydanticField || it.isCustomModelField
             }
         }) return null
     return psiElement
