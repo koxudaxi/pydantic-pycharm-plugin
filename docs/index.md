@@ -36,8 +36,12 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
   * (After PyCharm 2020.1 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
   * Exclude a feature which is inserting unfilled arguments with a QuickFix
 
-### pydantic.create_model [experimental]
+#### pydantic.create_model [experimental]
 * Support minimum features for a model which is created by create_model  
+
+#### [sqlmodel.SQLModel](https://github.com/tiangolo/sqlmodel)
+* Support same features as `pydantic.BaseModel`
+  * (This plugin version 0.3.12 or later)
 
 ## Demo
 ![demo1](demo1.gif)

@@ -53,9 +53,13 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
   * (After PyCharm 2020.2 and this plugin version 0.1.0, PyCharm treats `pydantic.dataclasses.dataclass` as third-party dataclass.)
   * Exclude a feature which is inserting unfilled arguments with a QuickFix
 
-### pydantic.create_model [experimental]
+#### pydantic.create_model [experimental]
 * Support minimum features for a model which is created by create_model
 <!-- Plugin description end -->
+
+#### [sqlmodel.SQLModel](https://github.com/tiangolo/sqlmodel)
+* Support same features as `pydantic.BaseModel`
+  * (This plugin version 0.3.12 or later)
 
 ## Contribute
 We are waiting for your contributions to `pydantic-pycharm-plugin`.
