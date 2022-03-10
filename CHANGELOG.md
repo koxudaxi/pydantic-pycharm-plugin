@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.3.12]
 ### Features
 - Support SQLModel [[#450](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/450)]
 
