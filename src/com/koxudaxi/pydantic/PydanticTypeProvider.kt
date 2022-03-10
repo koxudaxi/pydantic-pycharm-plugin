@@ -702,7 +702,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .any {
                     when {
                         versionZero -> isPydanticSchemaByPsiElement(it, context)
-                        else -> it.isPydanticField
+                        else -> it.isPydanticField || it.isCustomModelField
                     }
 
                 }
