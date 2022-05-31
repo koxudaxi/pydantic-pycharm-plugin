@@ -5,9 +5,9 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
     // Kotlin support
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.6.21"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij") version "1.5.3"
+    id("org.jetbrains.intellij") version "1.6.0"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "1.3.1"
     // Gradle Qodana Plugin
@@ -21,6 +21,14 @@ version = properties("pluginVersion")
 // Configure project's dependencies
 repositories {
     mavenCentral()
+}
+
+// Set the JVM language level used to compile sources and generate files - Java 11 is required since 2020.3
+// TODO: When the minimum version is 2022.2, update java to 17
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+    }
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
@@ -47,11 +55,6 @@ qodana {
 }
 
 tasks {
-    // Set the JVM compatibility versions
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = properties("javaVersion")
-    }
-
     wrapper {
         gradleVersion = properties("gradleVersion")
     }
