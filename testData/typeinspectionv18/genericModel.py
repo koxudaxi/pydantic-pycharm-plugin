@@ -97,7 +97,7 @@ nested = InnerT[int](inner=1)
 OuterT[int](outer=1, nested=nested)
 
 nested = InnerT[str](inner='a')
-OuterT[int](<warning descr="Expected type 'int', got 'str' instead">outer='a'</warning>, nested=nested)
+OuterT[int](<warning descr="Expected type 'int', got 'str' instead">outer='a'</warning>, <warning descr="Expected type 'InnerT[int]', got 'InnerT[str]' instead">nested=nested</warning>)
 
 AT = TypeVar('AT')
 BT = TypeVar('BT')
