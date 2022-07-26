@@ -64,7 +64,8 @@ tasks {
                 "--add-opens", "java.desktop/javax.swing=ALL-UNNAMED",
                 "--add-opens", "java.desktop/java.awt.event=ALL-UNNAMED",
                 "--add-opens", "java.desktop/javax.swing.plaf.basic=ALL-UNNAMED",
-                "--add-opens", "java.desktop/sun.font=ALL-UNNAMED"
+                "--add-opens", "java.desktop/sun.font=ALL-UNNAMED",
+                "--add-exports", "java.base/jdk.internal.vm=ALL-UNNAMED"
 
         )
     }
