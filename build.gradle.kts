@@ -71,7 +71,9 @@ tasks {
     wrapper {
         gradleVersion = properties("gradleVersion")
     }
-
+    runPluginVerifier {
+        ideVersions.add("PCC-222.3345.99")
+    }
     patchPluginXml {
         version.set(properties("pluginVersion"))
         sinceBuild.set(properties("pluginSinceBuild"))
