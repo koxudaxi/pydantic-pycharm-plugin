@@ -1,8 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Features
+- Support IntelliJ IDEA 2022.2.2 [[#517](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/517)]
 
-## [0.3.12]
+## 0.3.12
 ### Features
 - Support SQLModel [[#450](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/450)]
 
