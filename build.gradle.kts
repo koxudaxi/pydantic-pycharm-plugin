@@ -1,5 +1,4 @@
 import org.jetbrains.changelog.markdownToHTML
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = project.findProperty(key).toString()
 
@@ -25,7 +24,7 @@ repositories {
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(properties("javaVersion")))
     }
 }
 
@@ -53,28 +52,6 @@ qodana {
 }
 
 tasks {
-    // Set the JVM compatibility versions
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = properties("javaVersion")
-        kotlinOptions.languageVersion = properties("languageVersion")
-        kotlinOptions.apiVersion = properties("apiVersion")
-    }
-
-    // workaround
-    withType<Test>().all {
-        jvmArgs(
-                "--add-opens", "java.base/java.io=ALL-UNNAMED",
-                "--add-opens", "java.base/java.util=ALL-UNNAMED",
-                "--add-opens", "java.desktop/sun.awt=ALL-UNNAMED",
-                "--add-opens", "java.desktop/java.awt=ALL-UNNAMED",
-                "--add-opens", "java.desktop/javax.swing=ALL-UNNAMED",
-                "--add-opens", "java.desktop/java.awt.event=ALL-UNNAMED",
-                "--add-opens", "java.desktop/javax.swing.plaf.basic=ALL-UNNAMED",
-                "--add-opens", "java.desktop/sun.font=ALL-UNNAMED",
-                "--add-exports", "java.base/jdk.internal.vm=ALL-UNNAMED"
-
-        )
-    }
     wrapper {
         gradleVersion = properties("gradleVersion")
     }
