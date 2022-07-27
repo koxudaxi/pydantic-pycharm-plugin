@@ -108,7 +108,7 @@ jobs:
 
       # Run Qodana inspections
       - name: Qodana - Code Inspection
-        uses: JetBrains/qodana-action@v4.2.5
+        uses: JetBrains/qodana-action@v2022.1.1
 
       # Prepare plugin archive content for creating artifact
       - name: Prepare Plugin Artifact
@@ -142,7 +142,7 @@ jobs:
           mkdocs build --verbose --clean --strict
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v2.1.0
+        uses: codecov/codecov-action@v3.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./build/reports/jacoco/test/jacocoTestReport.xml

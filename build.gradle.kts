@@ -1,13 +1,12 @@
 import org.jetbrains.changelog.markdownToHTML
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
     // Kotlin support
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.7.10"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij") version "1.4.0"
+    id("org.jetbrains.intellij") version "1.7.0"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "1.3.1"
     // Gradle Qodana Plugin
@@ -21,6 +20,12 @@ version = properties("pluginVersion")
 // Configure project's dependencies
 repositories {
     mavenCentral()
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(properties("javaVersion")))
+    }
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
@@ -47,15 +52,12 @@ qodana {
 }
 
 tasks {
-    // Set the JVM compatibility versions
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = properties("javaVersion")
-    }
-
     wrapper {
         gradleVersion = properties("gradleVersion")
     }
-
+    runPluginVerifier {
+        ideVersions.add("PCC-222.3345.99")
+    }
     patchPluginXml {
         version.set(properties("pluginVersion"))
         sinceBuild.set(properties("pluginSinceBuild"))
@@ -115,7 +117,7 @@ tasks {
 }
 
 dependencies {
-    compileOnly("org.apache.tuweni:tuweni-toml:2.1.0")
+    compileOnly("org.apache.tuweni:tuweni-toml:2.2.0")
     compileOnly(group = "org.ini4j", name = "ini4j", version = "0.5.4")
     testImplementation(kotlin("test"))
 }
