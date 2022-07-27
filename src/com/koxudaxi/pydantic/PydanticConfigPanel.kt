@@ -11,6 +11,7 @@ import javax.swing.event.HyperlinkEvent
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
+import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.UIUtil
 
 class PydanticConfigPanel(project: Project) {
@@ -45,7 +46,7 @@ class PydanticConfigPanel(project: Project) {
     private fun setHyperlinkHtml(jTextPane: JTextPane, html: String) {
         jTextPane.contentType = "text/html"
         jTextPane.isEditable = false
-        jTextPane.editorKit = UIUtil.getHTMLEditorKit()
+        jTextPane.editorKit = HTMLEditorKitBuilder.simple()
         val kit = jTextPane.editorKit
         if (kit is HTMLEditorKit) {
             val css = kit.styleSheet
