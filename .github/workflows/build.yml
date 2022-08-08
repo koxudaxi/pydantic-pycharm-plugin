@@ -108,7 +108,7 @@ jobs:
 
       # Run Qodana inspections
       - name: Qodana - Code Inspection
-        uses: JetBrains/qodana-action@v2022.1.1
+        uses: JetBrains/qodana-action@v2022.2.1
 
       # Prepare plugin archive content for creating artifact
       - name: Prepare Plugin Artifact
@@ -128,7 +128,7 @@ jobs:
           path: ./build/distributions/content/*/*
 
       - name: Setup Python
-        uses: actions/setup-python@v4.1.0
+        uses: actions/setup-python@v4.2.0
         with:
           python-version: '3.10'
 
