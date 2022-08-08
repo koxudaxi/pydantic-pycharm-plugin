@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.3.13]
 ### Features
 - Support IntelliJ IDEA 2022.2.2 [[#517](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/517)]
 
