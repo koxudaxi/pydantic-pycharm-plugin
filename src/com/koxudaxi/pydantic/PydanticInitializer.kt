@@ -64,7 +64,7 @@ class PydanticInitializer : StartupActivity {
                                 .filter {
                                     try {
                                         ProjectFileIndex.getInstance(project).isInContent(it)
-                                    } catch (e: AlreadyDisposedException) {
+                                    } catch (e:Exception) {
                                         false
                                     }
                                 }
