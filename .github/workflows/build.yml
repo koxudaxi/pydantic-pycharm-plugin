@@ -57,7 +57,7 @@ jobs:
           java-version: 17
 
       - name: Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v3.0.10
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.cfg') }}
@@ -98,7 +98,7 @@ jobs:
 
       # Cache Plugin Verifier IDEs
       - name: Setup Plugin Verifier IDEs Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v3.0.10
         with:
           path: ${{ steps.properties.outputs.pluginVerifierHomeDir }}/ides
           key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
