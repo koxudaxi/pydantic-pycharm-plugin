@@ -86,7 +86,7 @@ jobs:
 
       # Run tests
       - name: Run Tests
-        run: ./gradlew test jacocoTestReport --info
+        run: ./gradlew check
 
       # Collect Tests Result of failed tests
       - name: Collect Tests Result
@@ -95,6 +95,13 @@ jobs:
         with:
           name: tests-result
           path: ${{ github.workspace }}/build/reports/tests
+
+      # Upload Kover report to CodeCov
+      - name: Upload Code Coverage Report
+        uses: codecov/codecov-action@v3
+        with:
+          files: ${{ github.workspace }}/build/reports/kover/xml/report.xml
+          fail_ci_if_error: true
 
       # Cache Plugin Verifier IDEs
       - name: Setup Plugin Verifier IDEs Cache
@@ -151,13 +158,6 @@ jobs:
           cp CHANGELOG.md docs
           mkdocs build --verbose --clean --strict
 
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3.1.1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./build/reports/jacoco/test/jacocoTestReport.xml
-          flags: unittests
-          fail_ci_if_error: true
 
   # Prepare a draft release for GitHub Releases page for the manual verification
   # If accepted and published, release workflow would be triggered
