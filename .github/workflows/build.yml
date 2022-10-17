@@ -152,7 +152,7 @@ jobs:
           mkdocs build --verbose --clean --strict
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3.1.0
+        uses: codecov/codecov-action@v3.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./build/reports/jacoco/test/jacocoTestReport.xml
