@@ -2,37 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://koxudaxi.github.io/pydantic-pycharm-plugin/</loc>
-         <lastmod>2022-10-17</lastmod>
+         <lastmod>2022-10-24</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://koxudaxi.github.io/pydantic-pycharm-plugin/CHANGELOG/</loc>
-         <lastmod>2022-10-17</lastmod>
+         <lastmod>2022-10-24</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://koxudaxi.github.io/pydantic-pycharm-plugin/development/</loc>
-         <lastmod>2022-10-17</lastmod>
+         <lastmod>2022-10-24</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://koxudaxi.github.io/pydantic-pycharm-plugin/ignore-init-arguments/</loc>
-         <lastmod>2022-10-17</lastmod>
+         <lastmod>2022-10-24</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://koxudaxi.github.io/pydantic-pycharm-plugin/install/</loc>
-         <lastmod>2022-10-17</lastmod>
+         <lastmod>2022-10-24</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://koxudaxi.github.io/pydantic-pycharm-plugin/mypy-compatible/</loc>
-         <lastmod>2022-10-17</lastmod>
+         <lastmod>2022-10-24</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://koxudaxi.github.io/pydantic-pycharm-plugin/type-checker-for-pydantic/</loc>
-         <lastmod>2022-10-17</lastmod>
+         <lastmod>2022-10-24</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
