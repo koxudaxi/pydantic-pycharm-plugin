@@ -4,9 +4,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.codeInsight.PyDataclassParameters
 import com.jetbrains.python.codeInsight.PyDataclassParametersProvider
+import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.types.PyCallableParameter
 import com.jetbrains.python.psi.types.PyCallableParameterImpl
+import com.jetbrains.python.psi.types.TypeEvalContext
 
 class PydanticParametersProvider : PyDataclassParametersProvider {
 
@@ -19,6 +21,7 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
         parameters.addAll(DATACLASS_ARGUMENTS.map { name -> PyCallableParameterImpl.nonPsi(name, null, ellipsis) })
         return Triple(DATACLASS_QUALIFIED_NAME, PydanticType, parameters)
     }
+    override fun getDataclassParameters(cls: PyClass, context: TypeEvalContext?): PyDataclassParameters? = null
 
     private object PydanticType : PyDataclassParameters.Type {
         override val name: String = "pydantic"
