@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.3.15]
 - Fix NotFound getDataclassParameters error [[#573](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/573)]
 
 ## [0.3.14]
