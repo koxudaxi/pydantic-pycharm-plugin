@@ -16,7 +16,7 @@ class PydanticConfigurable internal constructor(project: Project) : Configurable
         return null
     }
 
-    override fun createComponent(): JComponent? {
+    override fun createComponent(): JComponent {
         reset()
         return configPanel.configPanel
     }

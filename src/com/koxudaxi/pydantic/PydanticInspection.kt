@@ -27,7 +27,7 @@ class PydanticInspection : PyInspection() {
     inner class Visitor(holder: ProblemsHolder, context: TypeEvalContext) :
         PyInspectionVisitor(holder, context) {
 
-        val pydanticConfigService = PydanticConfigService.getInstance(holder.project)
+        private val pydanticConfigService = PydanticConfigService.getInstance(holder.project)
 
         override fun visitPyFunction(node: PyFunction) {
             super.visitPyFunction(node)

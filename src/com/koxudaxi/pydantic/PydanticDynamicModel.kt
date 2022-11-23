@@ -11,7 +11,7 @@ import com.jetbrains.python.psi.types.PyCallableParameter
 import com.jetbrains.python.psi.types.PyClassLikeType
 import com.jetbrains.python.psi.types.TypeEvalContext
 
-class PydanticDynamicModel(astNode: ASTNode, val baseModel: PyClass, val attributes: Map<String, Attribute>) :
+class PydanticDynamicModel(astNode: ASTNode, private val baseModel: PyClass, val attributes: Map<String, Attribute>) :
     PyClassImpl(astNode) {
     val members: List<PyCustomMember> = attributes.values.map { it.pyCustomMember }
     private val memberResolver: Map<String, PyElement> =

@@ -70,13 +70,15 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
                     it is PyTargetExpression -> (it as? PyTypedElement)
                         ?.getType(context)?.pyClassTypes
                         ?.filter { pyClassType -> pyClassType.pyClass.isPydanticDataclass }
-                        ?.mapNotNull { pyClassType ->
-                            getPydanticDataclassType(pyClassType.pyClass,
+                        ?.firstNotNullOfOrNull { pyClassType ->
+                            getPydanticDataclassType(
+                                pyClassType.pyClass,
                                 context,
                                 referenceExpression,
-                                pyClassType.isDefinition)
+                                pyClassType.isDefinition
+                            )
                         }
-                        ?.firstOrNull()
+
                     else -> null
                 }
             }.firstOrNull()

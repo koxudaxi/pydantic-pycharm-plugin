@@ -19,8 +19,6 @@ import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.*
 import com.jetbrains.python.sdk.PythonSdkUtil
-import com.jetbrains.python.sdk.associatedModulePath
-import com.jetbrains.python.sdk.isAssociatedWithModule
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
@@ -317,7 +315,7 @@ val PsiElement.isCustomModelField: Boolean
 
 val PsiElement.isDataclassMissing: Boolean get() = validatePsiElementByFunction(this, ::isDataclassMissing)
 
-val Project.sdk: Sdk? get() = pythonSdk ?: modules.mapNotNull { PythonSdkUtil.findPythonSdk(it) }.firstOrNull()
+val Project.sdk: Sdk? get() = pythonSdk ?: modules.firstNotNullOfOrNull { PythonSdkUtil.findPythonSdk(it) }
 
 
 fun getPsiElementByQualifiedName(

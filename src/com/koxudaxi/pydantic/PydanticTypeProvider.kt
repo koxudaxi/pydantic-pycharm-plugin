@@ -83,10 +83,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, context)
         return getRefTypeFromFieldNameInPyClass(name, pyClass, context, ellipsis, pydanticVersion)
-            ?: getAncestorPydanticModels(pyClass, false, context)
-                .mapNotNull { ancestor ->
-                    getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion)
-                }.firstOrNull()
+            ?: getAncestorPydanticModels(pyClass, false, context).firstNotNullOfOrNull { ancestor ->
+                getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion)
+            }
     }
 
     private fun getRefTypeFromField(
@@ -408,13 +407,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getBaseSetting(pyClass: PyClass, context: TypeEvalContext): PyClass? {
-        return pyClass.getSuperClasses(context).mapNotNull {
+        return pyClass.getSuperClasses(context).firstNotNullOfOrNull {
             if (it.isBaseSettings) {
                 it
             } else {
                 getBaseSetting(it, context)
             }
-        }.firstOrNull()
+        }
     }
 
     fun getGenericTypeMap(
