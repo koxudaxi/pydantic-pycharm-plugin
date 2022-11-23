@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.3.15]
+- Fix NotFound getDataclassParameters error [[#573](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/573)]
+
 ## [0.3.14]
 - Support IntelliJ IDEA 2022.3 [[#519](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/519)]
 

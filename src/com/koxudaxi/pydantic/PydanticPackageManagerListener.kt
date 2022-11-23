@@ -28,6 +28,9 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
                 clearVersion(sdk)
             } else {
                 runWriteAction {
+                    if (sdk is Disposable && Disposer.isDisposed(sdk)) {
+                        return@runWriteAction
+                    }
                     try {
                         pydanticStub.delete(this)
                     } catch (_: java.io.IOException) {
