@@ -362,7 +362,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             result: CompletionResultSet,
         ) {
             val configClass = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
-            if (configClass.isConfigClass != true) return
+            if (!configClass.isConfigClass) return
             val pydanticModel = getPyClassByAttribute(configClass) ?: return
             val typeEvalContext = parameters.getTypeEvalContext()
             if (!isPydanticModel(pydanticModel, true, typeEvalContext)) return

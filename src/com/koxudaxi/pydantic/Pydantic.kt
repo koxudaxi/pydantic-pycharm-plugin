@@ -315,7 +315,7 @@ val PsiElement.isCustomModelField: Boolean
 
 val PsiElement.isDataclassMissing: Boolean get() = validatePsiElementByFunction(this, ::isDataclassMissing)
 
-val Project.sdk: Sdk? get() = pythonSdk ?: modules.mapNotNull { PythonSdkUtil.findPythonSdk(it) }.firstOrNull()
+val Project.sdk: Sdk? get() = pythonSdk ?: modules.firstNotNullOfOrNull { PythonSdkUtil.findPythonSdk(it) }
 
 
 fun getPsiElementByQualifiedName(
