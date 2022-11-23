@@ -73,7 +73,6 @@ class PydanticInitializer : StartupActivity {
                             val mypyIni = configService.mypyIni ?: defaultMypyIni
                             invokeAfterPsiEvents {
                                 projectFiles
-                                    .asSequence()
                                     .forEach {
                                         when (it.path) {
                                             pyprojectToml -> loadPyprojectToml(project, it, configService)

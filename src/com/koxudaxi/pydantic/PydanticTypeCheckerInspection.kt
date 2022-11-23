@@ -34,7 +34,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
     class Visitor(holder: ProblemsHolder?, context: TypeEvalContext) :
         PyTypeCheckerInspection.Visitor(holder, context) {
 
-        val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
+        private val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
 
         override fun visitPyCallExpression(node: PyCallExpression) {
             val pyClass = getPyClassByPyCallExpression(node, true, myTypeEvalContext)
