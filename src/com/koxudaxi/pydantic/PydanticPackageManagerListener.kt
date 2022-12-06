@@ -7,14 +7,22 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.Disposer
 import com.jetbrains.python.packaging.PyPackageManager
+import com.jetbrains.python.packaging.PyPackageManagers
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.statistics.sdks
 
 class PydanticPackageManagerListener : PyPackageManager.Listener {
-    private fun clearVersion(sdk: Sdk) {
+    private fun updateVersion(sdk: Sdk) {
+        val version = PyPackageManagers.getInstance()
+            .forSdk(sdk).packages?.find { it.name == "pydantic" }?.version
         ProjectManager.getInstance().openProjects
             .filter { it.sdks.contains(sdk) }
-            .forEach { PydanticCacheService.clear(it) }
+            .forEach {
+                when (version) {
+                    is String -> PydanticCacheService.setVersion(it, version)
+                    else -> PydanticCacheService.clear(it)
+                }
+            }
     }
 
     override fun packagesRefreshed(sdk: Sdk) {
@@ -22,10 +30,11 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
             if (sdk is Disposable && Disposer.isDisposed(sdk)) {
                 return@invokeLater
             }
+
             val skeletons = PythonSdkUtil.findSkeletonsDir(sdk)
             val pydanticStub = skeletons?.findChild("pydantic")
             if (pydanticStub == null) {
-                clearVersion(sdk)
+                updateVersion(sdk)
             } else {
                 runWriteAction {
                     if (sdk is Disposable && Disposer.isDisposed(sdk)) {
@@ -36,7 +45,7 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
                     } catch (_: java.io.IOException) {
                     } finally {
                         pydanticStub.refresh(true, true) {
-                            clearVersion(sdk)
+                            updateVersion(sdk)
                         }
                     }
                 }

@@ -23,15 +23,19 @@ class PydanticCacheService {
         val versionString =
             (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue
                 ?: (version.findAssignedValue() as? PyStringLiteralExpressionImpl)?.stringValue ?: return null
-        return pydanticVersionCache.getOrPut(versionString) {
-            val versionList = versionString.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
+        return setVersion(versionString)
+    }
+
+    private fun setVersion(version: String): KotlinVersion {
+        return pydanticVersionCache.getOrPut(version) {
+            val versionList = version.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
             val pydanticVersion = when {
                 versionList.size == 1 -> KotlinVersion(versionList[0], 0)
                 versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
                 versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
                 else -> null
             } ?: KotlinVersion(0, 0)
-            pydanticVersionCache[versionString] = pydanticVersion
+            pydanticVersionCache[version] = pydanticVersion
             pydanticVersion
         }
     }
@@ -54,6 +58,10 @@ class PydanticCacheService {
     companion object {
         fun getVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
             return getInstance(project).getOrPutVersion(project, context)
+        }
+
+        fun setVersion(project: Project, version: String): KotlinVersion? {
+            return getInstance(project).setVersion(version)
         }
 
         fun getAllowedConfigKwargs(project: Project, context: TypeEvalContext): Set<String>? {
