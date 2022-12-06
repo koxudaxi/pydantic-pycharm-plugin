@@ -3,6 +3,8 @@ package com.koxudaxi.pydantic
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.util.Pair
+import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
@@ -267,8 +269,17 @@ private fun getAliasedFieldName(
 
 
 fun getResolvedPsiElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): List<PsiElement> {
-    return PyUtil.multiResolveTopPriority(referenceExpression,
-        PyResolveContext.defaultContext(context))
+    return RecursionManager.doPreventingRecursion(
+        Pair.create<PsiElement, TypeEvalContext>(
+            referenceExpression,
+            context
+        ), false
+    ) {
+        PyUtil.multiResolveTopPriority(
+            referenceExpression,
+            PyResolveContext.defaultContext(context)
+        )
+    } ?: emptyList()
 }
 
 val PyType.pyClassTypes: List<PyClassType>
