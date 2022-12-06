@@ -121,7 +121,7 @@ tasks {
 }
 
 dependencies {
-    compileOnly("org.apache.tuweni:tuweni-toml:2.3.0")
+    compileOnly("org.apache.tuweni:tuweni-toml:2.3.1")
     compileOnly(group = "org.ini4j", name = "ini4j", version = "0.5.4")
     testImplementation(kotlin("test"))
 }
