@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+- avoid AlreadyDisposedException [[#585](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/585)]
+- Fix kotlin jvm target option [[#586](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/586)]
+- Improve code style [[#587](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/587)]
+- Prevent Recursion problem [[#594](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/594)]
+- Improve version management [[#595](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/595)]
+- Fix completion adds superfluous equal to field_name [[#596](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/596)]
 
 ## [0.3.15]
 - Fix NotFound getDataclassParameters error [[#573](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/573)]
