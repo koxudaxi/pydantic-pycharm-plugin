@@ -59,6 +59,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             context: TypeEvalContext,
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
+            withEqual: Boolean
         ): String
 
         val typeProvider: PydanticTypeProvider = PydanticTypeProvider()
@@ -110,6 +111,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             excludes: HashSet<String>?,
             isDataclass: Boolean,
             genericTypeMap: Map<PyGenericType, PyType>?,
+            withEqual: Boolean
         ) {
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, typeEvalContext)
             getClassVariables(pyClass, typeEvalContext)
@@ -118,7 +120,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                 .filter { isValidField(it, typeEvalContext) }
                 .filter { !isDataclass || isInInit(it) }
                 .forEach {
-                    val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion, config)
+                    val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion, config, withEqual)
                     if (excludes == null || !excludes.contains(elementName)) {
                         val typeText = getTypeText(pyClass,
                             typeEvalContext,
@@ -148,6 +150,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             genericTypeMap: Map<PyGenericType, PyType>?,
             excludes: HashSet<String>? = null,
             isDataclass: Boolean,
+            trimEqual: Boolean
         ) {
 
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
@@ -161,7 +164,8 @@ class PydanticCompletionContributor : CompletionContributor() {
                         config,
                         excludes,
                         isDataclass,
-                        genericTypeMap)
+                        genericTypeMap,
+                        !trimEqual)
                 }
 
             addFieldElement(pyClass,
@@ -171,11 +175,14 @@ class PydanticCompletionContributor : CompletionContributor() {
                 config,
                 excludes,
                 isDataclass,
-                genericTypeMap)
+                genericTypeMap,
+                !trimEqual)
 
             result.runRemainingContributors(parameters)
             { completionResult ->
-                completionResult.lookupElement.lookupString
+                completionResult.lookupElement.lookupString.let {
+                    if (trimEqual) it.trimEnd('=') else it
+                }
                     .takeIf { name -> !newElements.containsKey(name) && (excludes == null || !excludes.contains(name)) }
                     ?.let { result.passResult(completionResult) }
             }
@@ -238,8 +245,10 @@ class PydanticCompletionContributor : CompletionContributor() {
             context: TypeEvalContext,
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
+            withEqual: Boolean
         ): String {
-            return "${getFieldName(field, context, config, pydanticVersion)}="
+            val suffix =  if(withEqual) "=" else ""
+            return "${getFieldName(field, context, config, pydanticVersion)}$suffix"
         }
 
         override val icon: Icon = AllIcons.Nodes.Parameter
@@ -265,7 +274,9 @@ class PydanticCompletionContributor : CompletionContributor() {
                 .mapNotNull { (it as? PyKeywordArgument)?.name }
                 .map { "${it}=" }
                 .toHashSet()
-
+            val keyword = parameters.originalPosition?.text
+            val parameter = parameters.originalPosition?.parent?.text
+            val hasEqual = parameter?.startsWith("$keyword=") ?: false
             addAllFieldElement(
                 parameters,
                 result,
@@ -276,6 +287,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                 typeProvider.getGenericTypeMap(pyClass, typeEvalContext, pyCallExpression),
                 definedSet,
                 pyClass.isPydanticDataclass,
+                hasEqual
             )
         }
     }
@@ -286,6 +298,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             context: TypeEvalContext,
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
+            withEqual: Boolean
         ): String {
             return field.name!!
         }
@@ -320,7 +333,8 @@ class PydanticCompletionContributor : CompletionContributor() {
                 ellipsis,
                 config,
                 typeProvider.getGenericTypeMap(pyClass, typeEvalContext, pyTypedElement as? PyCallExpression),
-                isDataclass = pyClass.isPydanticDataclass,
+                isDataclass = pyClass.isPydanticDataclass ,
+                trimEqual=false,
             )
         }
     }

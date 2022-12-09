@@ -94,4 +94,12 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
             )
         )
     }
+    fun testInsertedArgument() {
+        doFieldTest(
+            listOf(
+                Pair("abc_efg", "str='123' A"),
+                Pair("abc_xyz", "str='456' A")
+            )
+        )
+    }
 }
