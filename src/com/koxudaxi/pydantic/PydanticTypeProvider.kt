@@ -6,6 +6,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.PyCustomType
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
+import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider.isBitwiseOrUnionAvailable
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.*
 import com.jetbrains.python.psi.types.*
@@ -31,9 +32,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 createConListPyType(callSite, context)
                     ?: PyCollectionTypeImpl.createTypeByQName(callSite as PsiElement, LIST_Q_NAME, true)
             )
+
             CREATE_MODEL -> Ref.create(
                 getPydanticDynamicModelTypeForFunction(pyFunction, callSite.getArguments(null), context)
             )
+
             else -> null
         }
     }
@@ -58,11 +61,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 val name = param.name ?: return null
                 getRefTypeFromFieldName(name, context, pyClass)
             }
+
             param.isSelf && func.isValidatorMethod -> {
                 val pyClass = func.containingClass ?: return null
                 if (!isPydanticModel(pyClass, false, context)) return null
                 Ref.create(context.getType(pyClass))
             }
+
             else -> null
         }
     }
@@ -117,32 +122,42 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyExpression: PyExpression,
         context: TypeEvalContext,
     ): PyType? {
-        if (pyExpression is PySubscriptionExpression) {
-            val rootOperand = (pyExpression.rootOperand as? PyReferenceExpression)
-                ?.let { pyReferenceExpression ->
-                    getResolvedPsiElements(pyReferenceExpression, context)
-                        .asSequence()
-                        .filterIsInstance<PyQualifiedNameOwner>()
-                        .firstOrNull()
-                }
-            when (val qualifiedName = rootOperand?.qualifiedName) {
-                TYPE_Q_NAME -> return (pyExpression.indexExpression as? PyTypedElement)?.let { context.getType(it) }
-                in listOf(TUPLE_Q_NAME, UNION_Q_NAME, OPTIONAL_Q_NAME) -> {
-                    val indexExpression = pyExpression.indexExpression
-                    when (indexExpression) {
-                        is PyTupleExpression -> indexExpression.elements
-                            .map { element -> getInjectedGenericType(element, context) }
-                        is PySubscriptionExpression -> listOf(getInjectedGenericType(indexExpression, context))
-                        is PyTypedElement -> listOf(getPyType(indexExpression, context))
-                        else -> null
-                    }?.let {
-                        return when (qualifiedName) {
-                            UNION_Q_NAME -> PyUnionType.union(it)
-                            OPTIONAL_Q_NAME -> PyUnionType.union(it + PyNoneType.INSTANCE)
-                            else -> PyTupleType.create(indexExpression as PsiElement, it)
+        when (pyExpression) {
+            is PySubscriptionExpression -> {
+                val rootOperand = (pyExpression.rootOperand as? PyReferenceExpression)
+                    ?.let { pyReferenceExpression ->
+                        getResolvedPsiElements(pyReferenceExpression, context)
+                            .asSequence()
+                            .filterIsInstance<PyQualifiedNameOwner>()
+                            .firstOrNull()
+                    }
+                when (val qualifiedName = rootOperand?.qualifiedName) {
+                    TYPE_Q_NAME -> return (pyExpression.indexExpression as? PyTypedElement)?.let { context.getType(it) }
+                    in listOf(TUPLE_Q_NAME, UNION_Q_NAME, OPTIONAL_Q_NAME) -> {
+                        val indexExpression = pyExpression.indexExpression
+                        when (indexExpression) {
+                            is PyTupleExpression -> indexExpression.elements
+                                .map { element -> getInjectedGenericType(element, context) }
+
+                            is PySubscriptionExpression -> listOf(getInjectedGenericType(indexExpression, context))
+                            is PyTypedElement -> listOf(getPyType(indexExpression, context))
+                            else -> null
+                        }?.let {
+                            return when (qualifiedName) {
+                                UNION_Q_NAME -> PyUnionType.union(it)
+                                OPTIONAL_Q_NAME -> PyUnionType.union(it + PyNoneType.INSTANCE)
+                                else -> PyTupleType.create(indexExpression as PsiElement, it)
+                            }
                         }
                     }
                 }
+            }
+
+            is PyBinaryExpression -> {
+                return pyExpression.children.filterIsInstance<PyExpression>()
+                    .mapNotNull { element -> getInjectedGenericType(element, context) }.let {
+                        PyUnionType.union(it)
+                    }
             }
         }
         return getPyType(pyExpression, context)
@@ -158,6 +173,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         .asSequence()
                         .filterIsInstance<PySubscriptionExpression>()
                         .firstOrNull()
+
                     else -> null
                 }
             }.flatMap { pySubscriptionExpression ->
@@ -207,12 +223,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         PsiTreeUtil.getParentOfType(it, PyFunction::class.java)
                             ?.takeIf { pyFunction -> pyFunction.modifier == PyFunction.Modifier.CLASSMETHOD }
                             ?.containingClass?.let { pyClass ->
-                                getPydanticTypeForClass(pyClass,
+                                getPydanticTypeForClass(
+                                    pyClass,
                                     context,
                                     true,
                                     pyCallExpression
                                 )
                             }
+
                     it is PyNamedParameter -> it.getArgumentType(context)?.pyClassTypes?.filter { pyClassType ->
                         pyClassType.isDefinition
                     }?.map { filteredPyClassType ->
@@ -223,6 +241,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                             pyCallExpression
                         )
                     }?.firstOrNull()
+
                     it is PyTargetExpression -> (it as? PyTypedElement)
                         ?.let { pyTypedElement ->
                             context.getType(pyTypedElement)?.pyClassTypes
@@ -237,6 +256,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                     )
                                 }?.firstOrNull()
                         } ?: getPydanticDynamicModelTypeForTargetExpression(it, context)?.pyCallableType
+
                     else -> null
                 }
             }
@@ -321,6 +341,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .map { it.findAssignedValue() }
                 .firstOrNull()
                 .let { PyPsiUtils.strValue(it) }
+
             else -> PyPsiUtils.strValue(modelNameArgument)
         } ?: return null
         // TODO get config
@@ -339,6 +360,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                             }
                         }.firstOrNull()
                 }
+
                 is PyClass -> baseArgument.takeIf { isPydanticModel(baseArgument, false, context) }
                 else -> null
             }
@@ -360,11 +382,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                 }
                                 .filterNot { (_, _, name) -> collected.containsKey(name) }
                                 .map { (field, parameter, name) ->
-                                    name to PydanticDynamicModel.createAttribute(name,
+                                    name to PydanticDynamicModel.createAttribute(
+                                        name,
                                         parameter,
                                         field,
                                         context,
-                                        true)
+                                        true
+                                    )
                                 }
                             )
 
@@ -386,13 +410,16 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return PydanticDynamicModelClassType(
             PydanticDynamicModel(
                 PyElementGenerator.getInstance(project)
-                    .createFromText(LanguageLevel.forElement(pyFunction),
+                    .createFromText(
+                        LanguageLevel.forElement(pyFunction),
                         PyClass::class.java,
-                        "class ${modelName}: pass").node,
+                        "class ${modelName}: pass"
+                    ).node,
                 baseClass,
                 collected
             ),
-            true)
+            true
+        )
     }
 
     private fun getBaseSettingInitParameters(
@@ -435,6 +462,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 .firstOrNull()
                 ?.let { it as? PyTargetExpression }
                 ?.findAssignedValue() as? PySubscriptionExpression
+
             else -> null
         } ?: return pyClassGenericTypeMap.takeIf { it.isNotEmpty() }
 
@@ -508,7 +536,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 }
                 .filter { parameter ->
                     parameter.name?.let {
-                       PyNames.isIdentifier(it) && !collected.containsKey(it)
+                        PyNames.isIdentifier(it) && !collected.containsKey(it)
                     } ?: false
                 }
                 .forEach { parameter -> collected[parameter.name!!] = parameter }
@@ -547,7 +575,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             !typed -> null
             // get type from default value
             !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> context.getType(
-                defaultValueFromField)
+                defaultValueFromField
+            )
             // get type from annotation
             else -> getTypeForParameter(field, context)
         }?.let {
@@ -599,6 +628,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     }
                 }
             }
+
             else -> {
                 type = context.getType(field)
                 defaultValue = (field as? PyKeywordArgumentImpl)?.valueExpression
@@ -641,7 +671,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val annotationValue = field.annotation?.value ?: return null
 
         fun parseAnnotation(pyExpression: PyExpression, context: TypeEvalContext): PyExpression? {
-            val qualifiedName = getQualifiedName(pyExpression, context) ?: return null
+            val qualifiedName = getQualifiedName(pyExpression, context)
+                ?: takeIf { isBitwiseOrUnionAvailable(pyExpression) }?.let {
+                    pyExpression.children.filterIsInstance<PyNoneLiteralExpression>().run { return ellipsis }
+                }
             when (qualifiedName) {
                 ANY_Q_NAME -> return ellipsis
                 OPTIONAL_Q_NAME -> return ellipsis
@@ -651,12 +684,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     .filterIsInstance<PyNoneLiteralExpression>()
                     .firstOrNull()
                     ?.run { return ellipsis }
+
                 ANNOTATED_Q_NAME -> return getFieldFromAnnotated(pyExpression, context)
                     ?.takeIf { it.arguments.any { arg -> arg.name == "default_factory" } }
                     ?: value
                     ?: getTypeExpressionFromAnnotated(pyExpression)?.let {
                         parseAnnotation(it, context)
                     }
+
                 else -> return value
             }
             return value
@@ -739,6 +774,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     }
                 }
             }
+
             else -> defaultValue
         }
     }
