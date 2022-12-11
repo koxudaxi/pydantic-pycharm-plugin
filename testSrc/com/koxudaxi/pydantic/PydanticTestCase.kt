@@ -28,6 +28,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
     private val pythonStubPath: String = "$mockPath/stub"
 
     private var packageDir: VirtualFile? = null
+    private val defaultPythonLanguageLevel = LanguageLevel.PYTHON37
 
     protected val testClassName: String
         get() {
@@ -79,7 +80,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
             libDir.createChildDirectory(null, PyNames.SITE_PACKAGES)
         }
 
-        setLanguageLevel(LanguageLevel.PYTHON37)
+        setLanguageLevel(defaultPythonLanguageLevel)
     }
 
 
@@ -101,7 +102,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
     }
 
-    private fun setLanguageLevel(languageLevel: LanguageLevel?) {
+    protected fun setLanguageLevel(languageLevel: LanguageLevel?) {
         PythonLanguageLevelPusher.setForcedLanguageLevel(myFixture!!.project, languageLevel)
     }
 

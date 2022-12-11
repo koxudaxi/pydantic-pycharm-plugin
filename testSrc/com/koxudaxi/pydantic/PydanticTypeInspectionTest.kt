@@ -2,6 +2,7 @@ package com.koxudaxi.pydantic
 
 import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyTypeCheckerInspection
+import com.jetbrains.python.psi.LanguageLevel
 import kotlin.reflect.KClass
 
 
@@ -39,6 +40,11 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
     }
 
     fun testFieldUnionInvalid() {
+        doTest()
+    }
+
+    fun testFieldUnionOperatorInvalid() {
+        setLanguageLevel(LanguageLevel.PYTHON310)
         doTest()
     }
 
