@@ -72,10 +72,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }
     }
 
-    override fun getGenericSubstitutions(cls: PyClass, context: TypeEvalContext): MutableMap<PyType, PyType> {
-        return super.getGenericSubstitutions(cls, context)
-    }
-
     private fun getRefTypeFromFieldNameInPyClass(
         name: String,
         pyClass: PyClass,
