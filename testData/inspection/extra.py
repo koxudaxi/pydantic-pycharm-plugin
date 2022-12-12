@@ -13,6 +13,8 @@ class B(BaseModel):
         extra = Extra.forbid
 
 B(a='abc', <error descr="'b' extra fields not permitted">b='123'</error>)
+params = {'a': 'abc', 'b': '123'}
+B(**params)
 
 
 class C(BaseModel):
