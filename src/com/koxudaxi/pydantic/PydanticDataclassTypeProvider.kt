@@ -19,13 +19,15 @@ import com.jetbrains.python.psi.types.*
  */
 class PydanticDataclassTypeProvider : PyTypeProviderBase() {
     private val pyDataclassTypeProvider = PyDataclassTypeProvider()
-
+    private val pydanticTypeProvider = PydanticTypeProvider()
     override fun getReferenceExpressionType(
         referenceExpression: PyReferenceExpression,
         context: TypeEvalContext,
     ): PyType? {
-        return getPydanticDataclass(referenceExpression,
-            TypeEvalContext.codeInsightFallback(referenceExpression.project))
+        return getPydanticDataclass(
+            referenceExpression,
+            TypeEvalContext.codeInsightFallback(referenceExpression.project)
+        )
     }
 
 
@@ -49,16 +51,44 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
     ): PyType? {
         val callSite = PyCallExpressionNavigator.getPyCallExpressionByCallee(pyReferenceExpression)
         val dataclassCallableType = getDataclassCallableType(referenceTarget, context, callSite) ?: return null
+
         val dataclassType = (dataclassCallableType).getReturnType(context) as? PyClassType ?: return null
         if (!dataclassType.pyClass.isPydanticDataclass) return null
+        val ellipsis = PyElementGenerator.getInstance(referenceTarget.project).createEllipsis()
+        val injectedPyCallableType = PyCallableTypeImpl(
+            dataclassCallableType.getParameters(context)?.map {
+                when {
+                    it.defaultValueText == "..." && it.defaultValue is PyNoneLiteralExpression ->
+                        injectDefaultValue(dataclassType.pyClass, it, ellipsis, context) ?: it
 
+                    else -> it
+                }
+            }, dataclassType
+        )
+        val injectedDataclassType = (injectedPyCallableType).getReturnType(context) as? PyClassType ?: return null
         return when {
-            callSite is PyCallExpression && definition -> dataclassCallableType
-            definition -> dataclassType.toClass()
-            else -> dataclassType
+            callSite is PyCallExpression && definition -> injectedPyCallableType
+            definition -> injectedDataclassType.toClass()
+            else -> injectedDataclassType
         }
     }
 
+    private fun injectDefaultValue(
+        pyClass: PyClass,
+        pyCallableParameter: PyCallableParameter,
+        ellipsis: PyNoneLiteralExpression,
+        context: TypeEvalContext
+    ): PyCallableParameter? {
+        val name = pyCallableParameter.name ?: return null
+        val attribute = pyClass.findClassAttribute(name, true, context) ?: return null
+        val defaultValue =
+            pydanticTypeProvider.getDefaultValueByAssignedValue(attribute, ellipsis, context, null, true)
+        return PyCallableParameterImpl.nonPsi(
+            name,
+            pyCallableParameter.getArgumentType(context),
+            defaultValue
+        )
+    }
 
     private fun getPydanticDataclass(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
         return getResolvedPsiElements(referenceExpression, context)
@@ -67,6 +97,7 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
                 when {
                     it is PyClass && it.isPydanticDataclass ->
                         getPydanticDataclassType(it, context, referenceExpression, true)
+
                     it is PyTargetExpression -> (it as? PyTypedElement)
                         ?.getType(context)?.pyClassTypes
                         ?.filter { pyClassType -> pyClassType.pyClass.isPydanticDataclass }
