@@ -9,15 +9,18 @@ import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.PyClassTypeImpl
+import com.jetbrains.python.psi.types.PyTypeChecker
 import com.jetbrains.python.psi.types.TypeEvalContext
 
 
 class PydanticInspection : PyInspection() {
-
+    private val pydanticTypeProvider = PydanticTypeProvider()
+    private val pydanticDataclassTypeProvider = PydanticDataclassTypeProvider()
     override fun buildVisitor(
         holder: ProblemsHolder,
         isOnTheFly: Boolean,
@@ -83,6 +86,60 @@ class PydanticInspection : PyInspection() {
             super.visitPyClass(node)
 
             inspectConfig(node)
+            inspectDefaultFactory(node)
+        }
+
+        private fun inspectDefaultFactory(pyClass: PyClass) {
+            if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
+            val defaultFactories = (pyClass.classAttributes + getAncestorPydanticModels(
+                pyClass,
+                true,
+                myTypeEvalContext
+            ).flatMap { it.classAttributes }).mapNotNull {
+                val name = it.name ?: return@mapNotNull null
+                val assignedValue = it.findAssignedValue() as? PyCallExpression ?: return@mapNotNull null
+                return@mapNotNull when (val defaultFactory = assignedValue.getKeywordArgument("default_factory")) {
+                    is PyCallable -> Pair(defaultFactory as PyExpression, defaultFactory)
+                    is PyReferenceExpression -> getResolvedPsiElements(
+                        defaultFactory,
+                        myTypeEvalContext
+                    ).filterIsInstance<PyCallable>().firstOrNull()?.let { resolved -> Pair(defaultFactory, resolved) }
+
+                    else -> null
+                }?.let { defaultFactory -> Pair(name, defaultFactory) }
+            }.toMap()
+
+            if (defaultFactories.isEmpty()) return
+
+            PyCallExpressionImpl(pyClass.node).let { callSite ->
+                when {
+                    pyClass.isPydanticDataclass ->
+                        pydanticDataclassTypeProvider.getDataclassCallableType(pyClass, myTypeEvalContext, callSite)
+
+                    else -> pydanticTypeProvider.getPydanticTypeForClass(
+                        pyClass,
+                        myTypeEvalContext,
+                        true,
+                        callSite
+                    )
+                }
+            }?.getParameters(myTypeEvalContext)?.forEach {
+                val defaultFactory = defaultFactories[it.name] ?: return@forEach
+                val expectedType = it.getArgumentType(myTypeEvalContext) ?: return@forEach
+                val actualType = myTypeEvalContext.getReturnType(defaultFactory.second) ?: return@forEach
+                if (PyTypeChecker.match(expectedType, actualType, myTypeEvalContext)) return@forEach
+                registerProblem(
+                    defaultFactory.first.parent,
+                    String.format(
+                        "Expected type '%s', '%s' is set as return value of default_factory",
+                        expectedType.name,
+                        actualType.name
+                    ),
+                    ProblemHighlightType.WARNING
+                )
+
+            }
+
         }
 
         private fun inspectPydanticModelCallableExpression(pyCallExpression: PyCallExpression) {

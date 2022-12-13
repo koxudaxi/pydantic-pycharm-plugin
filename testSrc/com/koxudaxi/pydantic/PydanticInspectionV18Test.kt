@@ -24,4 +24,8 @@ open class PydanticInspectionV18Test : PydanticInspectionBase(version = "v18") {
     fun testReadOnlyPropertyFrozen() {
         doTest()
     }
+
+    fun testDefaultFactory() {
+        doTest()
+    }
 }
