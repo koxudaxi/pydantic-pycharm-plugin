@@ -15,6 +15,7 @@ def Field(
         min_length: int = None,
         max_length: int = None,
         regex: str = None,
+        default_factory = None,
         **extra,
 ):
 

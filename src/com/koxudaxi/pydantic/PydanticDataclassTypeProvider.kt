@@ -31,7 +31,7 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
     }
 
 
-    private fun getDataclassCallableType(
+    internal fun getDataclassCallableType(
         referenceTarget: PsiElement,
         context: TypeEvalContext,
         callSite: PyCallExpression?,
