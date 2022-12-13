@@ -701,7 +701,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
 
-    private fun getDefaultValueByAssignedValue(
+    internal fun getDefaultValueByAssignedValue(
         field: PyTargetExpression,
         ellipsis: PyNoneLiteralExpression,
         context: TypeEvalContext,
@@ -721,7 +721,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (isDataclass) {
             resolveResults
                 .any {
-                    it.isDataclassField
+                    it.isDataclassField || it.isPydanticField
                 }
                 .let {
                     return when {
@@ -760,9 +760,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getDefaultValueForDataclass(
         assignedValue: PyCallExpression,
         context: TypeEvalContext,
-        argumentName: String,
+        argumentName: String?,
     ): PyExpression? {
-        val defaultValue = assignedValue.getKeywordArgument(argumentName)
+        val defaultValue = if (argumentName is String) {
+            assignedValue.getKeywordArgument(argumentName)
+        } else {
+            assignedValue.argumentList?.arguments?.firstOrNull().takeIf { it !is PyKeywordArgument }
+        }
         return when {
             defaultValue == null -> null
             defaultValue.text == "..." -> null
@@ -786,9 +790,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val defaultValue = getDefaultValueForDataclass(assignedValue, context, "default")
         val defaultFactoryValue = getDefaultValueForDataclass(assignedValue, context, "default_factory")
         return when {
-            defaultValue == null && defaultFactoryValue == null -> null
             defaultValue != null -> defaultValue
-            else -> defaultFactoryValue
+            defaultFactoryValue != null -> defaultFactoryValue
+            else -> getDefaultValueForDataclass(assignedValue, context, null)
         }
     }
 }

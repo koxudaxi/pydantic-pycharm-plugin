@@ -1,7 +1,8 @@
 
 from dataclasses import field, MISSING
 
-from pydantic.dataclasses import dataclass
+from pydantic.dataclasses import dataclass, Field
+
 
 def dummy():
     return '123'
@@ -20,6 +21,8 @@ class A:
     cda: str = field(default=MISSING, default_factory=MISSING)
     edc: str = dummy()
     gef: str = field(default=unresolved)
+    jih: str = field(..., title="empty", )
+    mlk: str = field(..., title="empty", )
 
 @dataclass
 class B(A):

@@ -721,7 +721,9 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 Pair("efg=", "str='xyz' A"),
                 Pair("gef=", "str=unresolved A"),
                 Pair("hij=", "str=lambda :'asd' A"),
+                Pair("jih=", "str A"),
                 Pair("klm=", "str='qwe' A"),
+                Pair("mlk=", "str A"),
                 Pair("qrs=", "str='fgh' A"),
                 Pair("tuw=", "str A"),
                 Pair("xyz=", "str A")
