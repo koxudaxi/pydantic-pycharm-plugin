@@ -48,4 +48,8 @@ class PydanticInsertArgumentsQuickFixTest : PydanticTestCase() {
     fun testLastCharOnlyRequired() {
         doTest(true)
     }
+
+    fun testDataclass() {
+        doTest(false)
+    }
 }

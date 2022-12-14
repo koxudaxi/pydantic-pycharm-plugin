@@ -99,14 +99,14 @@ class PydanticInspection : PyInspection() {
                 val name = it.name ?: return@mapNotNull null
                 val assignedValue = it.findAssignedValue() as? PyCallExpression ?: return@mapNotNull null
                 return@mapNotNull when (val defaultFactory = assignedValue.getKeywordArgument("default_factory")) {
-                    is PyCallable -> Pair(defaultFactory as PyExpression, defaultFactory)
+                    is PyCallable -> defaultFactory as PyExpression to defaultFactory
                     is PyReferenceExpression -> getResolvedPsiElements(
                         defaultFactory,
                         myTypeEvalContext
-                    ).filterIsInstance<PyCallable>().firstOrNull()?.let { resolved -> Pair(defaultFactory, resolved) }
+                    ).filterIsInstance<PyCallable>().firstOrNull()?.let { resolved -> defaultFactory to resolved }
 
                     else -> null
-                }?.let { defaultFactory -> Pair(name, defaultFactory) }
+                }?.let { defaultFactory -> name to defaultFactory }
             }.toMap()
 
             if (defaultFactories.isEmpty()) return
