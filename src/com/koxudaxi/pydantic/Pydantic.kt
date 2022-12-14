@@ -492,27 +492,27 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
 
-fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext): PyClass? {
-    val pyClass = getPyClassByPyCallExpression(pyCallExpression, false, context) ?: return null
-    if (!isPydanticModel(pyClass, false, context)) return null
+fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? {
+    val pyClass = getPyClassByPyCallExpression(pyCallExpression, includeDataclass, context) ?: return null
+    if (!isPydanticModel(pyClass, includeDataclass, context)) return null
     return pyClass
 }
 
 fun getAncestorPydanticModels(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): List<PyClass> {
     return pyClass.getAncestorClasses(context).filter {  isPydanticModel(it, includeDataclass, context) }
 }
-fun getParentOfPydanticCallableExpression(file: PsiFile, offset: Int, context: TypeEvalContext): PyCallExpression? {
+fun getParentOfPydanticCallableExpression(file: PsiFile, offset: Int, context: TypeEvalContext, includeDataclass: Boolean): PyCallExpression? {
     var pyCallExpression: PyCallExpression? =
         PsiTreeUtil.getParentOfType(file.findElementAt(offset), PyCallExpression::class.java, true)
-    while (pyCallExpression != null && getPydanticPyClass(pyCallExpression, context) == null) {
+    while (pyCallExpression != null && getPydanticPyClass(pyCallExpression, context, includeDataclass) == null) {
         pyCallExpression = PsiTreeUtil.getParentOfType(pyCallExpression, PyCallExpression::class.java, true)
     }
     return pyCallExpression
 }
 
-fun getPydanticCallExpressionAtCaret(file: PsiFile, editor: Editor, context: TypeEvalContext): PyCallExpression? {
-    return getParentOfPydanticCallableExpression(file, editor.caretModel.offset, context)
-        ?: getParentOfPydanticCallableExpression(file, editor.caretModel.offset - 1, context)
+fun getPydanticCallExpressionAtCaret(file: PsiFile, editor: Editor, context: TypeEvalContext, includeDataclass: Boolean): PyCallExpression? {
+    return getParentOfPydanticCallableExpression(file, editor.caretModel.offset, context, includeDataclass)
+        ?: getParentOfPydanticCallableExpression(file, editor.caretModel.offset - 1, context, includeDataclass)
 }
 
 
@@ -524,16 +524,12 @@ fun addKeywordArgument(pyCallExpression: PyCallExpression, pyKeywordArgument: Py
 }
 
 fun getPydanticUnFilledArguments(
-    pyClass: PyClass?,
+    pydanticType: PyCallableType,
     pyCallExpression: PyCallExpression,
-    pydanticTypeProvider: PydanticTypeProvider,
     context: TypeEvalContext,
 ): List<PyCallableParameter> {
-    val pydanticClass = pyClass ?: getPydanticPyClass(pyCallExpression, context) ?: return emptyList()
-    val pydanticType = pydanticTypeProvider.getPydanticTypeForClass(pydanticClass, context, true, pyCallExpression)
-        ?: return emptyList()
     val currentArguments =
-        pyCallExpression.arguments.filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
+        pyCallExpression.arguments.filter { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
             .mapNotNull { it.name }.toSet()
     return pydanticType.getParameters(context)?.filterNot { currentArguments.contains(it.name) } ?: emptyList()
 }

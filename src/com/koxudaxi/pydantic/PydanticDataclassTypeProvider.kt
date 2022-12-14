@@ -59,7 +59,8 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
             dataclassCallableType.getParameters(context)?.map {
                 when {
                     it.defaultValueText == "..." && it.defaultValue is PyNoneLiteralExpression ->
-                        injectDefaultValue(dataclassType.pyClass, it, ellipsis, context) ?: it
+                        pydanticTypeProvider.injectDefaultValue(dataclassType.pyClass, it, ellipsis, null, context)
+                            ?: it
 
                     else -> it
                 }
@@ -71,23 +72,6 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
             definition -> injectedDataclassType.toClass()
             else -> injectedDataclassType
         }
-    }
-
-    private fun injectDefaultValue(
-        pyClass: PyClass,
-        pyCallableParameter: PyCallableParameter,
-        ellipsis: PyNoneLiteralExpression,
-        context: TypeEvalContext
-    ): PyCallableParameter? {
-        val name = pyCallableParameter.name ?: return null
-        val attribute = pyClass.findClassAttribute(name, true, context) ?: return null
-        val defaultValue =
-            pydanticTypeProvider.getDefaultValueByAssignedValue(attribute, ellipsis, context, null, true)
-        return PyCallableParameterImpl.nonPsi(
-            name,
-            pyCallableParameter.getArgumentType(context),
-            defaultValue
-        )
     }
 
     private fun getPydanticDataclass(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
