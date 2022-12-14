@@ -326,7 +326,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val keywordArguments: Map<String, PyExpression> = pyArguments
             .filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
-            .mapNotNull { it.name?.let { name -> name to it } }
+            .map { it.name to it }
+            .filterIsInstance<Pair<String, PyExpression>>()
             .toMap()
         val modelNameArgument = if (pyArguments.size == keywordArguments.size) {
             // TODO: Support model name on StartArgument
@@ -656,7 +657,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return context.getType(field)
     }
 
-    private fun getDefaultValueForParameter(
+    internal fun getDefaultValueForParameter(
         field: PyTargetExpression,
         ellipsis: PyNoneLiteralExpression,
         context: TypeEvalContext,
@@ -701,20 +702,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
 
-    internal fun getDefaultValueByAssignedValue(
+    private fun getDefaultValueByAssignedValue(
         field: PyTargetExpression,
         ellipsis: PyNoneLiteralExpression,
         context: TypeEvalContext,
         pydanticVersion: KotlinVersion?,
         isDataclass: Boolean,
     ): PyExpression? {
-        val assignedValue = field.findAssignedValue()!!
+        val assignedValue = field.findAssignedValue() ?: return null
 
-        if (assignedValue.text == "...") {
-            return null
-        }
+        if (assignedValue.text == "...") return null
 
-        val callee = (assignedValue as? PyCallExpressionImpl)?.callee ?: return assignedValue
+        val callee = (assignedValue as? PyCallExpression)?.callee ?: return assignedValue
         val referenceExpression = callee.reference?.element as? PyReferenceExpression ?: return ellipsis
 
         val resolveResults = getResolvedPsiElements(referenceExpression, context)
@@ -752,7 +751,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getDefaultValue(assignedValue: PyCallExpression, typeEvalContext: TypeEvalContext): PyExpression? {
         getDefaultFactoryFromField(assignedValue)
             ?.let {
-                return assignedValue
+                return it
             }
         return getDefaultFromField(assignedValue, typeEvalContext)?.takeIf { it.text != "..." }
     }
@@ -795,4 +794,23 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             else -> getDefaultValueForDataclass(assignedValue, context, null)
         }
     }
+
+    internal fun injectDefaultValue(
+        pyClass: PyClass,
+        pyCallableParameter: PyCallableParameter,
+        ellipsis: PyNoneLiteralExpression,
+        pydanticVersion: KotlinVersion?,
+        context: TypeEvalContext
+    ): PyCallableParameter? {
+        val name = pyCallableParameter.name ?: return null
+        val attribute = pyClass.findClassAttribute(name, true, context) ?: return null
+        val defaultValue =
+            getDefaultValueByAssignedValue(attribute, ellipsis, context, pydanticVersion, true)
+        return PyCallableParameterImpl.nonPsi(
+            name,
+            pyCallableParameter.getArgumentType(context),
+            defaultValue
+        )
+    }
+
 }

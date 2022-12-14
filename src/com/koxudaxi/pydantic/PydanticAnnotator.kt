@@ -21,8 +21,10 @@ class PydanticAnnotator : PyAnnotator() {
         val context = TypeEvalContext.codeAnalysis(pyCallExpression.project, pyCallExpression.containingFile)
         val pyClass = getPydanticPyClass(pyCallExpression, context) ?: return
         if (getPydanticModelInit(pyClass, context) != null) return
+        val pydanticType =  pydanticTypeProvider.getPydanticTypeForClass(pyClass, context, true, pyCallExpression) ?: return
+
         val unFilledArguments =
-            getPydanticUnFilledArguments(pyClass, pyCallExpression, pydanticTypeProvider, context).nullize()
+            getPydanticUnFilledArguments(pydanticType, pyCallExpression, context).nullize()
                 ?: return
         holder.newSilentAnnotation(HighlightSeverity.INFORMATION).withFix(PydanticInsertArgumentsQuickFix(false))
             .create()
