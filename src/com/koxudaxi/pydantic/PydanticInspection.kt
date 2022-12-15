@@ -280,7 +280,7 @@ class PydanticInspection : PyInspection() {
 
         private fun inspectAnnotatedField(node: PyTypeDeclarationStatement) {
             val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             val fieldName = node.target.name ?: return
 
             val annotationValue = node.annotation?.value ?: return
@@ -300,7 +300,7 @@ class PydanticInspection : PyInspection() {
 
         private fun inspectAnnotatedAssignedField(node: PyAssignmentStatement) {
             val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
             val assignedValue = node.assignedValue
 
