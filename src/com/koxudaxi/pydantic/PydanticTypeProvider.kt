@@ -590,7 +590,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return PyCallableParameterImpl.nonPsi(
             getFieldName(field, context, config, pydanticVersion),
             typeForParameter,
-            defaultValue
+            if (defaultValue == null && typeForParameter?.isNullable == true) ellipsis else defaultValue
         )
     }
 

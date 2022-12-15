@@ -290,6 +290,18 @@ val PyType.pyClassTypes: List<PyClassType>
 
     }
 
+val PyType.isNullable: Boolean
+    get() = when (this) {
+        is PyUnionType -> this.members.any {
+            when (it) {
+                is PyNoneType -> true
+                is PyUnionType -> it.isNullable
+                else -> false
+            }
+        }
+        is PyNoneLiteralExpression -> true
+        else -> false
+    }
 
 fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeEvalContext): Boolean {
     return (psiElement as? PyClass ?: PsiTreeUtil.getContextOfType(psiElement, PyClass::class.java))
