@@ -590,7 +590,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return PyCallableParameterImpl.nonPsi(
             getFieldName(field, context, config, pydanticVersion),
             typeForParameter,
-            defaultValue
+            if (defaultValue == null && typeForParameter?.isNullable == true) ellipsis else defaultValue
         )
     }
 
@@ -741,14 +741,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 }
                 .let {
                     return when {
-                        it -> getDefaultValue(assignedValue, context, ellipsis)
+                        it -> getDefaultValue(assignedValue, context)
                         else -> assignedValue
                     }
                 }
         }
     }
 
-    private fun getDefaultValue(assignedValue: PyCallExpression, ellipsis: PyNoneLiteralExpression, typeEvalContext: TypeEvalContext): PyExpression? {
+    private fun getDefaultValue(assignedValue: PyCallExpression, typeEvalContext: TypeEvalContext): PyExpression? {
         getDefaultFactoryFromField(assignedValue)
             ?.let {
                 return it
