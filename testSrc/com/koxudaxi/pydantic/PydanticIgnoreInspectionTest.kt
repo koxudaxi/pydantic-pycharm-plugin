@@ -23,6 +23,11 @@ open class PydanticIgnoreInspectionTest : PydanticTestCase() {
         doTest(true)
     }
 
+    fun testValidatorDataclass() {
+        doTest(true)
+    }
+
+
     fun testBaseModel() {
         doTest(false)
     }

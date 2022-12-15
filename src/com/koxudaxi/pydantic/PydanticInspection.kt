@@ -36,7 +36,7 @@ class PydanticInspection : PyInspection() {
             super.visitPyFunction(node)
 
             val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, false, myTypeEvalContext) || !node.isValidatorMethod) return
+            if (!isPydanticModel(pyClass, true, myTypeEvalContext) || !node.isValidatorMethod) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
