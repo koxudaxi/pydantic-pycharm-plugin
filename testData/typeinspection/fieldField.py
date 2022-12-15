@@ -1,4 +1,4 @@
-
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -15,5 +15,6 @@ class A(BaseModel):
     h: int = Field(NUMBER)
     i: int = Field(default=NUMBER)
     j = Field(NUMBER)
+    k: Optional[int] = Field()
 
 A(a=int(123), b=int(123), c=int(123), d=int(123), e=int(123), f=int(123), g=int(123))

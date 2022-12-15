@@ -741,14 +741,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 }
                 .let {
                     return when {
-                        it -> getDefaultValue(assignedValue, context)
+                        it -> getDefaultValue(assignedValue, context, ellipsis)
                         else -> assignedValue
                     }
                 }
         }
     }
 
-    private fun getDefaultValue(assignedValue: PyCallExpression, typeEvalContext: TypeEvalContext): PyExpression? {
+    private fun getDefaultValue(assignedValue: PyCallExpression, ellipsis: PyNoneLiteralExpression, typeEvalContext: TypeEvalContext): PyExpression? {
         getDefaultFactoryFromField(assignedValue)
             ?.let {
                 return it
