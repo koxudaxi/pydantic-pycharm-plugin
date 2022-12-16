@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## 0.3.17 - 2022-12-16
 - Support Union operator [[#602](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/602)]
 - Ignore forbid for double star arguments [[#603](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/603)]
 - Improve dataclass default Value detection [[#604](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/604)]
