@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- Support Union operator [[#602](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/602)]
+- Ignore forbid for double star arguments [[#603](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/603)]
+- Improve dataclass default Value detection [[#604](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/604)]
+- Add inspection for default factory [[#605](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/605)]
+- Improve insert arguments [[#607](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/607)]
+- Fix None default value on Field function[[#608](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/608)]
+- Improve dataclass support [[#609](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/609)]
 
 ## 0.3.16 - 2022-12-09
 - avoid AlreadyDisposedException [[#585](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/585)]
