@@ -326,8 +326,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val keywordArguments: Map<String, PyExpression> = pyArguments
             .filter { it is PyKeywordArgument || (it as? PyStarArgumentImpl)?.isKeyword == true }
-            .map { it.name to it }
-            .filterIsInstance<Pair<String, PyExpression>>()
+            .mapNotNull { it.name?.let { name -> name to it } }
             .toMap()
         val modelNameArgument = if (pyArguments.size == keywordArguments.size) {
             // TODO: Support model name on StartArgument
@@ -478,8 +477,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return pyClassGenericTypeMap.toMutableMap().apply {
             this.putAll(collectGenericTypes(pyClass, context)
                 .take(injectedTypes.size)
-                .mapIndexed { index, genericType -> genericType to injectedTypes[index] }
-                .filterIsInstance<Pair<PyGenericType, PyType>>().toMap()
+                .mapIndexedNotNull { index, genericType ->
+                    genericType?.let {
+                        injectedTypes[index]?.let { injectedType -> it to injectedType }
+                    }
+                }
+                .toMap()
             )
         }.takeIf { it.isNotEmpty() }
     }
@@ -507,8 +510,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (isSubClassOfBaseSetting(pyClass, context)) {
             getBaseSetting(pyClass, context)?.let { baseSetting ->
                 getBaseSettingInitParameters(baseSetting, context, typed)
-                    ?.map { parameter -> parameter.name to parameter }
-                    ?.filterIsInstance<Pair<String, PyCallableParameter>>()
+                    ?.mapNotNull { parameter -> parameter.name?.let { name -> name to parameter} }
                     ?.let { collected.putAll(it) }
             }
         }
