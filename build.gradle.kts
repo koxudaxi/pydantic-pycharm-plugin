@@ -4,7 +4,7 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
     // Kotlin support
-    kotlin("jvm") version "1.7.22"
+    kotlin("jvm") version "1.8.10"
     // Gradle IntelliJ Plugin
     id("org.jetbrains.intellij") version "1.13.0"
     // Gradle Changelog Plugin
