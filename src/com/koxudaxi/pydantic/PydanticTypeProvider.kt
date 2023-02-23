@@ -163,8 +163,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return getPyType(pyExpression, context)
     }
 
+    private fun scopedGenericType(pyTargetExpression: PyTargetExpression, pyClass: PyClass?, context: TypeEvalContext) : PyGenericType? {
+        val pyTypedElement = pyTargetExpression as? PyTypedElement ?: return null
+        val pyGenericType = pyTypedElement.getType(context) as? PyGenericType ?: return null
+        return pyGenericType.withScopeOwner(pyClass).withTargetExpression(pyTargetExpression)
+    }
 
-    private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyGenericType?> {
+    private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyGenericType> {
         return pyClass.superClassExpressions
             .mapNotNull {
                 when (it) {
@@ -185,11 +190,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 if (!isGenericModel && (rootOperandType as? PyCustomType)?.classQName != GENERIC_Q_NAME) return@flatMap emptyList()
 
                 when (val indexExpression = pySubscriptionExpression.indexExpression) {
-                    is PyTupleExpression -> indexExpression.elements.map { context.getType(it) }.toList()
-                    is PyTypedElement -> listOf(context.getType(indexExpression))
+                    is PyTupleExpression -> indexExpression.elements
+                        .filterIsInstance<PyReferenceExpression>().map {it.reference.resolve() }
+                        .filterIsInstance<PyTargetExpression>().map { scopedGenericType(it, pyClass, context) }
+                        .toList()
+                    is PyTargetExpression ->  listOf(scopedGenericType(indexExpression, pyClass, context))
                     else -> null
                 } ?: emptyList()
-            }.filterIsInstance<PyGenericType>().distinct()
+            }.filterNotNull().distinct()
     }
 
     override fun prepareCalleeTypeForCall(
@@ -478,9 +486,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             this.putAll(collectGenericTypes(pyClass, context)
                 .take(injectedTypes.size)
                 .mapIndexedNotNull { index, genericType ->
-                    genericType?.let {
-                        injectedTypes[index]?.let { injectedType -> it to injectedType }
-                    }
+                        injectedTypes[index]?.let { injectedType -> genericType to injectedType }
                 }
                 .toMap()
             )
@@ -585,7 +591,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }?.let {
             when (genericTypeMap) {
                 null -> it
-                else -> PyTypeChecker.substitute(it, genericTypeMap, context)
+                else ->   PyTypeChecker.substitute(it, genericTypeMap, context)
             }
         }
 
