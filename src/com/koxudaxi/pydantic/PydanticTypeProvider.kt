@@ -163,41 +163,53 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return getPyType(pyExpression, context)
     }
 
-    private fun scopedGenericType(pyTargetExpression: PyTargetExpression, pyClass: PyClass?, context: TypeEvalContext) : PyGenericType? {
+    private fun scopedGenericType(
+        pyTargetExpression: PyTargetExpression,
+        pyClass: PyClass?,
+        context: TypeEvalContext
+    ): PyGenericType? {
         val pyTypedElement = pyTargetExpression as? PyTypedElement ?: return null
         val pyGenericType = pyTypedElement.getType(context) as? PyGenericType ?: return null
         return pyGenericType.withScopeOwner(pyClass).withTargetExpression(pyTargetExpression)
     }
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyGenericType> {
-        return pyClass.superClassExpressions
-            .mapNotNull {
-                when (it) {
-                    is PySubscriptionExpression -> it
-                    is PyReferenceExpression -> getResolvedPsiElements(it, context)
-                        .asSequence()
-                        .filterIsInstance<PySubscriptionExpression>()
-                        .firstOrNull()
+        return (((pyTypingTypeProvider.getGenericType(
+            pyClass,
+            context
+        ) as? PyCollectionType)?.elementTypes?.filterIsInstance<PyGenericType>() ?: emptyList()) +
+                pyClass.superClassExpressions
+                    .mapNotNull {
+                        when (it) {
+                            is PySubscriptionExpression -> it
+                            is PyReferenceExpression -> getResolvedPsiElements(it, context)
+                                .asSequence()
+                                .filterIsInstance<PySubscriptionExpression>()
+                                .firstOrNull()
 
-                    else -> null
-                }
-            }.flatMap { pySubscriptionExpression ->
-                val referenceExpression =
-                    pySubscriptionExpression.rootOperand as? PyReferenceExpression ?: return@flatMap emptyList()
-                val rootOperandType = context.getType(referenceExpression) ?: return@flatMap emptyList()
-                val isGenericModel =
-                    rootOperandType is PyClassType && isSubClassOfPydanticGenericModel(rootOperandType.pyClass, context)
-                if (!isGenericModel && (rootOperandType as? PyCustomType)?.classQName != GENERIC_Q_NAME) return@flatMap emptyList()
+                            else -> null
+                        }
+                    }.flatMap { pySubscriptionExpression ->
+                        val referenceExpression =
+                            pySubscriptionExpression.rootOperand as? PyReferenceExpression ?: return@flatMap emptyList()
+                        val rootOperandType = context.getType(referenceExpression) ?: return@flatMap emptyList()
+                        val isGenericModel =
+                            rootOperandType is PyClassType && isSubClassOfPydanticGenericModel(
+                                rootOperandType.pyClass,
+                                context
+                            )
+                        if (!isGenericModel && (rootOperandType as? PyCustomType)?.classQName != GENERIC_Q_NAME) return@flatMap emptyList()
 
-                when (val indexExpression = pySubscriptionExpression.indexExpression) {
-                    is PyTupleExpression -> indexExpression.elements
-                        .filterIsInstance<PyReferenceExpression>().map {it.reference.resolve() }
-                        .filterIsInstance<PyTargetExpression>().map { scopedGenericType(it, pyClass, context) }
-                        .toList()
-                    is PyTargetExpression ->  listOf(scopedGenericType(indexExpression, pyClass, context))
-                    else -> null
-                } ?: emptyList()
-            }.filterNotNull().distinct()
+                        when (val indexExpression = pySubscriptionExpression.indexExpression) {
+                            is PyTupleExpression -> indexExpression.elements
+                                .filterIsInstance<PyReferenceExpression>().map { it.reference.resolve() }
+                                .filterIsInstance<PyTargetExpression>().map { scopedGenericType(it, pyClass, context) }
+                                .toList()
+
+                            is PyTargetExpression -> listOf(scopedGenericType(indexExpression, pyClass, context))
+                            else -> null
+                        } ?: emptyList()
+                    }.filterNotNull()).distinct()
     }
 
     override fun prepareCalleeTypeForCall(
@@ -486,7 +498,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             this.putAll(collectGenericTypes(pyClass, context)
                 .take(injectedTypes.size)
                 .mapIndexedNotNull { index, genericType ->
+                    genericType.let {
                         injectedTypes[index]?.let { injectedType -> genericType to injectedType }
+                    }
                 }
                 .toMap()
             )
@@ -516,7 +530,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (isSubClassOfBaseSetting(pyClass, context)) {
             getBaseSetting(pyClass, context)?.let { baseSetting ->
                 getBaseSettingInitParameters(baseSetting, context, typed)
-                    ?.mapNotNull { parameter -> parameter.name?.let { name -> name to parameter} }
+                    ?.mapNotNull { parameter -> parameter.name?.let { name -> name to parameter } }
                     ?.let { collected.putAll(it) }
             }
         }
@@ -591,7 +605,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }?.let {
             when (genericTypeMap) {
                 null -> it
-                else ->   PyTypeChecker.substitute(it, genericTypeMap, context)
+                else -> PyTypeChecker.substitute(it, genericTypeMap, context)
             }
         }
 
