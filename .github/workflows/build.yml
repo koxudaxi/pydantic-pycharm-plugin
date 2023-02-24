@@ -47,7 +47,7 @@ jobs:
 
       # Validate wrapper
       - name: Gradle Wrapper Validation
-        uses: gradle/wrapper-validation-action@v1.0.5
+        uses: gradle/wrapper-validation-action@v1.0.6
 
       # Setup Java 17 environment for the next steps
       - name: Setup Java
@@ -57,7 +57,7 @@ jobs:
           java-version: 17
 
       - name: Cache
-        uses: actions/cache@v3.2.5
+        uses: actions/cache@v3.2.6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.cfg') }}
@@ -105,7 +105,7 @@ jobs:
 
       # Cache Plugin Verifier IDEs
       - name: Setup Plugin Verifier IDEs Cache
-        uses: actions/cache@v3.2.5
+        uses: actions/cache@v3.2.6
         with:
           path: ${{ steps.properties.outputs.pluginVerifierHomeDir }}/ides
           key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
