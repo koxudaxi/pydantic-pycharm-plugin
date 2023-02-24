@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Support 2023.1 EAP [[#633](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/633)]
 
 ## 0.3.17 - 2022-12-16
 - Support Union operator [[#602](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/602)]
