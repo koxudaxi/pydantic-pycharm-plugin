@@ -174,10 +174,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyGenericType> {
-        return (((pyTypingTypeProvider.getGenericType(
-            pyClass,
-            context
-        ) as? PyCollectionType)?.elementTypes?.filterIsInstance<PyGenericType>() ?: emptyList()) +
+        val pyCollectionType = pyTypingTypeProvider.getGenericType(pyClass, context) as? PyCollectionType
+        val genericTypes = pyCollectionType?.elementTypes?.filterIsInstance<PyGenericType>() ?: emptyList()
+        return (genericTypes +
                 pyClass.superClassExpressions
                     .mapNotNull {
                         when (it) {
@@ -209,7 +208,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                             is PyTargetExpression -> listOf(scopedGenericType(indexExpression, pyClass, context))
                             else -> null
                         } ?: emptyList()
-                    }.filterNotNull()).distinct()
+                    }.filterNotNull()
+                ).distinct()
     }
 
     override fun prepareCalleeTypeForCall(
