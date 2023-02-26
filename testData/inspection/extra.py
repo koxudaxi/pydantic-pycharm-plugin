@@ -29,3 +29,15 @@ class D(C):
 
 
 d = D(id=1, data=[1, 2, 3])
+
+class E(BaseModel):
+    a: str
+    class Config:
+        extra = Extra.forbid
+
+    def __call__(self, *args, **kwargs):
+        pass
+
+e = E(a='abc')
+
+e(a='efg', b='xyz')

@@ -13,3 +13,12 @@ class B():
 
 
 B('a')
+
+class C(BaseModel):
+    a: str
+    def __call__(self, *args, **kwargs):
+        pass
+
+c = C(a='abc')
+
+c('a')
