@@ -656,3 +656,6 @@ fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction
     if (!isPydanticModel(containingClass, false, context)) return null
     return pyFunction
 }
+
+ fun PyCallExpression.isDefinitionCallExpression(context: TypeEvalContext): Boolean =
+     this.callee?.reference?.resolve()?.let { it as? PyClass }?.getType(context)?.isDefinition == true
