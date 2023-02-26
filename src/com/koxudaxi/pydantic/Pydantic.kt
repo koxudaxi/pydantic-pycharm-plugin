@@ -657,7 +657,5 @@ fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction
     return pyFunction
 }
 
- fun PyCallExpression.isDefinitionCallExpression(context: TypeEvalContext): Boolean {
-    val pyClassType = context.getType(this) as? PyClassType ?: return false
-    return pyClassType.isDefinition
-}
+ fun PyCallExpression.isDefinitionCallExpression(context: TypeEvalContext): Boolean =
+     this.callee?.reference?.resolve()?.let { it as? PyClass }?.getType(context)?.isDefinition == true
