@@ -656,3 +656,8 @@ fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction
     if (!isPydanticModel(containingClass, false, context)) return null
     return pyFunction
 }
+
+ fun PyCallExpression.isDefinitionCallExpression(context: TypeEvalContext): Boolean {
+    val pyClassType = context.getType(this) as? PyClassType ?: return false
+    return pyClassType.isDefinition
+}

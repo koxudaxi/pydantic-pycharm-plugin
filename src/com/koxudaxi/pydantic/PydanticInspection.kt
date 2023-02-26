@@ -59,6 +59,7 @@ class PydanticInspection : PyInspection() {
         override fun visitPyCallExpression(node: PyCallExpression) {
             super.visitPyCallExpression(node)
 
+            if (!node.isDefinitionCallExpression(myTypeEvalContext)) return
             inspectPydanticModelCallableExpression(node)
             inspectFromOrm(node)
             inspectExtraForbid(node)
