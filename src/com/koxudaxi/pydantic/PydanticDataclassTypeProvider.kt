@@ -1,5 +1,6 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
 import com.jetbrains.python.psi.*
@@ -20,16 +21,30 @@ import com.jetbrains.python.psi.types.*
 class PydanticDataclassTypeProvider : PyTypeProviderBase() {
     private val pyDataclassTypeProvider = PyDataclassTypeProvider()
     private val pydanticTypeProvider = PydanticTypeProvider()
-    override fun getReferenceExpressionType(
-        referenceExpression: PyReferenceExpression,
-        context: TypeEvalContext,
-    ): PyType? {
-        return getPydanticDataclass(
-            referenceExpression,
-            TypeEvalContext.codeInsightFallback(referenceExpression.project)
-        )
-    }
 
+    override fun getReferenceType(
+        referenceTarget: PsiElement,
+        context: TypeEvalContext,
+        anchor: PsiElement?
+    ): Ref<PyType>? {
+        return when {
+            referenceTarget is PyClass && referenceTarget.isPydanticDataclass ->
+                getPydanticDataclassType(referenceTarget, context, anchor as? PyCallExpression, true)
+
+            referenceTarget is PyTargetExpression -> (referenceTarget as? PyTypedElement)
+                ?.getType(context)?.pyClassTypes
+                ?.filter { pyClassType -> pyClassType.pyClass.isPydanticDataclass }
+                ?.firstNotNullOfOrNull { pyClassType ->
+                    getPydanticDataclassType(
+                        pyClassType.pyClass,
+                        context,
+                        anchor as? PyCallExpression,
+                        pyClassType.isDefinition
+                    )
+                }
+            else ->null
+        }?.let { Ref.create(it) }
+    }
 
     internal fun getDataclassCallableType(
         referenceTarget: PsiElement,
@@ -46,10 +61,9 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
     private fun getPydanticDataclassType(
         referenceTarget: PsiElement,
         context: TypeEvalContext,
-        pyReferenceExpression: PyReferenceExpression,
+        callSite: PyCallExpression?,
         definition: Boolean,
     ): PyType? {
-        val callSite = PyCallExpressionNavigator.getPyCallExpressionByCallee(pyReferenceExpression)
         val dataclassCallableType = getDataclassCallableType(referenceTarget, context, callSite) ?: return null
 
         val dataclassType = (dataclassCallableType).getReturnType(context) as? PyClassType ?: return null
@@ -72,30 +86,5 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
             definition -> injectedDataclassType.toClass()
             else -> injectedDataclassType
         }
-    }
-
-    private fun getPydanticDataclass(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
-        return getResolvedPsiElements(referenceExpression, context)
-            .asSequence()
-            .mapNotNull {
-                when {
-                    it is PyClass && it.isPydanticDataclass ->
-                        getPydanticDataclassType(it, context, referenceExpression, true)
-
-                    it is PyTargetExpression -> (it as? PyTypedElement)
-                        ?.getType(context)?.pyClassTypes
-                        ?.filter { pyClassType -> pyClassType.pyClass.isPydanticDataclass }
-                        ?.firstNotNullOfOrNull { pyClassType ->
-                            getPydanticDataclassType(
-                                pyClassType.pyClass,
-                                context,
-                                referenceExpression,
-                                pyClassType.isDefinition
-                            )
-                        }
-
-                    else -> null
-                }
-            }.firstOrNull()
     }
 }
