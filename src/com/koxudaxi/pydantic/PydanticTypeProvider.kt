@@ -221,62 +221,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         )?.let { Ref.create(it) }
     }
 
-    private fun getPydanticTypeForCallee(
-        referenceExpression: PyReferenceExpression,
-        context: TypeEvalContext,
-    ): PyType? {
-        val pyCallExpression = PyCallExpressionNavigator.getPyCallExpressionByCallee(referenceExpression) ?: return null
-
-        return getResolvedPsiElements(referenceExpression, context)
-            .asSequence()
-            .mapNotNull {
-                when {
-//                    it is PyClass -> getPydanticTypeForClass(it, context, true, pyCallExpression)
-                    it is PyParameter && it.isSelf ->
-                        PsiTreeUtil.getParentOfType(it, PyFunction::class.java)
-                            ?.takeIf { pyFunction -> pyFunction.modifier == PyFunction.Modifier.CLASSMETHOD }
-                            ?.containingClass?.let { pyClass ->
-                                getPydanticTypeForClass(
-                                    pyClass,
-                                    context,
-                                    true,
-                                    pyCallExpression
-                                )
-                            }
-
-                    it is PyNamedParameter -> it.getArgumentType(context)?.pyClassTypes?.filter { pyClassType ->
-                        pyClassType.isDefinition
-                    }?.map { filteredPyClassType ->
-                        getPydanticTypeForClass(
-                            filteredPyClassType.pyClass,
-                            context,
-                            true,
-                            pyCallExpression
-                        )
-                    }?.firstOrNull()
-
-                    it is PyTargetExpression -> (it as? PyTypedElement)
-                        ?.let { pyTypedElement ->
-                            context.getType(pyTypedElement)?.pyClassTypes
-                                ?.filter { pyClassType -> pyClassType.isDefinition }
-                                ?.filterNot { pyClassType -> pyClassType is PydanticDynamicModelClassType }
-                                ?.map { filteredPyClassType ->
-                                    getPydanticTypeForClass(
-                                        filteredPyClassType.pyClass,
-                                        context,
-                                        true,
-                                        pyCallExpression
-                                    )
-                                }?.firstOrNull()
-                        } ?: getPydanticDynamicModelTypeForTargetExpression(it, context)?.pyCallableType
-
-                    else -> null
-                }
-            }
-            .firstOrNull()
-    }
-
-
     private fun createConListPyType(pyCallSiteExpression: PyCallSiteExpression, context: TypeEvalContext): PyType? {
         val pyCallExpression = pyCallSiteExpression as? PyCallExpression ?: return null
         val argumentList = pyCallExpression.argumentList ?: return null
