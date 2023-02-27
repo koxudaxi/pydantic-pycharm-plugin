@@ -135,27 +135,14 @@ const val CUSTOM_ROOT_FIELD = "__root__"
 
 fun PyTypedElement.getType(context: TypeEvalContext): PyType? = context.getType(this)
 
-fun getPyClassByPyCallExpression(
-    pyCallExpression: PyCallExpression,
+
+fun getPydanticModelByPyKeywordArgument(
+    pyKeywordArgument: PyKeywordArgument,
     includeDataclass: Boolean,
     context: TypeEvalContext,
 ): PyClass? {
-    val callee = pyCallExpression.callee ?: return null
-    val pyType = when (val type = callee.getType(context)) {
-        is PyClass -> return type
-        is PyClassType -> type
-        else -> (callee.reference?.resolve() as? PyTypedElement)?.getType(context) ?: return null
-    }
-    return pyType.pyClassTypes.firstOrNull {
-        isPydanticModel(it.pyClass,
-            includeDataclass,
-            context)
-    }?.pyClass
-}
-
-fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
-    return getPyClassByPyCallExpression(pyCallExpression, true, context)
+    return getPydanticPyClass(pyCallExpression, context, includeDataclass)
 }
 
 fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): Boolean {
@@ -505,9 +492,9 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
 }
 
 fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? {
-    val pyClass = getPyClassByPyCallExpression(pyCallExpression, includeDataclass, context) ?: return null
-    if (!isPydanticModel(pyClass, includeDataclass, context)) return null
-    return pyClass
+    return context.getType(pyCallExpression)?.pyClassTypes?.firstOrNull {
+        isPydanticModel(it.pyClass, includeDataclass, context)
+    }?.pyClass
 }
 
 fun getAncestorPydanticModels(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): List<PyClass> {

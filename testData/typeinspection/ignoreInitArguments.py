@@ -9,6 +9,6 @@ class A(BaseModel):
     def __init__(self, xyz: str):
         super().__init__(a=xyz)
 
-A(xyz=123<warning descr="null">)</warning>
+A(xyz=123)
 
 A(a=123)
