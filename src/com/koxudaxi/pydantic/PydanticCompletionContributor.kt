@@ -313,11 +313,9 @@ class PydanticCompletionContributor : CompletionContributor() {
             val typeEvalContext = parameters.getTypeEvalContext()
             val pyTypedElement = parameters.position.parent?.firstChild as? PyTypedElement ?: return
 
-            val pyType = typeEvalContext.getType(pyTypedElement) ?: return
 
-            val pyClassType =
-                pyType.pyClassTypes.firstOrNull { isPydanticModel(it.pyClass, true, typeEvalContext) }
-                    ?: return
+            val pyClassType = getPydanticPyClassType(pyTypedElement, typeEvalContext, true) ?: return
+
             val pyClass = pyClassType.pyClass
             val config = getConfig(pyClass, typeEvalContext, true)
             if (pyClassType.isDefinition) { // class
@@ -377,9 +375,8 @@ class PydanticCompletionContributor : CompletionContributor() {
         ) {
             val configClass = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
             if (!configClass.isConfigClass) return
-            val pydanticModel = getPyClassByAttribute(configClass) ?: return
             val typeEvalContext = parameters.getTypeEvalContext()
-            if (!isPydanticModel(pydanticModel, true, typeEvalContext)) return
+            if (getPydanticModelByAttribute(configClass,true, parameters.getTypeEvalContext()) == null) return
 
 
             val definedSet = configClass.classAttributes
@@ -404,9 +401,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             context: ProcessingContext,
             result: CompletionResultSet,
         ) {
-            val pydanticModel = getPyClassByAttribute(parameters.position.parent?.parent) ?: return
-            val typeEvalContext = parameters.getTypeEvalContext()
-            if (!isPydanticModel(pydanticModel, true, typeEvalContext)) return
+            val pydanticModel = getPydanticModelByAttribute(parameters.position.parent?.parent, true,  parameters.getTypeEvalContext()) ?: return
             if (pydanticModel.findNestedClass("Config", false) != null) return
             val element = PrioritizedLookupElement.withGrouping(
                 LookupElementBuilder

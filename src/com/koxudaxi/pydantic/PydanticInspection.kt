@@ -35,8 +35,8 @@ class PydanticInspection : PyInspection() {
         override fun visitPyFunction(node: PyFunction) {
             super.visitPyFunction(node)
 
-            val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, true, myTypeEvalContext) || !node.isValidatorMethod) return
+            if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
+            if (!node.isValidatorMethod) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
@@ -188,23 +188,9 @@ class PydanticInspection : PyInspection() {
             val resolveContext = PyResolveContext.defaultContext(myTypeEvalContext)
             val pyCallable = pyCallExpression.multiResolveCalleeFunction(resolveContext).firstOrNull() ?: return
             if (pyCallable.asMethod()?.qualifiedName != "pydantic.main.BaseModel.from_orm") return
-            val type =
-                (pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyTypedElement)?.getType(
-                    myTypeEvalContext
-                )
-                    ?: return
-            val pyClass = when (type) {
-                is PyClass -> type
-                is PyClassType -> type.pyClassTypes.firstOrNull {
-                    isPydanticModel(
-                        it.pyClass,
-                        false, myTypeEvalContext
-                    )
-                }?.pyClass
+            val typedElement =  pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyTypedElement ?: return
+            val pyClass = getPydanticPyClass(typedElement,  myTypeEvalContext, false) ?: return
 
-                else -> null
-            } ?: return
-            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["orm_mode"] != true) {
                 registerProblem(
@@ -229,11 +215,11 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectReadOnlyProperty(node: PyAssignmentStatement) {
-            val pyType =
-                (node.leftHandSideExpression?.firstChild as? PyTypedElement)?.getType(myTypeEvalContext) ?: return
-            if ((pyType as? PyClassTypeImpl)?.isDefinition == true) return
-            val pyClass = pyType.pyClassTypes.firstOrNull()?.pyClass ?: return
-            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            val pyTypedElement =
+                node.leftHandSideExpression?.firstChild as? PyTypedElement ?: return
+            val pyClassType = getPydanticPyClassType(pyTypedElement,  myTypeEvalContext, false) ?: return
+            if (pyClassType.isDefinition) return
+            val pyClass = pyClassType.pyClass
             val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return
             val config = getConfig(pyClass, myTypeEvalContext, true)
             val version = PydanticCacheService.getVersion(pyClass.project, myTypeEvalContext)
@@ -247,8 +233,7 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectWarnUntypedFields(node: PyAssignmentStatement) {
-            val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
+            if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
             if (node.annotation != null) return
             if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.isValidFieldName != true) return
             registerProblem(
@@ -259,8 +244,8 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectCustomRootField(node: PyAssignmentStatement) {
-            val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            val pyClass = getPydanticModelByAttribute(node, false, myTypeEvalContext) ?: return
+
             val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
             if (fieldName.startsWith('_')) return
             val rootModel = pyClass.findClassAttribute("__root__", true, myTypeEvalContext)?.containingClass ?: return
@@ -302,8 +287,8 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectAnnotatedAssignedField(node: PyAssignmentStatement) {
-            val pyClass = getPyClassByAttribute(node) ?: return
-            if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
+            if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
+
             val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
             val assignedValue = node.assignedValue
 

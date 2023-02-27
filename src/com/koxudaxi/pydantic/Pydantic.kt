@@ -481,6 +481,9 @@ fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
     return pyPsiElement?.parent?.parent as? PyClass
 }
 
+fun getPydanticModelByAttribute(pyPsiElement: PsiElement?, includeDataclass: Boolean, context: TypeEvalContext): PyClass? =
+    getPyClassByAttribute(pyPsiElement)?.takeIf { isPydanticModel(it, includeDataclass, context) }
+
 fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext): PyClassTypeImpl? {
     var psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(qualifiedName), project, context)
     if (psiElement == null) {
@@ -491,11 +494,13 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
 
-fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? {
-    return context.getType(pyCallExpression)?.pyClassTypes?.firstOrNull {
+fun getPydanticPyClass(pyTypedElement: PyTypedElement, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? =
+    getPydanticPyClassType(pyTypedElement, context, includeDataclass)?.pyClass
+
+fun getPydanticPyClassType(pyTypedElement: PyTypedElement, context: TypeEvalContext, includeDataclass: Boolean = false): PyClassType? =
+    context.getType(pyTypedElement)?.pyClassTypes?.firstOrNull {
         isPydanticModel(it.pyClass, includeDataclass, context)
-    }?.pyClass
-}
+    }
 
 fun getAncestorPydanticModels(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): List<PyClass> {
     return pyClass.getAncestorClasses(context).filter {  isPydanticModel(it, includeDataclass, context) }
