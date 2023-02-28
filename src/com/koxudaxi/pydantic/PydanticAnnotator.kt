@@ -19,8 +19,8 @@ class PydanticAnnotator : PyAnnotator() {
 
     private fun annotatePydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
         val context = TypeEvalContext.codeAnalysis(pyCallExpression.project, pyCallExpression.containingFile)
-        val pyClassType = pyCallExpression.callee?.getType(context) as? PyCallableType ?: return
-        val pyClass = pyClassType.getReturnType(context)?.pyClassTypes?.firstOrNull()?.pyClass ?: return
+        val pyClassType = pyCallExpression.getPyCallableType(context) ?: return
+        val pyClass = pyClassType.getPydanticModel(true, context) ?: return
         if (!isPydanticModel(pyClass, true, context)) return
         if (getPydanticModelInit(pyClass, context) != null) return
         if (!pyCallExpression.isDefinitionCallExpression(context)) return
