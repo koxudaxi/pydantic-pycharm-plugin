@@ -30,18 +30,6 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
         return when {
             referenceTarget is PyClass && referenceTarget.isPydanticDataclass ->
                 getPydanticDataclassType(referenceTarget, context, anchor as? PyCallExpression, true)
-
-            referenceTarget is PyTargetExpression -> (referenceTarget as? PyTypedElement)
-                ?.getType(context)?.pyClassTypes
-                ?.filter { pyClassType -> pyClassType.pyClass.isPydanticDataclass }
-                ?.firstNotNullOfOrNull { pyClassType ->
-                    getPydanticDataclassType(
-                        pyClassType.pyClass,
-                        context,
-                        anchor as? PyCallExpression,
-                        pyClassType.isDefinition
-                    )
-                }
             else ->null
         }?.let { Ref.create(it) }
     }
