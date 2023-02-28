@@ -68,6 +68,9 @@ val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
 val CUSTOM_MODEL_FIELD_Q_NAMES = listOf(
     SQL_MODEL_FIELD_Q_NAME
 )
+
+val DATA_CLASS_Q_NAMES = listOf(DATA_CLASS_Q_NAME, DATA_CLASS_SHORT_Q_NAME)
+
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
 val BASE_CONFIG_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_CONFIG_Q_NAME)
@@ -215,6 +218,7 @@ internal val PyClass.isConfigClass: Boolean get() = name == "Config"
 
 internal val PyFunction.isConStr: Boolean get() = qualifiedName == CON_STR_Q_NAME
 
+internal val PyFunction.isPydanticDataclass: Boolean get() = qualifiedName in DATA_CLASS_Q_NAMES
 internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): Boolean {
     val pyKeywordArgument = stringLiteralExpression.parent as? PyKeywordArgument ?: return false
     if (pyKeywordArgument.keyword != "regex") return false
