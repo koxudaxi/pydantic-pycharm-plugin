@@ -5,6 +5,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.PyNames
+import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
 import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
@@ -12,15 +13,12 @@ import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
-import com.jetbrains.python.psi.types.PyClassType
-import com.jetbrains.python.psi.types.PyClassTypeImpl
-import com.jetbrains.python.psi.types.PyTypeChecker
-import com.jetbrains.python.psi.types.TypeEvalContext
+import com.jetbrains.python.psi.types.*
 
 
 class PydanticInspection : PyInspection() {
     private val pydanticTypeProvider = PydanticTypeProvider()
-    private val pydanticDataclassTypeProvider = PydanticDataclassTypeProvider()
+    private val pyDataclassTypeProvider = PyDataclassTypeProvider()
     override fun buildVisitor(
         holder: ProblemsHolder,
         isOnTheFly: Boolean,
@@ -117,8 +115,11 @@ class PydanticInspection : PyInspection() {
             PyCallExpressionImpl(pyClass.node).let { callSite ->
                 when {
                     pyClass.isPydanticDataclass ->
-                        pydanticDataclassTypeProvider.getDataclassCallableType(pyClass, myTypeEvalContext, callSite)
-
+                        pyDataclassTypeProvider.getReferenceType(
+                            pyClass,
+                            myTypeEvalContext,
+                            callSite
+                        )?.get() as? PyCallableType
                     else -> pydanticTypeProvider.getPydanticTypeForClass(
                         pyClass,
                         myTypeEvalContext,
@@ -188,8 +189,8 @@ class PydanticInspection : PyInspection() {
             val resolveContext = PyResolveContext.defaultContext(myTypeEvalContext)
             val pyCallable = pyCallExpression.multiResolveCalleeFunction(resolveContext).firstOrNull() ?: return
             if (pyCallable.asMethod()?.qualifiedName != "pydantic.main.BaseModel.from_orm") return
-            val typedElement =  pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyTypedElement ?: return
-            val pyClass = getPydanticPyClass(typedElement,  myTypeEvalContext, false) ?: return
+            val typedElement = pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyTypedElement ?: return
+            val pyClass = getPydanticPyClass(typedElement, myTypeEvalContext, false) ?: return
 
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["orm_mode"] != true) {
@@ -217,7 +218,7 @@ class PydanticInspection : PyInspection() {
         private fun inspectReadOnlyProperty(node: PyAssignmentStatement) {
             val pyTypedElement =
                 node.leftHandSideExpression?.firstChild as? PyTypedElement ?: return
-            val pyClassType = getPydanticPyClassType(pyTypedElement,  myTypeEvalContext, false) ?: return
+            val pyClassType = getPydanticPyClassType(pyTypedElement, myTypeEvalContext, false) ?: return
             if (pyClassType.isDefinition) return
             val pyClass = pyClassType.pyClass
             val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return

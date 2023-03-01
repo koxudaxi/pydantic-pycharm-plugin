@@ -17,25 +17,11 @@ import com.jetbrains.python.psi.types.*
  *
  */
 class PydanticDataclassTypeProvider : PyTypeProviderBase() {
-    private val pyDataclassTypeProvider = PyDataclassTypeProvider()
-
     override fun getCallableType(callable: PyCallable, context: TypeEvalContext): PyType? {
         if (callable is PyFunction && callable.isPydanticDataclass) {
             // Drop fake dataclass return type
             return PyCallableTypeImpl(callable.getParameters(context), null)
         }
         return super.getCallableType(callable, context)
-    }
-
-    internal fun getDataclassCallableType(
-        referenceTarget: PsiElement,
-        context: TypeEvalContext,
-        callSite: PyCallExpression?,
-    ): PyCallableType? {
-        return pyDataclassTypeProvider.getReferenceType(
-            referenceTarget,
-            context,
-            callSite ?: PyCallExpressionImpl(referenceTarget.node)
-        )?.get() as? PyCallableType
     }
 }
