@@ -68,6 +68,9 @@ val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
 val CUSTOM_MODEL_FIELD_Q_NAMES = listOf(
     SQL_MODEL_FIELD_Q_NAME
 )
+
+val DATA_CLASS_Q_NAMES = listOf(DATA_CLASS_Q_NAME, DATA_CLASS_SHORT_Q_NAME)
+
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
 val BASE_CONFIG_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_CONFIG_Q_NAME)
@@ -135,27 +138,14 @@ const val CUSTOM_ROOT_FIELD = "__root__"
 
 fun PyTypedElement.getType(context: TypeEvalContext): PyType? = context.getType(this)
 
-fun getPyClassByPyCallExpression(
-    pyCallExpression: PyCallExpression,
+
+fun getPydanticModelByPyKeywordArgument(
+    pyKeywordArgument: PyKeywordArgument,
     includeDataclass: Boolean,
     context: TypeEvalContext,
 ): PyClass? {
-    val callee = pyCallExpression.callee ?: return null
-    val pyType = when (val type = callee.getType(context)) {
-        is PyClass -> return type
-        is PyClassType -> type
-        else -> (callee.reference?.resolve() as? PyTypedElement)?.getType(context) ?: return null
-    }
-    return pyType.pyClassTypes.firstOrNull {
-        isPydanticModel(it.pyClass,
-            includeDataclass,
-            context)
-    }?.pyClass
-}
-
-fun getPyClassByPyKeywordArgument(pyKeywordArgument: PyKeywordArgument, context: TypeEvalContext): PyClass? {
     val pyCallExpression = PsiTreeUtil.getParentOfType(pyKeywordArgument, PyCallExpression::class.java) ?: return null
-    return getPyClassByPyCallExpression(pyCallExpression, true, context)
+    return getPydanticPyClass(pyCallExpression, context, includeDataclass)
 }
 
 fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): Boolean {
@@ -228,6 +218,7 @@ internal val PyClass.isConfigClass: Boolean get() = name == "Config"
 
 internal val PyFunction.isConStr: Boolean get() = qualifiedName == CON_STR_Q_NAME
 
+internal val PyFunction.isPydanticDataclass: Boolean get() = qualifiedName in DATA_CLASS_Q_NAMES
 internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): Boolean {
     val pyKeywordArgument = stringLiteralExpression.parent as? PyKeywordArgument ?: return false
     if (pyKeywordArgument.keyword != "regex") return false
@@ -270,14 +261,14 @@ private fun getAliasedFieldName(
 
 fun getResolvedPsiElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): List<PsiElement> {
     return RecursionManager.doPreventingRecursion(
-        Pair.create<PsiElement, TypeEvalContext>(
+        Pair.create(
             referenceExpression,
             context
         ), false
     ) {
-        PyUtil.multiResolveTopPriority(
-            referenceExpression,
-            PyResolveContext.defaultContext(context)
+        val resolveContext = PyResolveContext.defaultContext(context)
+        PyUtil.filterTopPriorityResults(
+            referenceExpression.getReference(resolveContext).multiResolve(false)
         )
     } ?: emptyList()
 }
@@ -494,6 +485,9 @@ fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
     return pyPsiElement?.parent?.parent as? PyClass
 }
 
+fun getPydanticModelByAttribute(pyPsiElement: PsiElement?, includeDataclass: Boolean, context: TypeEvalContext): PyClass? =
+    getPyClassByAttribute(pyPsiElement)?.takeIf { isPydanticModel(it, includeDataclass, context) }
+
 fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: TypeEvalContext): PyClassTypeImpl? {
     var psiElement = getPsiElementByQualifiedName(QualifiedName.fromDottedString(qualifiedName), project, context)
     if (psiElement == null) {
@@ -504,11 +498,13 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
 
-fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? {
-    val pyClass = getPyClassByPyCallExpression(pyCallExpression, includeDataclass, context) ?: return null
-    if (!isPydanticModel(pyClass, includeDataclass, context)) return null
-    return pyClass
-}
+fun getPydanticPyClass(pyTypedElement: PyTypedElement, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? =
+    getPydanticPyClassType(pyTypedElement, context, includeDataclass)?.pyClass
+
+fun getPydanticPyClassType(pyTypedElement: PyTypedElement, context: TypeEvalContext, includeDataclass: Boolean = false): PyClassType? =
+    context.getType(pyTypedElement)?.pyClassTypes?.firstOrNull {
+        isPydanticModel(it.pyClass, includeDataclass, context)
+    }
 
 fun getAncestorPydanticModels(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): List<PyClass> {
     return pyClass.getAncestorClasses(context).filter {  isPydanticModel(it, includeDataclass, context) }
@@ -535,15 +531,27 @@ fun addKeywordArgument(pyCallExpression: PyCallExpression, pyKeywordArgument: Py
     }
 }
 
+val PyExpression.isKeywordArgument: Boolean get() =
+    this is PyKeywordArgument || (this as? PyStarArgument)?.isKeyword == true
+
 fun getPydanticUnFilledArguments(
     pydanticType: PyCallableType,
     pyCallExpression: PyCallExpression,
     context: TypeEvalContext,
+    isDataClass: Boolean
 ): List<PyCallableParameter> {
-    val currentArguments =
-        pyCallExpression.arguments.filter { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
-            .mapNotNull { it.name }.toSet()
-    return pydanticType.getParameters(context)?.filterNot { currentArguments.contains(it.name) } ?: emptyList()
+    val parameters = pydanticType.getParameters(context)?.let { allParameters ->
+        if (isDataClass) {
+            pyCallExpression.arguments
+                .filterNot { it.isKeywordArgument }
+                .let { allParameters.drop(it.size) }
+        } else {
+            allParameters
+        }
+    } ?: listOf()
+
+    val currentArguments = pyCallExpression.arguments.filter { it.isKeywordArgument }.mapNotNull { it.name }.toSet()
+    return parameters.filterNot { currentArguments.contains(it.name) }
 }
 
 val PyCallableParameter.required: Boolean
@@ -659,3 +667,8 @@ fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction
 
  fun PyCallExpression.isDefinitionCallExpression(context: TypeEvalContext): Boolean =
      this.callee?.reference?.resolve()?.let { it as? PyClass }?.getType(context)?.isDefinition == true
+
+fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType? =
+    this.callee?.getType(context) as? PyCallableType
+fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEvalContext): PyClass? =
+    this.getReturnType(context)?.pyClassTypes?.firstOrNull()?.pyClass?.takeIf { isPydanticModel(it,includeDataclass, context) }

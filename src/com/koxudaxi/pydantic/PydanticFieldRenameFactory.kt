@@ -25,8 +25,8 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
             }
             is PyKeywordArgument -> {
                 val context = TypeEvalContext.codeAnalysis(element.project, element.containingFile)
-                val pyClass = getPyClassByPyKeywordArgument(element, context) ?: return false
-                if (isPydanticModel(pyClass, true, context)) return true
+                return getPydanticModelByPyKeywordArgument(element, true,context) is PyClass
+//
             }
         }
         return false
@@ -64,7 +64,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                 is PyKeywordArgument ->
                     element.name?.let { name ->
                         val context = TypeEvalContext.userInitiated(element.project, element.containingFile)
-                        getPyClassByPyKeywordArgument(element, context)
+                        getPydanticModelByPyKeywordArgument(element, true,context)
                             ?.let { pyClass ->
                                 addAllElement(pyClass, name, added, context)
                             }
