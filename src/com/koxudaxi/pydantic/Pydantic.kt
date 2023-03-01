@@ -261,14 +261,14 @@ private fun getAliasedFieldName(
 
 fun getResolvedPsiElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): List<PsiElement> {
     return RecursionManager.doPreventingRecursion(
-        Pair.create<PsiElement, TypeEvalContext>(
+        Pair.create(
             referenceExpression,
             context
         ), false
     ) {
-        PyUtil.multiResolveTopPriority(
-            referenceExpression,
-            PyResolveContext.defaultContext(context)
+        val resolveContext = PyResolveContext.defaultContext(context)
+        PyUtil.filterTopPriorityResults(
+            referenceExpression.getReference(resolveContext).multiResolve(false)
         )
     } ?: emptyList()
 }
