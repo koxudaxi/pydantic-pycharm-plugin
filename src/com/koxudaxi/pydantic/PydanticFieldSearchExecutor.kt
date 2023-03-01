@@ -23,7 +23,6 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                     ?.let { elementName ->
                         val context = TypeEvalContext.userInitiated(element.project, element.containingFile)
                         getPydanticModelByPyKeywordArgument(element, true,context)
-//                            ?.takeIf { pyClass -> isPydanticModel(pyClass, true, context) }
                             ?.let { pyClass -> searchDirectReferenceField(pyClass, elementName, consumer, context) }
                     }
             }
