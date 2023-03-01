@@ -47,9 +47,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 getInstance(anchor.project).currentInitTyped,
                 anchor
             )
+
             referenceTarget is PyCallExpression -> {
                 getPydanticDynamicModelTypeForTargetExpression(referenceTarget, context)?.pyCallableType
             }
+
             referenceTarget is PyTargetExpression -> {
                 val name = referenceTarget.name
                 if (name is String) {
@@ -60,7 +62,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     }
                 }
 
-                getPydanticDynamicModelTypeForTargetExpression(referenceTarget, context)?.let { return Ref.create(it)}
+                getPydanticDynamicModelTypeForTargetExpression(referenceTarget, context)?.let { return Ref.create(it) }
             }
 
             else -> null
@@ -582,10 +584,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         when (val tupleValue = PsiTreeUtil.findChildOfType(field, PyTupleExpression::class.java)) {
             is PyTupleExpression -> {
                 tupleValue.firstOrNull()?.let {
-                        type = context.getType(it)?.pyClassTypes?.first()?.getReturnType(context)
-                        defaultValue = it
-                    }
+                    type = context.getType(it)?.pyClassTypes?.first()?.getReturnType(context)
+                    defaultValue = it
+                }
             }
+
             else -> {
                 type = context.getType(field)
                 defaultValue = (field as? PyKeywordArgument)?.valueExpression
@@ -750,23 +753,4 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             else -> getDefaultValueForDataclass(assignedValue, context, null)
         }
     }
-
-    internal fun injectDefaultValue(
-        pyClass: PyClass,
-        pyCallableParameter: PyCallableParameter,
-        ellipsis: PyNoneLiteralExpression,
-        pydanticVersion: KotlinVersion?,
-        context: TypeEvalContext
-    ): PyCallableParameter? {
-        val name = pyCallableParameter.name ?: return null
-        val attribute = pyClass.findClassAttribute(name, true, context) ?: return null
-        val defaultValue =
-            getDefaultValueByAssignedValue(attribute, ellipsis, context, pydanticVersion, true)
-        return PyCallableParameterImpl.nonPsi(
-            name,
-            pyCallableParameter.getArgumentType(context),
-            defaultValue
-        )
-    }
-
 }
