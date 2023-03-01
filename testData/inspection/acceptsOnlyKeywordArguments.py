@@ -22,3 +22,17 @@ class C(BaseModel):
 c = C(a='abc')
 
 c('a')
+
+@dataclass
+class D():
+    a: str
+    b: str
+
+
+D('a'<warning descr="null">)</warning>
+
+
+class E(BaseModel):
+    pass
+
+E()
