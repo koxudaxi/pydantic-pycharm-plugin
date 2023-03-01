@@ -544,9 +544,7 @@ fun getPydanticUnFilledArguments(
         if (isDataClass) {
             pyCallExpression.arguments
                 .filterNot { it.isKeywordArgument }
-                .takeIf { it.isNotEmpty() }
-                ?.let { allParameters.drop(it.size - 1) }
-                ?: allParameters
+                .let { allParameters.drop(it.size) }
         } else {
             allParameters
         }
