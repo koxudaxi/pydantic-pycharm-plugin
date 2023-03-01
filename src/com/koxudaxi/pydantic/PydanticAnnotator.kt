@@ -26,7 +26,7 @@ class PydanticAnnotator : PyAnnotator() {
         if (!pyCallExpression.isDefinitionCallExpression(context)) return
 
         val unFilledArguments =
-            getPydanticUnFilledArguments(pyClassType, pyCallExpression, context).nullize()
+            getPydanticUnFilledArguments(pyClassType, pyCallExpression, context, pyClass.isPydanticDataclass).nullize()
                 ?: return
         holder.newSilentAnnotation(HighlightSeverity.INFORMATION).withFix(PydanticInsertArgumentsQuickFix(false))
             .create()

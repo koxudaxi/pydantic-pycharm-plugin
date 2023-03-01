@@ -51,7 +51,7 @@ class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : Local
         val pyClass = pyCallableType.getReturnType(context)?.pyClassTypes?.firstOrNull()?.pyClass ?: return null
         if (!isPydanticModel(pyClass, true, context)) return null
         val unFilledArguments =
-            getPydanticUnFilledArguments(pyCallableType, originalElement, context).let {
+            getPydanticUnFilledArguments(pyCallableType, originalElement, context, pyClass.isPydanticDataclass).let {
                 when {
                     onlyRequired -> it.filter { arguments -> arguments.required }
                     else -> it

@@ -531,15 +531,29 @@ fun addKeywordArgument(pyCallExpression: PyCallExpression, pyKeywordArgument: Py
     }
 }
 
+val PyExpression.isKeywordArgument: Boolean get() =
+    this is PyKeywordArgument || (this as? PyStarArgument)?.isKeyword == true
+
 fun getPydanticUnFilledArguments(
     pydanticType: PyCallableType,
     pyCallExpression: PyCallExpression,
     context: TypeEvalContext,
+    isDataClass: Boolean
 ): List<PyCallableParameter> {
-    val currentArguments =
-        pyCallExpression.arguments.filter { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
-            .mapNotNull { it.name }.toSet()
-    return pydanticType.getParameters(context)?.filterNot { currentArguments.contains(it.name) } ?: emptyList()
+    val parameters = pydanticType.getParameters(context)?.let { allParameters ->
+        if (isDataClass) {
+            pyCallExpression.arguments
+                .filterNot { it.isKeywordArgument }
+                .takeIf { it.isNotEmpty() }
+                ?.let { allParameters.drop(it.size - 1) }
+                ?: allParameters
+        } else {
+            allParameters
+        }
+    } ?: listOf()
+
+    val currentArguments = pyCallExpression.arguments.filter { it.isKeywordArgument }.mapNotNull { it.name }.toSet()
+    return parameters.filterNot { currentArguments.contains(it.name) }
 }
 
 val PyCallableParameter.required: Boolean
