@@ -223,10 +223,9 @@ internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): 
     val pyKeywordArgument = stringLiteralExpression.parent as? PyKeywordArgument ?: return false
     if (pyKeywordArgument.keyword != "regex") return false
     val pyCallExpression = pyKeywordArgument.parent.parent as? PyCallExpression ?: return false
-    val referenceExpression = pyCallExpression.callee as? PyReferenceExpression ?: return false
-    val context = TypeEvalContext.userInitiated(referenceExpression.project, referenceExpression.containingFile)
-    return getResolvedPsiElements(referenceExpression, context)
-        .filterIsInstance<PyFunction>().any { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr || pyFunction.isCustomModelField }
+    val context = TypeEvalContext.userInitiated(pyCallExpression.project, pyCallExpression.containingFile)
+    return pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context)).filterIsInstance<PyFunction>()
+        .any { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr || pyFunction.isCustomModelField }
 }
 
 internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
@@ -586,11 +585,10 @@ internal fun getFieldFromPyExpression(
     context: TypeEvalContext,
     pydanticVersion: KotlinVersion?,
 ): PyCallExpression? {
-    val callee = (psiElement as? PyCallExpression)
-        ?.let { it.callee as? PyReferenceExpression }
-        ?: return null
+    if (psiElement !is PyCallExpression) return null
     val versionZero = pydanticVersion?.major == 0
-    if (!getResolvedPsiElements(callee, context).any {
+    if (
+        !psiElement.multiResolveCalleeFunction(PyResolveContext.defaultContext(context)).any {
             when {
                 versionZero -> isPydanticSchemaByPsiElement(it, context)
                 else -> it.isPydanticField || it.isCustomModelField

@@ -9,6 +9,7 @@ import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider.isBitwiseOrUnionAvailable
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.*
+import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.*
 import com.koxudaxi.pydantic.PydanticConfigService.Companion.getInstance
 import one.util.streamex.StreamEx
@@ -262,8 +263,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     ): PydanticDynamicModelClassType? {
         val arguments = pyCallExpression.arguments.toList()
         if (arguments.isEmpty()) return null
-        val referenceExpression = (pyCallExpression.callee as? PyReferenceExpression) ?: return null
-        val pyFunction = getResolvedPsiElements(referenceExpression, context)
+        val pyFunction = pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context))
             .asSequence()
             .filterIsInstance<PyFunction>()
             .map { it.takeIf { pyFunction -> pyFunction.isPydanticCreateModel } }.firstOrNull()
