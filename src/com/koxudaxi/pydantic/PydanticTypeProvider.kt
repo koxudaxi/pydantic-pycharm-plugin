@@ -112,7 +112,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         context: TypeEvalContext, pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
     ): PyType? {
-        return fieldToParameter(
+        return dynamicModelFieldToParameter(
             pyTargetExpression,
             ellipsis,
             context,
@@ -333,7 +333,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                 continue
                             }
                             baseClassCollected.putAll(getClassVariables(current, context)
-                                .map { it to fieldToParameter(it, context, typed) }
+                                .map { it to dynamicModelFieldToParameter(it, context, typed) }
                                 .mapNotNull { (field, parameter) ->
                                     parameter.name?.let { name -> Triple(field, parameter, name) }
                                 }
@@ -359,7 +359,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             .filter { (name, _) -> name.isValidFieldName && !name.startsWith('_') }
             .filter { (name, _) -> (newVersion || name != "model_name") }
             .map { (name, field) ->
-                val parameter = fieldToParameter(field, context, typed)
+                val parameter = dynamicModelFieldToParameter(field, context, typed)
                 name to PydanticDynamicModel.createAttribute(name, parameter, field, context, false)
             }
         )
@@ -483,7 +483,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             getClassVariables(current, context)
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, context) }
                 .mapNotNull {
-                    fieldToParameter(
+                    dynamicModelFieldToParameter(
                         it,
                         ellipsis,
                         context,
@@ -510,7 +510,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
 
-    internal fun fieldToParameter(
+    internal fun dynamicModelFieldToParameter(
         field: PyTargetExpression,
         ellipsis: PyNoneLiteralExpression,
         context: TypeEvalContext,
@@ -572,7 +572,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         )
     }
 
-    private fun fieldToParameter(
+    private fun dynamicModelFieldToParameter(
         field: PyExpression,
         context: TypeEvalContext,
         typed: Boolean = true,
@@ -581,17 +581,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         var defaultValue: PyExpression? = null
         when (val tupleValue = PsiTreeUtil.findChildOfType(field, PyTupleExpression::class.java)) {
             is PyTupleExpression -> {
-                tupleValue.toList().let {
-                    if (it.size > 1) {
-                        type = getPyTypeFromPyExpression(it[0], context)
-                        defaultValue = it[1]
+                tupleValue.firstOrNull()?.let {
+                        type = context.getType(it)?.pyClassTypes?.first()?.getReturnType(context)
+                        defaultValue = it
                     }
-                }
             }
-
             else -> {
                 type = context.getType(field)
-                defaultValue = (field as? PyKeywordArgumentImpl)?.valueExpression
+                defaultValue = (field as? PyKeywordArgument)?.valueExpression
             }
         }
         val typeForParameter = when {

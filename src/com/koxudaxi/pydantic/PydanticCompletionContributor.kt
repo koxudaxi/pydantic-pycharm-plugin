@@ -76,7 +76,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             genericTypeMap: Map<PyGenericType, PyType>?,
         ): String? {
 
-            val parameter = typeProvider.fieldToParameter(pyTargetExpression,
+            val parameter = typeProvider.dynamicModelFieldToParameter(pyTargetExpression,
                 ellipsis,
                 typeEvalContext,
                 pyClass,

@@ -371,7 +371,7 @@ fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
         ConfigType.LIST_PYTYPE -> {
             if (value is PyElement) {
                 when (val tupleValue = PsiTreeUtil.findChildOfType(value, PyTupleExpression::class.java)) {
-                    is PyTupleExpression -> tupleValue.toList().mapNotNull { getPyTypeFromPyExpression(it, context) }
+                    is PyTupleExpression -> tupleValue.toList().mapNotNull { context.getType(it) }
                     else -> null
                 }
             } else null
@@ -558,28 +558,14 @@ val PyCallableParameter.required: Boolean
     get() = !hasDefaultValue() || (defaultValue !is PyNoneLiteralExpression && defaultValueText == "...")
 
 
-fun getPyTypeFromPyExpression(pyExpression: PyExpression, context: TypeEvalContext): PyType? {
-    return when (pyExpression) {
-        is PyType -> pyExpression
-        is PyReferenceExpression -> {
-            getResolvedPsiElements(pyExpression, context)
-                .asSequence()
-                .filterIsInstance<PyClass>()
-                .map { pyClass -> pyClass.getType(context)?.getReturnType(context) }
-                .firstOrNull()
-        }
-        else -> null
-    }
-}
-
 internal fun hasTargetPyType(
     pyExpression: PyExpression,
     targetPyTypes: List<PyType>,
     context: TypeEvalContext,
 ): Boolean {
     val callee = (pyExpression as? PyCallExpression)?.callee ?: return false
-    val pyType = getPyTypeFromPyExpression(callee, context) ?: return false
-    val defaultValueTypeClassQName = pyType.declarationElement?.qualifiedName ?: return false
+    val pyType = callee.getType(context)?.pyClassTypes?.firstOrNull()?.getReturnType(context)
+    val defaultValueTypeClassQName = pyType?.declarationElement?.qualifiedName ?: return false
     return targetPyTypes.any { it.declarationElement?.qualifiedName == defaultValueTypeClassQName }
 }
 
