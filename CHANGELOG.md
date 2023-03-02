@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 0.4.1-231 - 2023-03-02
+- Support 2023.1 EAP [[#633](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/633)]
+
 ## 0.4.0 - 2023-03-02
 - Fix wrong inspections when a model has a __call__ method [[#655](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/655)]
 - Reduce unnecessary resolve in type providers [[#656](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/656)]
