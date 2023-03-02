@@ -12,7 +12,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.containers.nullize
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.types.PyCallableParameter
 import com.jetbrains.python.psi.types.TypeEvalContext
 
 class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : LocalQuickFix, IntentionAction,
@@ -48,14 +47,11 @@ class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : Local
         if (originalElement !is PyCallExpression) return null
         if (file !is PyFile) return null
         val newEl = originalElement.copy() as PyCallExpression
-        val pyClass = getPydanticPyClass(originalElement, context, true) ?: return null
-        val pydanticType = if (pyClass.isPydanticDataclass) {
-            pydanticDataclassTypeProvider.getDataclassCallableType(pyClass, context, originalElement)
-        } else {
-            pydanticTypeProvider.getPydanticTypeForClass(pyClass, context, true, originalElement) ?: return null
-        } ?: return null
+        val pyCallableType = originalElement.getPyCallableType(context) ?: return null
+        val pyClass = pyCallableType.getReturnType(context)?.pyClassTypes?.firstOrNull()?.pyClass ?: return null
+        if (!isPydanticModel(pyClass, true, context)) return null
         val unFilledArguments =
-            getPydanticUnFilledArguments(pydanticType, originalElement, context).let {
+            getPydanticUnFilledArguments(pyCallableType, originalElement, context, pyClass.isPydanticDataclass).let {
                 when {
                     onlyRequired -> it.filter { arguments -> arguments.required }
                     else -> it

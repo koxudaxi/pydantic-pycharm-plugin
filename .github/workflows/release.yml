@@ -85,5 +85,5 @@ jobs:
           gh pr create \
             --title "Changelog update - \`$VERSION\`" \
             --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version." \
-            --base master \
+            --base main \
             --head $BRANCH

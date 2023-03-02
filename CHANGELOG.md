@@ -2,7 +2,14 @@
 
 ## Unreleased
 - Support 2023.1 EAP [[#633](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/633)]
+
+## 0.4.0 - 2023-03-02
 - Fix wrong inspections when a model has a __call__ method [[#655](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/655)]
+- Reduce unnecessary resolve in type providers [[#656](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/656)]
+- Optimize resolving pydantic class [[#658](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/658)]
+- Improve dynamic model field detection [[#659](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/659)]
+- Improve test coverage [[#660](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/660)]
+- Use multiResolveCalleeFunction instead of getResolvedPsiElements [[#661](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/661)]
 
 ## 0.3.17 - 2022-12-16
 - Support Union operator [[#602](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/602)]

@@ -37,9 +37,8 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         private val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
 
         override fun visitPyCallExpression(node: PyCallExpression) {
-            val pyClass = getPyClassByPyCallExpression(node, true, myTypeEvalContext)
-            getPyClassByPyCallExpression(node, true, myTypeEvalContext)
-            if (pyClass is PyClass && isPydanticModel(pyClass, true, myTypeEvalContext)) {
+            val pyClass = getPydanticPyClass(node, myTypeEvalContext, true)
+            if (pyClass is PyClass) {
                 checkCallSiteForPydantic(node)
                 return
             }

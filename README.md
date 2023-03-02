@@ -1,5 +1,5 @@
 # Pydantic PyCharm Plugin
-[![Build Status](https://travis-ci.org/koxudaxi/pydantic-pycharm-plugin.svg?branch=master)](https://travis-ci.org/koxudaxi/pydantic-pycharm-plugin)
+[![Build](https://github.com/koxudaxi/pydantic-pycharm-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/koxudaxi/pydantic-pycharm-plugin/actions/workflows/build.yml)
 [![](https://img.shields.io/jetbrains/plugin/v/12861)](https://plugins.jetbrains.com/plugin/12861-pydantic)
 ![JetBrains IntelliJ plugins](https://img.shields.io/jetbrains/plugin/d/12861-pydantic)
 ![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/r/rating/12861-pydantic)
@@ -25,10 +25,10 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
 
 **The plugin requires PyCharm 2020.2 or later (include other JetBrains IDEs)**
 
-![search plugin](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/search_plugin.png)
+![search plugin](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/main/docs/search_plugin.png)
 
 ## Demo
-![demo1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/master/docs/demo1.gif)
+![demo1](https://raw.githubusercontent.com/koxudaxi/pydantic-pycharm-plugin/main/docs/demo1.gif)
 
 <!-- Plugin description -->
 ##  Features
