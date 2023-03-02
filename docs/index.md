@@ -1,5 +1,5 @@
 # Pydantic PyCharm Plugin
-[![Build Status](https://travis-ci.org/koxudaxi/pydantic-pycharm-plugin.svg?branch=main)](https://travis-ci.org/koxudaxi/pydantic-pycharm-plugin)
+[![Build](https://github.com/koxudaxi/pydantic-pycharm-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/koxudaxi/pydantic-pycharm-plugin/actions/workflows/build.yml)
 [![](https://img.shields.io/jetbrains/plugin/v/12861)](https://plugins.jetbrains.com/plugin/12861-pydantic)
 ![JetBrains IntelliJ plugins](https://img.shields.io/jetbrains/plugin/d/12861-pydantic)
 ![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/r/rating/12861-pydantic)
