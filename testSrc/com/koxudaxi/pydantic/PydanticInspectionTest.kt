@@ -83,4 +83,8 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     fun testExtra() {
         doTest()
     }
+
+    fun testCallTypeWithSelf() {
+        doTest()
+    }
 }
