@@ -497,8 +497,10 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
 
-fun getPydanticPyClass(pyTypedElement: PyTypedElement, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? =
-    getPydanticPyClassType(pyTypedElement, context, includeDataclass)?.pyClass
+fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? =
+        pyCallExpression.callee?.reference?.resolve()
+        ?.let { it as? PyClass }
+        ?.takeIf { isPydanticModel(it, includeDataclass, context)}
 
 fun getPydanticPyClassType(pyTypedElement: PyTypedElement, context: TypeEvalContext, includeDataclass: Boolean = false): PyClassType? =
     context.getType(pyTypedElement)?.pyClassTypes?.firstOrNull {

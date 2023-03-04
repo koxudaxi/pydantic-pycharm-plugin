@@ -189,8 +189,9 @@ class PydanticInspection : PyInspection() {
             val resolveContext = PyResolveContext.defaultContext(myTypeEvalContext)
             val pyCallable = pyCallExpression.multiResolveCalleeFunction(resolveContext).firstOrNull() ?: return
             if (pyCallable.asMethod()?.qualifiedName != "pydantic.main.BaseModel.from_orm") return
-            val typedElement = pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyTypedElement ?: return
-            val pyClass = getPydanticPyClass(typedElement, myTypeEvalContext, false) ?: return
+            val pyReferenceExpression = pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyReferenceExpression ?: return
+            val pyClass = pyReferenceExpression.reference.resolve() as? PyClass ?: return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
 
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["orm_mode"] != true) {
