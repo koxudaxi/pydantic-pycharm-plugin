@@ -75,6 +75,10 @@ open class PydanticRefactorTest : PydanticTestCase() {
 
     }
 
+    fun testRenameMethodLocalVariable() {
+        doRefactorTest(isApplicable = false)
+    }
+
     fun testGetOptionName() {
         assertEquals(PydanticFieldRenameFactory().optionName, "Rename fields in hierarchy")
     }

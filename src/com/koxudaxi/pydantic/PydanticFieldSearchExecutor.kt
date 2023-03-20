@@ -31,6 +31,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                     ?.let { elementName ->
                         val context = TypeEvalContext.userInitiated(element.project, element.containingFile)
                         element.containingClass
+                            ?.takeIf { it.findClassAttribute(elementName, true, context) == element }
                             ?.takeIf { pyClass -> isPydanticModel(pyClass, true, context) }
                             ?.let { pyClass ->
                                 searchAllElementReference(pyClass,
