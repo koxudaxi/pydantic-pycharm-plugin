@@ -4,6 +4,7 @@ import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.ReadAction.run
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.Processor
@@ -13,6 +14,7 @@ import com.jetbrains.python.psi.types.TypeEvalContext
 
 
 class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>() {
+    fun PyClass.isInScope(searchScope: SearchScope): Boolean = searchScope.contains(containingFile.virtualFile)
     override fun processQuery(
         queryParameters: ReferencesSearch.SearchParameters,
         consumer: Processor<in PsiReference>,
@@ -22,10 +24,19 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                 element.name
                     ?.let { elementName ->
                         val context = TypeEvalContext.userInitiated(element.project, element.containingFile)
-                        getPydanticModelByPyKeywordArgument(element, true,context)
-                            ?.let { pyClass -> searchDirectReferenceField(pyClass, elementName, consumer, context) }
+                        getPydanticModelByPyKeywordArgument(element, true, context)
+                            ?.let { pyClass ->
+                                searchDirectReferenceField(
+                                    pyClass,
+                                    elementName,
+                                    consumer,
+                                    queryParameters.effectiveSearchScope,
+                                    context
+                                )
+                            }
                     }
             }
+
             is PyTargetExpression -> run<RuntimeException> {
                 element.name
                     ?.let { elementName ->
@@ -34,11 +45,14 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                             ?.takeIf { it.findClassAttribute(elementName, true, context) == element }
                             ?.takeIf { pyClass -> isPydanticModel(pyClass, true, context) }
                             ?.let { pyClass ->
-                                searchAllElementReference(pyClass,
+                                searchAllElementReference(
+                                    pyClass,
                                     elementName,
                                     mutableSetOf(),
                                     consumer,
-                                    context)
+                                    queryParameters.effectiveSearchScope,
+                                    context
+                                )
                             }
                     }
             }
@@ -49,10 +63,12 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         pyClass: PyClass,
         elementName: String,
         consumer: Processor<in PsiReference>,
+        searchScope: SearchScope,
         context: TypeEvalContext,
     ): Boolean {
+        if (!pyClass.isInScope(searchScope)) return false
         if (!isPydanticModel(pyClass, true, context)) return false
-        val pyTargetExpression = pyClass.findClassAttribute(elementName, false, null) ?: return false
+        val pyTargetExpression = pyClass.findClassAttribute(elementName, false, context) ?: return false
         consumer.process(pyTargetExpression.reference)
         return true
     }
@@ -61,7 +77,9 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         psiReference: PsiReference,
         elementName: String,
         consumer: Processor<in PsiReference>,
+        searchScope: SearchScope
     ) {
+        if (!searchScope.contains(psiReference.element.containingFile.virtualFile)) return
         PsiTreeUtil.getParentOfType(psiReference.element, PyCallExpression::class.java)
             ?.let { callee ->
                 callee.arguments.firstOrNull { it.name == elementName }?.let { consumer.process(it.reference) }
@@ -72,25 +90,31 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         pyClass: PyClass,
         elementName: String,
         consumer: Processor<in PsiReference>,
+        searchScope: SearchScope,
         typeEvalContext: TypeEvalContext,
     ) {
         ReferencesSearch.search(pyClass as PsiElement).forEach { psiReference ->
-            searchKeywordArgumentByPsiReference(psiReference, elementName, consumer)
+            searchKeywordArgumentByPsiReference(psiReference, elementName, consumer, searchScope)
 
             PsiTreeUtil.getParentOfType(psiReference.element, PyNamedParameter::class.java)
                 ?.let { param ->
-                    param.getArgumentType(TypeEvalContext.userInitiated(
-                        psiReference.element.project,
-                        psiReference.element.containingFile))
+                    param.getArgumentType(
+                        TypeEvalContext.userInitiated(
+                            psiReference.element.project,
+                            psiReference.element.containingFile
+                        )
+                    )
                         ?.let { pyType ->
                             pyType.pyClassTypes.firstOrNull { pyClassType ->
-                                isPydanticModel(pyClassType.pyClass,
+                                isPydanticModel(
+                                    pyClassType.pyClass,
                                     true,
-                                    typeEvalContext)
+                                    typeEvalContext
+                                )
                             }
                                 ?.let {
                                     ReferencesSearch.search(param as PsiElement).forEach {
-                                        searchKeywordArgumentByPsiReference(it, elementName, consumer)
+                                        searchKeywordArgumentByPsiReference(it, elementName, consumer, searchScope)
                                     }
                                 }
                         }
@@ -104,16 +128,21 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         pyClass: PyClass,
         elementName: String,
         consumer: Processor<in PsiReference>,
-        context: TypeEvalContext,
+        searchScope: SearchScope,
+        context: TypeEvalContext
+
     ): Boolean {
-        if (searchField(pyClass, elementName, consumer, context)) return true
+        if (searchField(pyClass, elementName, consumer, searchScope, context)) return true
 
         return getAncestorPydanticModels(pyClass, true, context)
             .firstOrNull {
-                searchDirectReferenceField(it,
+                searchDirectReferenceField(
+                    it,
                     elementName,
                     consumer,
-                    context)
+                    searchScope,
+                    context
+                )
             } != null
     }
 
@@ -122,17 +151,19 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         elementName: String,
         added: MutableSet<PyClass>,
         consumer: Processor<in PsiReference>,
+        searchScope: SearchScope,
         context: TypeEvalContext,
     ) {
         added.add(pyClass)
-        searchField(pyClass, elementName, consumer, context)
-        searchKeywordArgument(pyClass, elementName, consumer, context)
+        searchField(pyClass, elementName, consumer, searchScope, context)
+        searchKeywordArgument(pyClass, elementName, consumer, searchScope, context)
+
         getAncestorPydanticModels(pyClass, true, context)
-            .filterNot { added.contains(it)  }
-            .forEach { searchField(it, elementName, consumer, context) }
+            .filterNot { added.contains(it) }
+            .forEach { searchField(it, elementName, consumer, searchScope, context) }
 
         PyClassInheritorsSearch.search(pyClass, true)
             .filterNot { added.contains(it) }
-            .forEach { searchAllElementReference(it, elementName, added, consumer, context) }
+            .forEach { searchAllElementReference(it, elementName, added, consumer, searchScope, context) }
     }
 }
