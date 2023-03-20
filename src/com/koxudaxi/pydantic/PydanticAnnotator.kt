@@ -6,7 +6,8 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.util.containers.nullize
 import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyStarArgument
-import com.jetbrains.python.psi.types.PyCallableType
+
+import com.jetbrains.python.psi.impl.PyPsiUtils
 import com.jetbrains.python.psi.types.TypeEvalContext
 import com.jetbrains.python.validation.PyAnnotator
 
@@ -15,6 +16,13 @@ class PydanticAnnotator : PyAnnotator() {
     override fun visitPyCallExpression(node: PyCallExpression) {
         super.visitPyCallExpression(node)
         annotatePydanticModelCallableExpression(node)
+    }
+
+    private fun hasNoqaComment(
+        pyCallExpression: PyCallExpression
+    ): Boolean {
+        val comment = PyPsiUtils.findSameLineComment(pyCallExpression) ?: return false
+        return comment.text.startsWith("# noqa")
     }
 
     private fun annotatePydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
@@ -32,8 +40,12 @@ class PydanticAnnotator : PyAnnotator() {
             .create()
         unFilledArguments.filter { it.required }.nullize() ?: return
         val highlight = when {
-            isSubClassOfBaseSetting(pyClass,
-                context) || pyCallExpression.arguments.any { (it as? PyStarArgument)?.isKeyword == true } -> HighlightSeverity.INFORMATION
+            isSubClassOfBaseSetting(
+                pyClass,
+                context
+            ) || pyCallExpression.arguments.any { (it as? PyStarArgument)?.isKeyword == true } -> HighlightSeverity.INFORMATION
+
+            hasNoqaComment(pyCallExpression) -> HighlightSeverity.INFORMATION
             else -> HighlightSeverity.WARNING
         }
         holder.newSilentAnnotation(highlight).withFix(PydanticInsertArgumentsQuickFix(true))
