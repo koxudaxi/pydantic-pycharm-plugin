@@ -106,4 +106,8 @@ open class PydanticSearchTest : PydanticTestCase() {
     fun testParameter() {
         assertMatch(2)
     }
+
+    fun testMethodLocalVariable() {
+        assertMatch(2)
+    }
 }
