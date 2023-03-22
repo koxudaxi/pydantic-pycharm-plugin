@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Bump version to 0.4.3-231 [[#685](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/685)]
 
 ## [0.4.2] - 2023-03-21
 - Fix wrong accepts only keyword arguments error [[#671](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/671)]
