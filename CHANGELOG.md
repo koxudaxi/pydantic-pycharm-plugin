@@ -1,7 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.2-231] - 2023-03-22
 - Bump version to 0.4.2-231 [[#686](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/686)]
+- Fix wrong accepts only keyword arguments error [[#671](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/671)]
+- Support # noqa [[#680](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/680)]
+- Fix wrong renaming of a local variable name is same as field name [[#681](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/681)]
+- Fix wrong highlighting [[#682](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/682)]
 
 ## [0.4.2] - 2023-03-21
 - Fix wrong accepts only keyword arguments error [[#671](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/671)]
@@ -397,8 +403,9 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2-231...HEAD
 [0.4.2]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.1-231...v0.4.2
+[0.4.2-231]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2...v0.4.2-231
 [0.4.1-231]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.0...v0.4.1-231
 [0.4.0]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.3.17...v0.4.0
 [0.3.17]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.3.16...v0.3.17
