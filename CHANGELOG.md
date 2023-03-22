@@ -1,18 +1,17 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+## [0.4.2] - 2023-03-21
 - Fix wrong accepts only keyword arguments error [[#671](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/671)]
 - Support # noqa [[#680](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/680)]
 - Fix wrong renaming of a local variable name is same as field name [[#681](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/681)]
 - Fix wrong highlighting [[#682](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/682)]
 
-## 0.4.1-231 - 2023-03-02
+## [0.4.1-231] - 2023-03-02
 - Support 2023.1 EAP [[#633](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/633)]
 
-## 0.4.1-231 - 2023-03-02
-- Support 2023.1 EAP [[#633](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/633)]
-
-## 0.4.0 - 2023-03-02
+## [0.4.0] - 2023-03-02
 - Fix wrong inspections when a model has a __call__ method [[#655](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/655)]
 - Reduce unnecessary resolve in type providers [[#656](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/656)]
 - Optimize resolving pydantic class [[#658](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/658)]
