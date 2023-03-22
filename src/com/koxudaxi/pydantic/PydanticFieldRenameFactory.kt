@@ -19,9 +19,11 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
     override fun isApplicable(element: PsiElement): Boolean {
         when (element) {
             is PyTargetExpression -> {
+                val elementName = element.name ?: return false
                 val pyClass = element.containingClass ?: return false
-                val content = TypeEvalContext.codeAnalysis(element.project, element.containingFile)
-                if (isPydanticModel(pyClass, true, content)) return true
+                val context = TypeEvalContext.codeAnalysis(element.project, element.containingFile)
+                if (pyClass.findClassAttribute(elementName, true, context) != element) return false
+                if (isPydanticModel(pyClass, true, context)) return true
             }
             is PyKeywordArgument -> {
                 val context = TypeEvalContext.codeAnalysis(element.project, element.containingFile)
@@ -56,8 +58,10 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                     element.name?.let { name ->
                         element.containingClass
                             ?.let { pyClass ->
-                                val content = TypeEvalContext.codeAnalysis(element.project, element.containingFile)
-                                addAllElement(pyClass, name, added, content)
+                                val context = TypeEvalContext.codeAnalysis(element.project, element.containingFile)
+                                 if (pyClass.findClassAttribute(name, true, context) == element ) {
+                                     addAllElement(pyClass, name, added, context)
+                                 }
                             }
                         suggestAllNames(name, newName)
                     }
