@@ -29,6 +29,7 @@ class PydanticInspection : PyInspection() {
         PyInspectionVisitor(holder, context) {
 
         private val pydanticConfigService = PydanticConfigService.getInstance(holder.project)
+        private val pydanticCacheService = PydanticCacheService.getInstance(holder.project)
 
         override fun visitPyFunction(node: PyFunction) {
             super.visitPyFunction(node)
@@ -86,8 +87,19 @@ class PydanticInspection : PyInspection() {
         override fun visitPyClass(node: PyClass) {
             super.visitPyClass(node)
 
+            if(pydanticCacheService.isV2(myTypeEvalContext)) {
+                inspectCustomRootFieldV2(node)
+            }
             inspectConfig(node)
             inspectDefaultFactory(node)
+        }
+
+        private fun inspectCustomRootFieldV2(pyClass: PyClass) {
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            registerProblem(
+                pyClass.nameNode?.psi,
+                "__root__ models are no longer supported in v2; a migration guide will be added in the near future", ProblemHighlightType.GENERIC_ERROR
+            )
         }
 
         private fun inspectDefaultFactory(pyClass: PyClass) {
@@ -250,7 +262,7 @@ class PydanticInspection : PyInspection() {
 
             val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
             if (fieldName.startsWith('_')) return
-            val rootModel = pyClass.findClassAttribute("__root__", true, myTypeEvalContext)?.containingClass ?: return
+            val rootModel = getRootField(pyClass)?.containingClass ?: return
             if (!isPydanticModel(rootModel, false, myTypeEvalContext)) return
             registerProblem(
                 node,
@@ -325,6 +337,10 @@ class PydanticInspection : PyInspection() {
                     ProblemHighlightType.WARNING
                 )
             }
+        }
+
+        private fun getRootField(pyClass: PyClass): PyTargetExpression? {
+            return pyClass.findClassAttribute("__root__", true, myTypeEvalContext)
         }
     }
 
