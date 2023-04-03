@@ -658,3 +658,7 @@ fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType
     this.callee?.getType(context) as? PyCallableType
 fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEvalContext): PyClass? =
     this.getReturnType(context)?.pyClassTypes?.firstOrNull()?.pyClass?.takeIf { isPydanticModel(it,includeDataclass, context) }
+
+
+val KotlinVersion?.isV2: Boolean
+    get() = this?.isAtLeast(2, 0) == true
