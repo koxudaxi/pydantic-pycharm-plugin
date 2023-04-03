@@ -47,7 +47,7 @@ class PydanticCacheService(val project: Project) {
 
     private fun getOrAllowedConfigKwargs(context: TypeEvalContext): Set<String>? {
         if (allowedConfigKwargs != null) return allowedConfigKwargs
-        return getAllowedConfigKwargs(project, context).apply { allowedConfigKwargs = this }
+        return getAllowedConfigKwargs(context).apply { allowedConfigKwargs = this }
     }
 
     private fun clear() {
