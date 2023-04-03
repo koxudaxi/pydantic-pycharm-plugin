@@ -95,6 +95,7 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectCustomRootFieldV2(pyClass: PyClass) {
+            if (getRootField(pyClass) == null) return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             registerProblem(
                 pyClass.nameNode?.psi,
