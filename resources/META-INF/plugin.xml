@@ -40,5 +40,6 @@
         <pyDataclassParametersProvider implementation="com.koxudaxi.pydantic.PydanticParametersProvider"/>
         <pyAnnotator implementation="com.koxudaxi.pydantic.PydanticAnnotator"/>
         <pyClassMembersProvider implementation="com.koxudaxi.pydantic.PydanticDynamicModelMemberProvider"/>
+        <documentationLinkProvider implementation="com.koxudaxi.pydantic.PydanticDocumentationLinkProvider"/>
     </extensions>
 </idea-plugin>
