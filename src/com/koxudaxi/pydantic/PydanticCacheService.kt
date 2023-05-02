@@ -6,18 +6,18 @@ import com.jetbrains.python.psi.PyTargetExpression
 import com.jetbrains.python.psi.impl.PyStringLiteralExpressionImpl
 import com.jetbrains.python.psi.types.TypeEvalContext
 
-class PydanticCacheService {
+class PydanticCacheService(val project: Project) {
     private var version: KotlinVersion? = null
     private var allowedConfigKwargs: Set<String>? = null
 
-    private fun getAllowedConfigKwargs(project: Project, context: TypeEvalContext): Set<String>? {
+    private fun getAllowedConfigKwargs(context: TypeEvalContext): Set<String>? {
         val baseConfig = getPydanticBaseConfig(project, context) ?: return null
         return baseConfig.classAttributes
             .mapNotNull { it.name }
             .filterNot { it.startsWith("__") && it.endsWith("__") }
             .toSet()
     }
-    private fun getVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
+    private fun getVersion(context: TypeEvalContext): KotlinVersion? {
         val version = getPsiElementByQualifiedName(VERSION_QUALIFIED_NAME, project, context) as? PyTargetExpression
             ?: return null
         val versionString =
@@ -40,14 +40,14 @@ class PydanticCacheService {
         }
     }
 
-    private fun getOrPutVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
+    private fun getOrPutVersion(context: TypeEvalContext): KotlinVersion? {
         if (version != null) return version
-        return getVersion(project, context).apply { version = this }
+        return getVersion(context).apply { version = this }
     }
 
-    private fun getOrAllowedConfigKwargs(project: Project, context: TypeEvalContext): Set<String>? {
+    private fun getOrAllowedConfigKwargs(context: TypeEvalContext): Set<String>? {
         if (allowedConfigKwargs != null) return allowedConfigKwargs
-        return getAllowedConfigKwargs(project, context).apply { allowedConfigKwargs = this }
+        return getAllowedConfigKwargs(context).apply { allowedConfigKwargs = this }
     }
 
     private fun clear() {
@@ -55,9 +55,11 @@ class PydanticCacheService {
         allowedConfigKwargs = null
     }
 
+    internal fun isV2(typeEvalContext: TypeEvalContext) = this.getOrPutVersion(typeEvalContext).isV2
+
     companion object {
         fun getVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
-            return getInstance(project).getOrPutVersion(project, context)
+            return getInstance(project).getOrPutVersion(context)
         }
 
         fun setVersion(project: Project, version: String): KotlinVersion? {
@@ -65,14 +67,14 @@ class PydanticCacheService {
         }
 
         fun getAllowedConfigKwargs(project: Project, context: TypeEvalContext): Set<String>? {
-            return getInstance(project).getOrAllowedConfigKwargs(project, context)
+            return getInstance(project).getOrAllowedConfigKwargs(context)
         }
 
         fun clear(project: Project) {
             return getInstance(project).clear()
         }
 
-        private fun getInstance(project: Project): PydanticCacheService {
+        internal fun getInstance(project: Project): PydanticCacheService {
             return project.getService(PydanticCacheService::class.java)
         }
     }
