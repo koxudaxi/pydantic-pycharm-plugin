@@ -65,6 +65,8 @@ open class PydanticInspectionTest : PydanticInspectionBase() {
     }
 
     fun testCustomRoot() {
+        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+        pydanticConfigService.mypyWarnUntypedFields = false
         doTest()
     }
 
