@@ -35,8 +35,7 @@ open class PydanticCompletionV0Test : PydanticTestCase(version = "v0") {
                 Pair("hij", "Any A"),
                 Pair("___slots__", "BaseModel"),
                 Pair("__annotations__", "object"),
-                Pair("__dict__", "object"),
-                Pair("__slots__", "object")
+                Pair("__dict__", "object")
             )
         )
     }
