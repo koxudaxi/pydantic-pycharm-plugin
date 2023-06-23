@@ -1,9 +1,11 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.FilePropertyPusher
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.PsiTestUtil.addSourceRoot
 import com.intellij.testFramework.PsiTestUtil.removeSourceRoot
 import com.intellij.testFramework.UsefulTestCase
@@ -11,7 +13,9 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.jetbrains.python.PyNames
+import com.jetbrains.python.codeInsight.completion.PyModuleNameCompletionContributor
 import com.jetbrains.python.fixtures.PyLightProjectDescriptor
+import com.jetbrains.python.namespacePackages.PyNamespacePackagesService
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.impl.PythonLanguageLevelPusher
 import com.jetbrains.python.sdk.PythonSdkUtil
@@ -21,7 +25,6 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
     protected var myFixture: CodeInsightTestFixture? = null
 
-    private val projectDescriptor: PyLightProjectDescriptor = PyLightProjectDescriptor(LanguageLevel.getLatest())
     private val testDataPath: String = "testData"
     private val mockPath: String = "mock"
     private val pydanticMockPath: String = "$mockPath/pydantic$version"
@@ -56,7 +59,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
     override fun setUp() {
         super.setUp()
         val factory = IdeaTestFixtureFactory.getFixtureFactory()
-        val fixtureBuilder = factory.createLightFixtureBuilder(projectDescriptor, "PyLightProject")
+        val fixtureBuilder = factory.createLightFixtureBuilder(getProjectDescriptor(),  getTestName(false))
         val fixture = fixtureBuilder.fixture
         myFixture = IdeaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(fixture,
             LightTempDirTestFixtureImpl(true))
@@ -81,15 +84,19 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
         }
 
         setLanguageLevel(defaultPythonLanguageLevel)
+        InspectionProfileImpl.INIT_INSPECTIONS = true;
+        PydanticCacheService.clear(myFixture!!.project)
     }
 
 
     @Throws(Exception::class)
     override fun tearDown() {
         try {
+            PyNamespacePackagesService.getInstance(myFixture!!.module).resetAllNamespacePackages();
+            PyModuleNameCompletionContributor.ENABLED = true;
             setLanguageLevel(null)
             removeSourceRoot(myFixture!!.module, packageDir!!)
-            myFixture?.tearDown()
+            myFixture!!.tearDown()
             myFixture = null
             FilePropertyPusher.EP_NAME.findExtensionOrFail(PythonLanguageLevelPusher::class.java)
                 .flushLanguageLevelCache()
@@ -108,6 +115,14 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
 
     @Test
     private fun dummyTest() {
+    }
+
+    protected open fun getProjectDescriptor(): LightProjectDescriptor? {
+        return ourPyLatestDescriptor
+    }
+
+    companion object {
+        protected val ourPyLatestDescriptor = PyLightProjectDescriptor(LanguageLevel.getLatest());
     }
 }
 
