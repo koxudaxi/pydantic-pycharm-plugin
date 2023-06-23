@@ -6,7 +6,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.NoAccessDuringPsiEvents
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -24,7 +24,7 @@ import org.ini4j.Ini
 import org.ini4j.IniPreferences
 import java.io.File
 
-class PydanticInitializer : StartupActivity {
+class PydanticInitializer : ProjectActivity {
     private fun getDefaultPyProjectTomlPath(project: Project): String {
         return project.basePath + File.separator + "pyproject.toml"
     }
@@ -172,7 +172,7 @@ class PydanticInitializer : StartupActivity {
         }.toMap()
     }
 
-    override fun runActivity(project: Project) {
+    override suspend fun execute(project: Project) {
         if (ApplicationManager.getApplication().isUnitTestMode) return
         if (project.isDisposed) return
         DumbService.getInstance(project).smartInvokeLater {

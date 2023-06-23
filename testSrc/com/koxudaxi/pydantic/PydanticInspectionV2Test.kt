@@ -10,6 +10,8 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     override val inspectionClass: KClass<PyInspection> = PydanticInspection::class as KClass<PyInspection>
 
     fun testCustomRoot() {
+        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+        pydanticConfigService.mypyWarnUntypedFields = false
         doTest()
     }
 }
