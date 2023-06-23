@@ -146,7 +146,7 @@ jobs:
           path: ./build/distributions/content/*/*
 
       - name: Setup Python
-        uses: actions/setup-python@v4.6.0
+        uses: actions/setup-python@v4.6.1
         with:
           python-version: '3.11'
 
