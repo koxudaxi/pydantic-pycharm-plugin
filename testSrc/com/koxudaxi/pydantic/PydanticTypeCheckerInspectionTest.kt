@@ -16,71 +16,97 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
-    fun testParsableTypeCollection() {
-        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap = mapOf(Pair("str", listOf("int")))
-        doTest()
+    fun testParsableTypeCollection() = runTestRunnable {
+        suspend {
+            val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+            pydanticConfigService.parsableTypeMap = mapOf(Pair("str", listOf("int")))
+            doTest()
+        }
     }
 
-    fun testParsableTypeWeakWarning() {
-        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap = mapOf(Pair("str", listOf("int")))
-        pydanticConfigService.parsableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
-        doTest()
+    fun testParsableTypeWeakWarning() = runTestRunnable {
+        suspend {
+            val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+            pydanticConfigService.parsableTypeMap = mapOf(Pair("str", listOf("int")))
+            pydanticConfigService.parsableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
+            doTest()
+        }
     }
 
-    fun testParsableTypeDisable() {
-        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap = mapOf(Pair("str", listOf("int")))
-        pydanticConfigService.parsableTypeHighlightType = ProblemHighlightType.INFORMATION
-        doTest()
+    fun testParsableTypeDisable() = runTestRunnable {
+        suspend {
+            val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+            pydanticConfigService.parsableTypeMap = mapOf(Pair("str", listOf("int")))
+            pydanticConfigService.parsableTypeHighlightType = ProblemHighlightType.INFORMATION
+            doTest()
+        }
     }
 
-    fun testParsableTypeInvalid() {
-        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.parsableTypeMap = mapOf(Pair("str", listOf("int")))
-        doTest()
+    fun testParsableTypeInvalid() = runTestRunnable {
+        suspend {
+            val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+            pydanticConfigService.parsableTypeMap = mapOf(Pair("str", listOf("int")))
+            doTest()
+        }
     }
 
-    fun testAcceptableType() {
-        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap = mapOf(Pair("str", listOf("int")))
-        doTest()
+
+
+    fun testAcceptableType()  = runTestRunnable {
+        suspend {
+            val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+            pydanticConfigService.acceptableTypeMap = mapOf(Pair("str", listOf("int")))
+            doTest()
+        }
     }
 
-    fun testAcceptableTypeWarning() {
-        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap = mapOf(Pair("str", listOf("int")))
-        pydanticConfigService.acceptableTypeHighlightType = ProblemHighlightType.WARNING
-        doTest()
+    fun testAcceptableTypeWarning() = runTestRunnable {
+        suspend {
+            val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+            pydanticConfigService.acceptableTypeMap = mapOf(Pair("str", listOf("int")))
+            pydanticConfigService.acceptableTypeHighlightType = ProblemHighlightType.WARNING
+            doTest()
+        }
     }
 
-    fun testAcceptableTypeDisable() {
-        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap = mapOf(Pair("str", listOf("int")))
-        pydanticConfigService.acceptableTypeHighlightType = ProblemHighlightType.INFORMATION
-        doTest()
+    fun testAcceptableTypeDisable()  = runTestRunnable {
+        suspend {
+            val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+            pydanticConfigService.acceptableTypeMap = mapOf(Pair("str", listOf("int")))
+            pydanticConfigService.acceptableTypeHighlightType = ProblemHighlightType.INFORMATION
+            doTest()
+        }
     }
 
-    fun testAcceptableTypeInvalid() {
-        val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
-        pydanticConfigService.acceptableTypeMap = mapOf(Pair("str", listOf("int")))
-        doTest()
+    fun testAcceptableTypeInvalid() = runTestRunnable {
+        suspend {
+            val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
+            pydanticConfigService.acceptableTypeMap = mapOf(Pair("str", listOf("int")))
+            doTest()
+        }
     }
 
-    fun testField() {
-        doTest()
+    fun testField() = runTestRunnable {
+        suspend {
+            doTest()
+        }
     }
 
-    fun testClass() {
-        doTest()
+    fun testClass() = runTestRunnable {
+        suspend {
+            doTest()
+        }
     }
 
-    fun testFieldImportTyping() {
-        doTest()
+    fun testFieldImportTyping() = runTestRunnable {
+        suspend {
+            doTest()
+        }
     }
 
-    fun testFieldImportTypingInvalid() {
-        doTest()
+    fun testFieldImportTypingInvalid() = runTestRunnable {
+        suspend {
+            doTest()
+        }
     }
 }
