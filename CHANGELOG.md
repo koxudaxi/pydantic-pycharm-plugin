@@ -1,6 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+- Support Kotlin 1.8.20 [[#719](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/719)]
+- Update build.yml [[#724](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/724)]
+- Support 232 EAP [[#717](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/717)]
+
+## [0.4.3] - 2023-06-26
+- Add error message for root model in v2 [[#696](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/686)]
+- Add official document link [[#697](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/697)]
 
 ## [0.4.2-231] - 2023-03-22
 - Bump version to 0.4.2-231 [[#686](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/686)]
