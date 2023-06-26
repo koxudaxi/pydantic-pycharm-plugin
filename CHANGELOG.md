@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+- Add error message for root model in v2 [[#696](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/686)]
+- Add official document link [[#697](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/697)]
 
 ## [0.4.2-231] - 2023-03-22
 - Bump version to 0.4.2-231 [[#686](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/686)]
