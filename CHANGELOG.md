@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.3] - 2023-06-26
 - Add error message for root model in v2 [[#696](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/686)]
 - Add official document link [[#697](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/697)]
 
@@ -405,7 +407,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2-231...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2-231...v0.4.3
 [0.4.2]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.1-231...v0.4.2
 [0.4.2-231]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2...v0.4.2-231
 [0.4.1-231]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.0...v0.4.1-231
