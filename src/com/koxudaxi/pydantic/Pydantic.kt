@@ -14,8 +14,8 @@ import com.jetbrains.extensions.QNameResolveContext
 import com.jetbrains.extensions.resolveToElement
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
+import com.jetbrains.python.packaging.PyPackageManagers
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.PyStarArgumentImpl
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
@@ -688,3 +688,7 @@ fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEval
 
 val KotlinVersion?.isV2: Boolean
     get() = this?.isAtLeast(2, 0) == true
+
+val Sdk.pydanticVersion: String?
+    get() = PyPackageManagers.getInstance()
+        .forSdk(this).packages?.find { it.name == "pydantic" }?.version

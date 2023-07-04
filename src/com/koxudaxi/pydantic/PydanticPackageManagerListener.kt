@@ -7,14 +7,12 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.Disposer
 import com.jetbrains.python.packaging.PyPackageManager
-import com.jetbrains.python.packaging.PyPackageManagers
 import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.statistics.sdks
 
 class PydanticPackageManagerListener : PyPackageManager.Listener {
     private fun updateVersion(sdk: Sdk) {
-        val version = PyPackageManagers.getInstance()
-            .forSdk(sdk).packages?.find { it.name == "pydantic" }?.version
+        val version = sdk.pydanticVersion
         ProjectManager.getInstance().openProjects
             .filter { it.sdks.contains(sdk) }
             .forEach {

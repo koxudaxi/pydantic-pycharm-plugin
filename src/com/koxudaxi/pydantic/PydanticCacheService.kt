@@ -1,10 +1,8 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.openapi.project.Project
-import com.jetbrains.python.psi.PyStringLiteralExpression
-import com.jetbrains.python.psi.PyTargetExpression
-import com.jetbrains.python.psi.impl.PyStringLiteralExpressionImpl
 import com.jetbrains.python.psi.types.TypeEvalContext
+import com.jetbrains.python.sdk.pythonSdk
 
 class PydanticCacheService(val project: Project) {
     private var version: KotlinVersion? = null
@@ -18,11 +16,8 @@ class PydanticCacheService(val project: Project) {
             .toSet()
     }
     private fun getVersion(context: TypeEvalContext): KotlinVersion? {
-        val version = getPsiElementByQualifiedName(VERSION_QUALIFIED_NAME, project, context) as? PyTargetExpression
-            ?: return null
-        val versionString =
-            (version.findAssignedValue()?.lastChild?.firstChild?.nextSibling as? PyStringLiteralExpression)?.stringValue
-                ?: (version.findAssignedValue() as? PyStringLiteralExpressionImpl)?.stringValue ?: return null
+        val sdk = project.pythonSdk ?: return null
+        val versionString = sdk.pydanticVersion ?: return null
         return setVersion(versionString)
     }
 
