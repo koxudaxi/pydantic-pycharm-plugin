@@ -17,6 +17,7 @@ import com.jetbrains.python.PythonLanguage
 import com.jetbrains.python.codeInsight.PyCodeInsightSettings
 import com.jetbrains.python.psi.PyFunction
 import com.jetbrains.python.psi.impl.PyPsiUtils
+import com.jetbrains.python.psi.types.TypeEvalContext
 import java.util.regex.Pattern
 
 class PydanticTypedValidatorMethodHandler : TypedHandlerDelegate() {
@@ -52,7 +53,7 @@ class PydanticTypedValidatorMethodHandler : TypedHandlerDelegate() {
                 val defNode = maybeDef.node
                 if (defNode != null && defNode.elementType === PyTokenTypes.DEF_KEYWORD) {
                     val pyFunction = token.parent as? PyFunction ?: return Result.CONTINUE
-                    if (!pyFunction.isValidatorMethod) return Result.CONTINUE
+                    if (!pyFunction.isValidatorMethod(PydanticCacheService.getVersion(project, TypeEvalContext.codeCompletion(project, file)))) return Result.CONTINUE
                     val settings = CodeStyle.getLanguageSettings(file, PythonLanguage.getInstance())
                     val textToType = StringBuilder()
                     textToType.append("(")

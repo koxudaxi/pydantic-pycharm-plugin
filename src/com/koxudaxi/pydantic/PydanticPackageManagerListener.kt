@@ -18,9 +18,9 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
         ProjectManager.getInstance().openProjects
             .filter { it.sdks.contains(sdk) }
             .forEach {
-                when (version) {
-                    is String -> PydanticCacheService.setVersion(it, version)
-                    else -> PydanticCacheService.clear(it)
+                PydanticCacheService.clear(it)
+                if (version is String) {
+                    PydanticCacheService.setVersion(it, version)
                 }
             }
     }

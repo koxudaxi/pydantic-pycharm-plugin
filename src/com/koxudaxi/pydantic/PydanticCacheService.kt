@@ -40,7 +40,7 @@ class PydanticCacheService(val project: Project) {
         }
     }
 
-    private fun getOrPutVersion(context: TypeEvalContext): KotlinVersion? {
+    internal fun getOrPutVersion(context: TypeEvalContext): KotlinVersion? {
         if (version != null) return version
         return getVersion(context).apply { version = this }
     }

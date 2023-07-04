@@ -33,6 +33,11 @@ const val VALIDATOR_Q_NAME = "pydantic.class_validators.validator"
 const val VALIDATOR_SHORT_Q_NAME = "pydantic.validator"
 const val ROOT_VALIDATOR_Q_NAME = "pydantic.class_validators.root_validator"
 const val ROOT_VALIDATOR_SHORT_Q_NAME = "pydantic.root_validator"
+const val FIELD_VALIDATOR_Q_NAME = "pydantic.field_validator"
+const val FIELD_VALIDATOR_SHORT_Q_NAME = "pydantic.functional_validators.field_validator"
+const val MODEL_VALIDATOR_Q_NAME = "pydantic.model_validator"
+const val MODEL_VALIDATOR_SHORT_Q_NAME = "pydantic.functional_validators.model_validator"
+
 const val SCHEMA_Q_NAME = "pydantic.schema.Schema"
 const val FIELD_Q_NAME = "pydantic.fields.Field"
 const val DATACLASS_FIELD_Q_NAME = "dataclasses.field"
@@ -85,6 +90,14 @@ val ROOT_VALIDATOR_QUALIFIED_NAME = QualifiedName.fromDottedString(ROOT_VALIDATO
 
 val ROOT_VALIDATOR_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(ROOT_VALIDATOR_SHORT_Q_NAME)
 
+val FIELD_VALIDATOR_QUALIFIED_NAME = QualifiedName.fromDottedString(FIELD_VALIDATOR_Q_NAME)
+
+val FIELD_VALIDATOR_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(FIELD_VALIDATOR_SHORT_Q_NAME)
+
+val MODEL_VALIDATOR_QUALIFIED_NAME = QualifiedName.fromDottedString(MODEL_VALIDATOR_Q_NAME)
+
+val MODEL_VALIDATOR_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(MODEL_VALIDATOR_SHORT_Q_NAME)
+
 val DATA_CLASS_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_Q_NAME)
 
 val DATA_CLASS_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_SHORT_Q_NAME)
@@ -101,6 +114,17 @@ val VALIDATOR_QUALIFIED_NAMES = listOf(
     VALIDATOR_SHORT_QUALIFIED_NAME,
     ROOT_VALIDATOR_QUALIFIED_NAME,
     ROOT_VALIDATOR_SHORT_QUALIFIED_NAME
+)
+
+val V2_VALIDATOR_QUALIFIED_NAMES = listOf(
+    VALIDATOR_QUALIFIED_NAME,
+    VALIDATOR_SHORT_QUALIFIED_NAME,
+    ROOT_VALIDATOR_QUALIFIED_NAME,
+    ROOT_VALIDATOR_SHORT_QUALIFIED_NAME,
+    FIELD_VALIDATOR_QUALIFIED_NAME,
+    FIELD_VALIDATOR_SHORT_QUALIFIED_NAME,
+    MODEL_VALIDATOR_QUALIFIED_NAME,
+    MODEL_VALIDATOR_SHORT_QUALIFIED_NAME
 )
 
 val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
@@ -210,7 +234,9 @@ internal fun isDataclassMissing(pyTargetExpression: PyTargetExpression): Boolean
     return pyTargetExpression.qualifiedName == DATACLASS_MISSING
 }
 
-internal val PyFunction.isValidatorMethod: Boolean get() = hasDecorator(this, VALIDATOR_QUALIFIED_NAMES)
+internal fun PyFunction.isValidatorMethod(pydanticVersion: KotlinVersion?): Boolean =
+    hasDecorator(this, if(pydanticVersion.isV2) V2_VALIDATOR_QUALIFIED_NAMES else VALIDATOR_QUALIFIED_NAMES)
+
 
 
 internal val PyClass.isConfigClass: Boolean get() = name == "Config"
