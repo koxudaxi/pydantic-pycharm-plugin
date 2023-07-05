@@ -10,7 +10,7 @@ class PydanticIgnoreInspection : PyInspectionExtension() {
         return function.containingClass?.let {
             isPydanticModel(it,
                 true,
-                context) && function.isValidatorMethod(PydanticCacheService.getVersion(function.project, context))
+                context) && function.isValidatorMethod(PydanticCacheService.getVersion(function.project))
         } == true
     }
 }

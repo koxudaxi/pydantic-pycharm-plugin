@@ -15,13 +15,13 @@ class PydanticCacheService(val project: Project) {
             .filterNot { it.startsWith("__") && it.endsWith("__") }
             .toSet()
     }
-    private fun getVersion(context: TypeEvalContext): KotlinVersion? {
+    private fun getVersion(): KotlinVersion? {
         val sdk = project.pythonSdk ?: return null
         val versionString = sdk.pydanticVersion ?: return null
-        return setVersion(versionString)
+        return getOrPutVersionFromVersionCache(versionString)
     }
 
-    private fun setVersion(version: String): KotlinVersion {
+    private fun getOrPutVersionFromVersionCache(version: String): KotlinVersion? {
         return pydanticVersionCache.getOrPut(version) {
             val versionList = version.split(VERSION_SPLIT_PATTERN).map { it.toIntOrNull() ?: 0 }
             val pydanticVersion = when {
@@ -29,16 +29,20 @@ class PydanticCacheService(val project: Project) {
                 versionList.size == 2 -> KotlinVersion(versionList[0], versionList[1])
                 versionList.size >= 3 -> KotlinVersion(versionList[0], versionList[1], versionList[2])
                 else -> null
-            } ?: KotlinVersion(0, 0)
+            } ?: return null
             pydanticVersionCache[version] = pydanticVersion
             pydanticVersion
         }
     }
 
-    internal fun getOrPutVersion(context: TypeEvalContext): KotlinVersion? {
+    internal fun getOrPutVersion(): KotlinVersion? {
         if (version != null) return version
-        return getVersion(context).apply { version = this }
+        return getVersion().apply { version = this }
     }
+
+    internal fun setVersion(version: String): KotlinVersion? {
+        return getOrPutVersionFromVersionCache(version).also { this.version = it }
+        }
 
     private fun getOrAllowedConfigKwargs(context: TypeEvalContext): Set<String>? {
         if (allowedConfigKwargs != null) return allowedConfigKwargs
@@ -50,15 +54,18 @@ class PydanticCacheService(val project: Project) {
         allowedConfigKwargs = null
     }
 
-    internal fun isV2(typeEvalContext: TypeEvalContext) = this.getOrPutVersion(typeEvalContext).isV2
+    internal val isV2 get() =  this.getOrPutVersion().isV2
 
     companion object {
-        fun getVersion(project: Project, context: TypeEvalContext): KotlinVersion? {
-            return getInstance(project).getOrPutVersion(context)
+        fun getVersion(project: Project): KotlinVersion? {
+            return getInstance(project).getOrPutVersion()
         }
 
         fun setVersion(project: Project, version: String): KotlinVersion? {
             return getInstance(project).setVersion(version)
+        }
+        fun getOrPutVersionFromVersionCache(project: Project, version: String): KotlinVersion? {
+            return getInstance(project).getOrPutVersionFromVersionCache(version)
         }
 
         fun getAllowedConfigKwargs(project: Project, context: TypeEvalContext): Set<String>? {

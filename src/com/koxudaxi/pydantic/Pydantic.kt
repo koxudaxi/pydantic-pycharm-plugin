@@ -432,7 +432,7 @@ fun getConfig(
     pydanticVersion: KotlinVersion? = null,
 ): HashMap<String, Any?> {
     val config = hashMapOf<String, Any?>()
-    val version = pydanticVersion ?: PydanticCacheService.getVersion(pyClass.project, context)
+    val version = pydanticVersion ?: PydanticCacheService.getVersion(pyClass.project)
     getAncestorPydanticModels(pyClass, false, context)
         .reversed()
         .map { getConfig(it, context, false, version) }

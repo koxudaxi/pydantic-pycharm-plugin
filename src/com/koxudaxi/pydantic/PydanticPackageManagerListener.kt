@@ -18,7 +18,7 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
             .forEach {
                 PydanticCacheService.clear(it)
                 if (version is String) {
-                    PydanticCacheService.setVersion(it, version)
+                    PydanticCacheService.getOrPutVersionFromVersionCache(it, version)
                 }
             }
     }
