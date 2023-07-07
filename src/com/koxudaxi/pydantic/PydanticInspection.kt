@@ -35,7 +35,7 @@ class PydanticInspection : PyInspection() {
             super.visitPyFunction(node)
 
             if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
-            if (!node.isValidatorMethod) return
+            if (!node.isValidatorMethod(pydanticCacheService.getOrPutVersion())) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
@@ -87,7 +87,7 @@ class PydanticInspection : PyInspection() {
         override fun visitPyClass(node: PyClass) {
             super.visitPyClass(node)
 
-            if(pydanticCacheService.isV2(myTypeEvalContext)) {
+            if(pydanticCacheService.isV2) {
                 inspectCustomRootFieldV2(node)
             }
             inspectConfig(node)
@@ -217,7 +217,7 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectConfig(pyClass: PyClass) {
-            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, myTypeEvalContext)
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
             if (pydanticVersion?.isAtLeast(1, 8) != true) return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             validateConfig(pyClass, myTypeEvalContext)?.forEach {
@@ -237,7 +237,7 @@ class PydanticInspection : PyInspection() {
             val pyClass = pyClassType.pyClass
             val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return
             val config = getConfig(pyClass, myTypeEvalContext, true)
-            val version = PydanticCacheService.getVersion(pyClass.project, myTypeEvalContext)
+            val version = PydanticCacheService.getVersion(pyClass.project)
             if (config["allow_mutation"] == false || (version?.isAtLeast(1, 8) == true && config["frozen"] == true)) {
                 registerProblem(
                     node,

@@ -79,7 +79,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 getRefTypeFromFieldName(name, context, pyClass)
             }
 
-            param.isSelf && func.isValidatorMethod -> {
+            param.isSelf && func.isValidatorMethod(PydanticCacheService.getVersion(func.project)
+                ) -> {
                 val pyClass = func.containingClass ?: return null
                 if (!isPydanticModel(pyClass, false, context)) return null
                 context.getType(pyClass)
@@ -103,7 +104,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private fun getRefTypeFromFieldName(name: String, context: TypeEvalContext, pyClass: PyClass): PyType? {
         val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
 
-        val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, context)
+        val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
         return getRefTypeFromFieldNameInPyClass(name, pyClass, context, ellipsis, pydanticVersion)
             ?: getAncestorPydanticModels(pyClass, false, context).firstNotNullOfOrNull { ancestor ->
                 getRefTypeFromFieldNameInPyClass(name, ancestor, context, ellipsis, pydanticVersion)
@@ -298,7 +299,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     ): PydanticDynamicModelClassType? {
         val project = pyFunction.project
         val typed = getInstance(project).currentInitTyped
-        val pydanticVersion = PydanticCacheService.getVersion(pyFunction.project, context)
+        val pydanticVersion = PydanticCacheService.getVersion(pyFunction.project)
         val collected = linkedMapOf<String, PydanticDynamicModel.Attribute>()
         val newVersion = pydanticVersion == null || pydanticVersion.isAtLeast(1, 5)
         val modelNameParameterName = if (newVersion) "__model_name" else "model_name"
@@ -494,7 +495,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             }
         }
         val genericTypeMap = getGenericTypeMap(pyClass, context, pyCallExpression)
-        val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, context)
+        val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
         val config = getConfig(pyClass, context, true)
         for (currentType in StreamEx.of(clsType).append(pyClass.getAncestorTypes(context))) {
             if (currentType !is PyClassType) continue
