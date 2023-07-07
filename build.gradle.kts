@@ -6,7 +6,7 @@ fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
     // Kotlin support
-    kotlin("jvm") version "1.8.22"
+    kotlin("jvm") version "1.9.0"
     // Gradle IntelliJ Plugin
     id("org.jetbrains.intellij") version "1.14.1"
     // Gradle Changelog Plugin
