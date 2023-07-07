@@ -14,4 +14,7 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
         pydanticConfigService.mypyWarnUntypedFields = false
         doTest()
     }
+    fun testValidatorSelf() {
+        doTest()
+    }
 }
