@@ -85,7 +85,6 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
         PydanticCacheService.setVersion(myFixture!!.project, version.split("v")[1])
         setLanguageLevel(defaultPythonLanguageLevel)
         InspectionProfileImpl.INIT_INSPECTIONS = true;
-        PydanticCacheService.clear(myFixture!!.project)
     }
 
 
