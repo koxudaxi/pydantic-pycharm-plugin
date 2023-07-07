@@ -17,7 +17,7 @@ import com.jetbrains.python.psi.impl.PythonLanguageLevelPusher
 import com.jetbrains.python.sdk.PythonSdkUtil
 import kotlin.test.Test
 
-abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
+abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
 
     protected var myFixture: CodeInsightTestFixture? = null
 
@@ -79,7 +79,7 @@ abstract class PydanticTestCase(version: String = "v1") : UsefulTestCase() {
                 .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
             libDir.createChildDirectory(null, PyNames.SITE_PACKAGES)
         }
-
+        PydanticCacheService.setVersion(myFixture!!.project, version.split("v")[1])
         setLanguageLevel(defaultPythonLanguageLevel)
     }
 

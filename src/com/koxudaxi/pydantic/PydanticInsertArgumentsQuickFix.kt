@@ -61,7 +61,7 @@ class PydanticInsertArgumentsQuickFix(private val onlyRequired: Boolean) : Local
             }.nullize()?.toMap() ?: return null
         val elementGenerator = PyElementGenerator.getInstance(project)
         val ellipsis = elementGenerator.createEllipsis()
-        val pydanticVersion = PydanticCacheService.getVersion(project, context)
+        val pydanticVersion = PydanticCacheService.getVersion(project)
         val fields = (listOf(pyClass) + getAncestorPydanticModels(pyClass, true, context)).flatMap {
             it.classAttributes.filter { attribute -> unFilledArguments.contains(attribute.name) }
                 .mapNotNull { attribute -> attribute.name?.let { name -> name to attribute }}
