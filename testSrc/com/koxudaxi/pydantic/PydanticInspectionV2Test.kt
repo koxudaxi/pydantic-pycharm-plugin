@@ -12,4 +12,7 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     fun testCustomRoot() {
         doTest()
     }
+    fun testValidatorSelf() {
+        doTest()
+    }
 }
