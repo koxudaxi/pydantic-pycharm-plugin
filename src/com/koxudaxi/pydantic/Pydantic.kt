@@ -46,6 +46,8 @@ const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 const val BASE_CONFIG_Q_NAME = "pydantic.main.BaseConfig"
+const val CONFIG_DICT_Q_NAME = "pydantic.config.ConfigDict"
+const val CONFIG_DICT_SHORT_Q_NAME = "pydantic.ConfigDict"
 const val DATACLASS_MISSING = "dataclasses.MISSING"
 const val CON_BYTES_Q_NAME = "pydantic.types.conbytes"
 const val CON_DECIMAL_Q_NAME = "pydantic.types.condecimal"
@@ -79,6 +81,10 @@ val DATA_CLASS_Q_NAMES = listOf(DATA_CLASS_Q_NAME, DATA_CLASS_SHORT_Q_NAME)
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
 val BASE_CONFIG_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_CONFIG_Q_NAME)
+
+val CONFIG_DICT_QUALIFIED_NAME = QualifiedName.fromDottedString(CONFIG_DICT_Q_NAME)
+
+val CONFIG_DICT_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(CONFIG_DICT_SHORT_Q_NAME)
 
 val BASE_MODEL_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_MODEL_Q_NAME)
 
@@ -493,6 +499,10 @@ fun getFieldName(
 
 fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? {
     return getPyClassFromQualifiedName(BASE_CONFIG_QUALIFIED_NAME, project, context)
+}
+
+fun getPydanticConfigDict(project: Project, context: TypeEvalContext): PyClass? {
+    return getPyClassFromQualifiedName(CONFIG_DICT_QUALIFIED_NAME, project, context)
 }
 
 fun getPydanticBaseModel(project: Project, context: TypeEvalContext): PyClass? {

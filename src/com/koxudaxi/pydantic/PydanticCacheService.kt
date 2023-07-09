@@ -9,7 +9,10 @@ class PydanticCacheService(val project: Project) {
     private var allowedConfigKwargs: Set<String>? = null
 
     private fun getAllowedConfigKwargs(context: TypeEvalContext): Set<String>? {
-        val baseConfig = getPydanticBaseConfig(project, context) ?: return null
+        val baseConfig = when {
+            isV2 -> getPydanticConfigDict(project, context)
+            else -> getPydanticBaseConfig(project, context)
+        } ?: return null
         return baseConfig.classAttributes
             .mapNotNull { it.name }
             .filterNot { it.startsWith("__") && it.endsWith("__") }
