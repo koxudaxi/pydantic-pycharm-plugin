@@ -385,6 +385,38 @@ fun isValidField(field: PyTargetExpression, context: TypeEvalContext): Boolean {
 
 val String.isValidFieldName: Boolean get() = !startsWith('_') || this == CUSTOM_ROOT_FIELD
 
+fun getConfigDict(name: String, value: Any?, context: TypeEvalContext): Any? {
+    if (value is PyReferenceExpression) {
+        val targetExpression = getResolvedPsiElements(value, context).firstOrNull() ?: return null
+        val assignedValue = (targetExpression as? PyTargetExpression)?.findAssignedValue() ?: return null
+        return getConfigValue(name, assignedValue, context)
+    }
+    return when (CONFIG_TYPES[name]) {
+        ConfigType.BOOLEAN ->
+            when (value) {
+                is PyBoolLiteralExpression -> value.value
+                is Boolean -> value
+                else -> null
+            }
+        ConfigType.LIST_PYTYPE -> {
+            if (value is PyElement) {
+                when (val tupleValue = PsiTreeUtil.findChildOfType(value, PyTupleExpression::class.java)) {
+                    is PyTupleExpression -> tupleValue.toList().mapNotNull { context.getType(it) }
+                    else -> null
+                }
+            } else null
+        }
+        ConfigType.EXTRA -> {
+            when ((value as? PyStringLiteralExpression)?.stringValue) {
+                "allow" -> EXTRA.ALLOW
+                "ignore" -> EXTRA.IGNORE
+                "forbid" -> EXTRA.FORBID
+                else -> EXTRA.IGNORE
+            }
+        }
+        else -> null
+    }
+}
 
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
@@ -429,6 +461,53 @@ fun validateConfig(pyClass: PyClass, context: TypeEvalContext): List<PsiElement>
     val results: MutableList<PsiElement> = configKwargs.toMutableList()
     configClass.nameNode?.psi?.let { results.add(it) }
     return results
+}
+
+
+fun getConfigDict(
+    pyClass: PyClass,
+    context: TypeEvalContext,
+    setDefault: Boolean,
+    pydanticVersion: KotlinVersion? = null,
+): HashMap<String, Any?> {
+    val config = hashMapOf<String, Any?>()
+    val version = pydanticVersion ?: PydanticCacheService.getVersion(pyClass.project)
+    getAncestorPydanticModels(pyClass, false, context)
+        .reversed()
+        .map { getConfig(it, context, false, version) }
+        .forEach {
+            it.entries.forEach { entry ->
+                if (entry.value != null) {
+                    config[entry.key] = getConfigValue(entry.key, entry.value, context)
+                }
+            }
+        }
+    pyClass.nestedClasses.firstOrNull { it.isConfigClass }?.let {
+        it.classAttributes.forEach { attribute ->
+            attribute.findAssignedValue()?.let { value ->
+                attribute.name?.let { name ->
+                    config[name] = getConfigValue(name, value, context)
+                }
+            }
+        }
+    }
+
+    if (version?.isAtLeast(1, 8) == true) {
+        pyClass.superClassExpressions.filterIsInstance<PyKeywordArgument>().forEach {
+            it.name?.let { name ->
+                config[name] = getConfigValue(name, it.valueExpression, context)
+            }
+        }
+    }
+
+    if (setDefault) {
+        DEFAULT_CONFIG.forEach { (key, value) ->
+            if (!config.containsKey(key)) {
+                config[key] = getConfigValue(key, value, context)
+            }
+        }
+    }
+    return config
 }
 
 fun getConfig(
