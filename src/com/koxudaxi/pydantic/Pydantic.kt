@@ -181,6 +181,8 @@ const val CUSTOM_ROOT_FIELD = "__root__"
 
 const val MODEL_FIELD_PREFIX = "model_"
 
+const val MODEL_CONFIG_FIELD = "model_config"
+
 fun PyTypedElement.getType(context: TypeEvalContext): PyType? = context.getType(this)
 
 
@@ -400,39 +402,6 @@ fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Bool
 
 fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this.startsWith(MODEL_FIELD_PREFIX))
 
-fun getConfigDict(name: String, value: Any?, context: TypeEvalContext): Any? {
-    if (value is PyReferenceExpression) {
-        val targetExpression = getResolvedPsiElements(value, context).firstOrNull() ?: return null
-        val assignedValue = (targetExpression as? PyTargetExpression)?.findAssignedValue() ?: return null
-        return getConfigValue(name, assignedValue, context)
-    }
-    return when (CONFIG_TYPES[name]) {
-        ConfigType.BOOLEAN ->
-            when (value) {
-                is PyBoolLiteralExpression -> value.value
-                is Boolean -> value
-                else -> null
-            }
-        ConfigType.LIST_PYTYPE -> {
-            if (value is PyElement) {
-                when (val tupleValue = PsiTreeUtil.findChildOfType(value, PyTupleExpression::class.java)) {
-                    is PyTupleExpression -> tupleValue.toList().mapNotNull { context.getType(it) }
-                    else -> null
-                }
-            } else null
-        }
-        ConfigType.EXTRA -> {
-            when ((value as? PyStringLiteralExpression)?.stringValue) {
-                "allow" -> EXTRA.ALLOW
-                "ignore" -> EXTRA.IGNORE
-                "forbid" -> EXTRA.FORBID
-                else -> EXTRA.IGNORE
-            }
-        }
-        else -> null
-    }
-}
-
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
         val targetExpression = getResolvedPsiElements(value, context).firstOrNull() ?: return null
@@ -479,52 +448,6 @@ fun validateConfig(pyClass: PyClass, context: TypeEvalContext): List<PsiElement>
 }
 
 
-fun getConfigDict(
-    pyClass: PyClass,
-    context: TypeEvalContext,
-    setDefault: Boolean,
-    pydanticVersion: KotlinVersion? = null,
-): HashMap<String, Any?> {
-    val config = hashMapOf<String, Any?>()
-    val version = pydanticVersion ?: PydanticCacheService.getVersion(pyClass.project)
-    getAncestorPydanticModels(pyClass, false, context)
-        .reversed()
-        .map { getConfig(it, context, false, version) }
-        .forEach {
-            it.entries.forEach { entry ->
-                if (entry.value != null) {
-                    config[entry.key] = getConfigValue(entry.key, entry.value, context)
-                }
-            }
-        }
-    pyClass.nestedClasses.firstOrNull { it.isConfigClass }?.let {
-        it.classAttributes.forEach { attribute ->
-            attribute.findAssignedValue()?.let { value ->
-                attribute.name?.let { name ->
-                    config[name] = getConfigValue(name, value, context)
-                }
-            }
-        }
-    }
-
-    if (version?.isAtLeast(1, 8) == true) {
-        pyClass.superClassExpressions.filterIsInstance<PyKeywordArgument>().forEach {
-            it.name?.let { name ->
-                config[name] = getConfigValue(name, it.valueExpression, context)
-            }
-        }
-    }
-
-    if (setDefault) {
-        DEFAULT_CONFIG.forEach { (key, value) ->
-            if (!config.containsKey(key)) {
-                config[key] = getConfigValue(key, value, context)
-            }
-        }
-    }
-    return config
-}
-
 fun getConfig(
     pyClass: PyClass,
     context: TypeEvalContext,
@@ -543,6 +466,31 @@ fun getConfig(
                 }
             }
         }
+    if (version?.isAtLeast(2, 0) == true) {
+        val configDict = pyClass.findClassAttribute(MODEL_CONFIG_FIELD, false, context)?.findAssignedValue().let {
+            when (it) {
+                is PyReferenceExpression -> {
+                    val targetExpression = getResolvedPsiElements(it, context).firstOrNull() ?: return@let null
+                    (targetExpression as? PyTargetExpression)?.findAssignedValue() ?: return@let null
+                }
+                else -> it
+            }
+        }
+        when (configDict) {
+            is PyDictLiteralExpression -> configDict.elements.forEach { element ->
+                    element.key.text.drop(1).dropLast(1).let { name ->
+                        config[name] = getConfigValue(name, element.value, context)
+                    }
+                }
+            is PyCallExpression -> configDict.arguments.forEach { argument ->
+                    argument.name?.let {name ->
+                        configDict.getKeywordArgument(name)?.let { value ->
+                            config[name] = getConfigValue(name, value, context)
+                        }
+                    }
+                }
+        }
+    }
     pyClass.nestedClasses.firstOrNull { it.isConfigClass }?.let {
         it.classAttributes.forEach { attribute ->
             attribute.findAssignedValue()?.let { value ->
