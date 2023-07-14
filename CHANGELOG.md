@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+- Support pydantic v2 validators for 231 [[#736](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/736)]
+
+## [0.4.3] - 2023-06-26
 - Add error message for root model in v2 [[#696](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/686)]
 - Add official document link [[#697](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/697)]
 
