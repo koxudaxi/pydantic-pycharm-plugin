@@ -164,17 +164,9 @@ val CONFIG_TYPES = mapOf(
     "allow_mutation" to ConfigType.BOOLEAN,
     "frozen" to ConfigType.BOOLEAN,
     "keep_untouched" to ConfigType.LIST_PYTYPE,
-    "extra" to ConfigType.EXTRA
-)
-
-
-val V2_CONFIG_TYPES = mapOf(
-        "allow_population_by_alias" to ConfigType.BOOLEAN,
-        "populate_by_name" to ConfigType.BOOLEAN,
-        "from_attributes" to ConfigType.BOOLEAN,
-        "frozen" to ConfigType.BOOLEAN,
-        "keep_untouched" to ConfigType.LIST_PYTYPE,
-        "extra" to ConfigType.EXTRA
+    "extra" to ConfigType.EXTRA,
+    "populate_by_name" to ConfigType.BOOLEAN,
+    "from_attributes" to ConfigType.BOOLEAN,
 )
 
 const val CUSTOM_ROOT_FIELD = "__root__"
@@ -466,7 +458,7 @@ fun getConfig(
                 }
             }
         }
-    if (version?.isAtLeast(2, 0) == true) {
+    if (version?.isV2 == true) {
         val configDict = pyClass.findClassAttribute(MODEL_CONFIG_FIELD, false, context)?.findAssignedValue().let {
             when (it) {
                 is PyReferenceExpression -> {
@@ -510,10 +502,18 @@ fun getConfig(
     }
 
     if (setDefault) {
-        DEFAULT_CONFIG.forEach { (key, value) ->
-            if (!config.containsKey(key)) {
-                config[key] = getConfigValue(key, value, context)
+        if (version?.isV2 == true) {
+            PydanticCacheService.getConfigDictDefaults(pyClass.project, context)
+                ?.filterNot { config.containsKey(it.key) }
+                ?.forEach { (name, value) ->
+                    config[name] = value
+                }
             }
+        } else {
+            DEFAULT_CONFIG.forEach { (key, value) ->
+                if (!config.containsKey(key)) {
+                    config[key] = getConfigValue(key, value, context)
+                }
         }
     }
     return config

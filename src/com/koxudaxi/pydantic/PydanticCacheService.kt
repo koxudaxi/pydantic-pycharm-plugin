@@ -7,6 +7,16 @@ import com.jetbrains.python.sdk.pythonSdk
 class PydanticCacheService(val project: Project) {
     private var version: KotlinVersion? = null
     private var allowedConfigKwargs: Set<String>? = null
+    private var configDictDefaults: Map<String, Any?>? = null
+
+    private fun getConfigDictDefaults(project: Project, context: TypeEvalContext): Map<String, Any?>? {
+        val configDictDefaults = getPydanticConfigDictDefaults(project, context) ?: return null
+        return configDictDefaults.arguments.filter { CONFIG_TYPES.containsKey(it.name) }
+            .mapNotNull {
+                val name = it.name ?: return@mapNotNull null
+                name to getConfigValue(name, configDictDefaults.getKeywordArgument(name), context)
+            }.toMap()
+    }
 
     private fun getAllowedConfigKwargs(context: TypeEvalContext): Set<String>? {
         val baseConfigAttributes = when {
@@ -51,6 +61,11 @@ class PydanticCacheService(val project: Project) {
         return getAllowedConfigKwargs(context).apply { allowedConfigKwargs = this }
     }
 
+    private fun getOrConfigDictDefaults(project: Project, context: TypeEvalContext): Map<String, Any?>? {
+        if ( configDictDefaults != null) return configDictDefaults
+        return getConfigDictDefaults(project, context).apply { configDictDefaults = this }
+    }
+
     private fun clear() {
         version = null
         allowedConfigKwargs = null
@@ -72,6 +87,10 @@ class PydanticCacheService(val project: Project) {
 
         fun getAllowedConfigKwargs(project: Project, context: TypeEvalContext): Set<String>? {
             return getInstance(project).getOrAllowedConfigKwargs(context)
+        }
+
+        fun getConfigDictDefaults(project: Project, context: TypeEvalContext): Map<String, Any?>? {
+            return getInstance(project).getConfigDictDefaults(project, context)
         }
 
         fun clear(project: Project) {
