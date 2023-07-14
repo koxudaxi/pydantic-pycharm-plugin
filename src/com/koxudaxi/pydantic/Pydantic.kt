@@ -398,7 +398,7 @@ fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Bool
     return getQualifiedName(annotationValue, context) != CLASSVAR_Q_NAME
 }
 
-fun String.isValidFieldName(isV2: Boolean): Boolean = !startsWith('_') || this == CUSTOM_ROOT_FIELD || (isV2 && !this.startsWith(MODEL_FIELD_PREFIX))
+fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this.startsWith(MODEL_FIELD_PREFIX))
 
 fun getConfigDict(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
