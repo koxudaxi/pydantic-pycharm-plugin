@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Support pydantic v2 validators for 232 [[#737](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/737)]
 
 ## [0.4.3-232] - 2023-06-26
 - Support Kotlin 1.8.20 [[#719](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/719)]
