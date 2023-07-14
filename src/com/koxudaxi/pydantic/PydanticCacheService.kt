@@ -9,14 +9,13 @@ class PydanticCacheService(val project: Project) {
     private var allowedConfigKwargs: Set<String>? = null
 
     private fun getAllowedConfigKwargs(context: TypeEvalContext): Set<String>? {
-        val baseConfig = when {
-            isV2 -> getPydanticConfigDict(project, context)
-            else -> getPydanticBaseConfig(project, context)
+        val baseConfigAttributes = when {
+            isV2 -> getPydanticConfigDictDefaults(project, context)?.arguments?.mapNotNull { it.name }
+            else -> { getPydanticBaseConfig(project, context)?.classAttributes?.mapNotNull { it.name } }
         } ?: return null
-        return baseConfig.classAttributes
-            .mapNotNull { it.name }
-            .filterNot { it.startsWith("__") && it.endsWith("__") }
-            .toSet()
+        return baseConfigAttributes
+                .filterNot { it.startsWith("__") && it.endsWith("__") }
+                .toSet()
     }
     private fun getVersion(): KotlinVersion? {
         val sdk = project.pythonSdk ?: return null
