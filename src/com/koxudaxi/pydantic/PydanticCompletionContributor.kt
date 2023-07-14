@@ -117,7 +117,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             getClassVariables(pyClass, typeEvalContext)
                 .filter { it.name != null }
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext) }
+                .filter { isValidField(it, typeEvalContext, pydanticVersion.isV2) }
                 .filter { !isDataclass || isInInit(it) }
                 .forEach {
                     val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion, config, withEqual)
@@ -198,7 +198,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             if (!isPydanticModel(pyClass, true, typeEvalContext)) return
 
             val fieldElements: HashSet<String> = HashSet()
-
+            val isV2 = PydanticCacheService.getVersion(pyClass.project).isV2
             getAncestorPydanticModels(pyClass, true, typeEvalContext)
                 .forEach {
                     fieldElements.addAll(it.classAttributes
@@ -208,7 +208,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                                 typeEvalContext)
                         }
                         .filter { attribute ->
-                            isValidField(attribute, typeEvalContext)
+                            isValidField(attribute, typeEvalContext, isV2)
                         }
                         .mapNotNull { attribute -> attribute?.name })
                 }
@@ -217,7 +217,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             fieldElements.addAll(pyClass.classAttributes
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext) }
+                .filter { isValidField(it, typeEvalContext, isV2) }
                 .mapNotNull { attribute -> attribute?.name })
 
             result.runRemainingContributors(parameters)

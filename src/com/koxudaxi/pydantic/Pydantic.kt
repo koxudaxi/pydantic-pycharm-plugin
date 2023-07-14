@@ -179,6 +179,8 @@ val V2_CONFIG_TYPES = mapOf(
 
 const val CUSTOM_ROOT_FIELD = "__root__"
 
+const val MODEL_FIELD_PREFIX = "model_"
+
 fun PyTypedElement.getType(context: TypeEvalContext): PyType? = context.getType(this)
 
 
@@ -388,15 +390,15 @@ fun getPsiElementByQualifiedName(
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
 }
 
-fun isValidField(field: PyTargetExpression, context: TypeEvalContext): Boolean {
-    if (field.name?.isValidFieldName != true) return false
+fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Boolean): Boolean {
+    if (field.name?.isValidFieldName(isV2) != true) return false
 
     val annotationValue = field.annotation?.value ?: return true
     // TODO Support a variable.
     return getQualifiedName(annotationValue, context) != CLASSVAR_Q_NAME
 }
 
-val String.isValidFieldName: Boolean get() = !startsWith('_') || this == CUSTOM_ROOT_FIELD
+fun String.isValidFieldName(isV2: Boolean): Boolean = !startsWith('_') || this == CUSTOM_ROOT_FIELD || (isV2 && !this.startsWith(MODEL_FIELD_PREFIX))
 
 fun getConfigDict(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
