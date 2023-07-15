@@ -47,3 +47,14 @@ G.abc.lower()
 class H:
     model_config = ConfigDict(frozen=True)
 H.abc = '123'
+
+config_dict = ConfigDict(frozen=True)
+class I(BaseModel):
+    model_config = config_dict
+I.abc = '456'
+<error descr="Property \"abc\" defined in \"I\" is read-only">I().abc = '456'</error>
+
+class J(BaseModel):
+    model_config = {'frozen': True}
+J.abc = '456'
+<error descr="Property \"abc\" defined in \"J\" is read-only">J().abc = '456'</error>
