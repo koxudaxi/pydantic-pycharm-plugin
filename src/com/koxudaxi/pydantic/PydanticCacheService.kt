@@ -69,6 +69,7 @@ class PydanticCacheService(val project: Project) {
     private fun clear() {
         version = null
         allowedConfigKwargs = null
+        configDictDefaults = null
     }
 
     internal val isV2 get() =  this.getOrPutVersion().isV2
