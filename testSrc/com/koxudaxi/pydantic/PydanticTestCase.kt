@@ -82,7 +82,13 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
                 .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
             libDir.createChildDirectory(null, PyNames.SITE_PACKAGES)
         }
-        PydanticCacheService.setVersion(myFixture!!.project, version.split("v")[1])
+        val parsedVersion = version.split("v")[1].let {
+            when (it) {
+                "18" -> "1.8"
+                else -> it
+            }
+        }
+        PydanticCacheService.setVersion(myFixture!!.project, parsedVersion)
         setLanguageLevel(defaultPythonLanguageLevel)
         InspectionProfileImpl.INIT_INSPECTIONS = true;
     }

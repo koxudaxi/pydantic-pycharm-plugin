@@ -182,7 +182,7 @@ class PydanticInspection : PyInspection() {
                 .flatMap { pydanticModel ->
                     getClassVariables(pydanticModel, myTypeEvalContext)
                         .filter { it.name != null }
-                        .filter { isValidField(it, myTypeEvalContext) }
+                        .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2) }
                         .map { it.name }
                 }.toSet()
             pyCallExpression.arguments
@@ -250,7 +250,7 @@ class PydanticInspection : PyInspection() {
         private fun inspectWarnUntypedFields(node: PyAssignmentStatement) {
             if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
             if (node.annotation != null) return
-            if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.isValidFieldName != true) return
+            if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.isValidFieldName(pydanticCacheService.isV2) != true) return
             registerProblem(
                 node,
                 "Untyped fields disallowed", ProblemHighlightType.WARNING

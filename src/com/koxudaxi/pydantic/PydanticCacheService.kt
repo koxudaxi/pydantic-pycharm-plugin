@@ -7,13 +7,25 @@ import com.jetbrains.python.sdk.pythonSdk
 class PydanticCacheService(val project: Project) {
     private var version: KotlinVersion? = null
     private var allowedConfigKwargs: Set<String>? = null
+    private var configDictDefaults: Map<String, Any?>? = null
+
+    private fun getConfigDictDefaults(project: Project, context: TypeEvalContext): Map<String, Any?>? {
+        val configDictDefaults = getPydanticConfigDictDefaults(project, context) ?: return null
+        return configDictDefaults.arguments.filter { CONFIG_TYPES.containsKey(it.name) }
+            .mapNotNull {
+                val name = it.name ?: return@mapNotNull null
+                name to getConfigValue(name, configDictDefaults.getKeywordArgument(name), context)
+            }.toMap()
+    }
 
     private fun getAllowedConfigKwargs(context: TypeEvalContext): Set<String>? {
-        val baseConfig = getPydanticBaseConfig(project, context) ?: return null
-        return baseConfig.classAttributes
-            .mapNotNull { it.name }
-            .filterNot { it.startsWith("__") && it.endsWith("__") }
-            .toSet()
+        val baseConfigAttributes = when {
+            isV2 -> getPydanticConfigDictDefaults(project, context)?.arguments?.mapNotNull { it.name }
+            else -> { getPydanticBaseConfig(project, context)?.classAttributes?.mapNotNull { it.name } }
+        } ?: return null
+        return baseConfigAttributes
+                .filterNot { it.startsWith("__") && it.endsWith("__") }
+                .toSet()
     }
     private fun getVersion(): KotlinVersion? {
         val sdk = project.pythonSdk ?: return null
@@ -49,9 +61,15 @@ class PydanticCacheService(val project: Project) {
         return getAllowedConfigKwargs(context).apply { allowedConfigKwargs = this }
     }
 
+    private fun getOrConfigDictDefaults(project: Project, context: TypeEvalContext): Map<String, Any?>? {
+        if ( configDictDefaults != null) return configDictDefaults
+        return getConfigDictDefaults(project, context).apply { configDictDefaults = this }
+    }
+
     private fun clear() {
         version = null
         allowedConfigKwargs = null
+        configDictDefaults = null
     }
 
     internal val isV2 get() =  this.getOrPutVersion().isV2
@@ -70,6 +88,10 @@ class PydanticCacheService(val project: Project) {
 
         fun getAllowedConfigKwargs(project: Project, context: TypeEvalContext): Set<String>? {
             return getInstance(project).getOrAllowedConfigKwargs(context)
+        }
+
+        fun getConfigDictDefaults(project: Project, context: TypeEvalContext): Map<String, Any?>? {
+            return getInstance(project).getOrConfigDictDefaults(project, context)
         }
 
         fun clear(project: Project) {

@@ -379,7 +379,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 } ?: getPydanticBaseModel(project, context) ?: return null
 
         collected.putAll(keywordArguments
-            .filter { (name, _) -> name.isValidFieldName && !name.startsWith('_') }
+            .filter { (name, _) -> name.isValidFieldName(pydanticVersion.isV2) && !name.startsWith('_') }
             .filter { (name, _) -> (newVersion || name != "model_name") }
             .map { (name, field) ->
                 val parameter = dynamicModelFieldToParameter(field, context, typed)
@@ -544,7 +544,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         typed: Boolean = true,
         isDataclass: Boolean = false,
     ): PyCallableParameter? {
-        if (!isValidField(field, context)) return null
+        if (!isValidField(field, context, pydanticVersion.isV2)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
         val defaultValueFromField =

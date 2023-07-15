@@ -17,4 +17,12 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     fun testValidatorSelf() {
         doTest()
     }
+
+    fun testReadOnlyPropertyFrozenConfig() {
+        doTest()
+    }
+
+    fun testReadOnlyPropertyFrozenConfigDict() {
+        doTest()
+    }
 }
