@@ -402,11 +402,25 @@ class PydanticCompletionContributor : CompletionContributor() {
             result: CompletionResultSet,
         ) {
             val pydanticModel = getPydanticModelByAttribute(parameters.position.parent?.parent, true,  parameters.getTypeEvalContext()) ?: return
-            if (pydanticModel.findNestedClass("Config", false) != null) return
-            val element = PrioritizedLookupElement.withGrouping(
-                LookupElementBuilder
-                    .create("class Config:")
-                    .withIcon(icon), 1)
+            val element = when {
+                PydanticCacheService.getInstance(pydanticModel.project).isV2 -> {
+                    if (pydanticModel.findNestedClass(MODEL_CONFIG_FIELD, false) != null) return
+                    PrioritizedLookupElement.withGrouping(
+                        LookupElementBuilder
+                            .create("$MODEL_CONFIG_FIELD = ConfigDict()").withInsertHandler { context, _ ->
+                                context.editor.caretModel.moveCaretRelatively(-1, 0, false, false, false)
+                            }
+                            .withIcon(icon), 1)
+                    }
+                else -> {
+                    if (pydanticModel.findNestedClass("Config", false) != null) return
+                    PrioritizedLookupElement.withGrouping(
+                        LookupElementBuilder
+                            .create("class Config:")
+                            .withIcon(icon), 1
+                    )
+                }
+            }
             result.addElement(PrioritizedLookupElement.withPriority(element, 100.0))
         }
     }
