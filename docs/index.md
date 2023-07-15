@@ -26,6 +26,9 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 * Insert unfilled arguments with a QuickFix for subclasses of `pydantic.BaseModel`
 * Support typing.Annotated (PEP 593)
 * Regex arguments in `Field` and `constr` are treated as Python's regex string literals
+* Config/ConfigDict support
+ * Auto-completion for Config/ConfigDict
+ * Read Model config such `frozen=True` from Config/ConfigDict
 
 #### pydantic.generics.GenericModel
 * Support same features as `pydantic.BaseModel`
@@ -41,6 +44,11 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 #### [sqlmodel.SQLModel](https://github.com/tiangolo/sqlmodel)
 * Support same features as `pydantic.BaseModel`
   * (This plugin version 0.3.12 or later)
+
+### Supported Pydantic major versions
+- v0
+- v1
+- v2
 
 ## Demo
 ![demo1](demo1.gif)
