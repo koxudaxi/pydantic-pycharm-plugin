@@ -46,6 +46,9 @@ const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
 const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 const val BASE_CONFIG_Q_NAME = "pydantic.main.BaseConfig"
+const val CONFIG_DICT_Q_NAME = "pydantic.config.ConfigDict"
+const val CONFIG_DICT_SHORT_Q_NAME = "pydantic.ConfigDict"
+const val CONFIG_DICT_DEFAULTS_Q_NAME = "pydantic._internal._config.config_defaults"
 const val DATACLASS_MISSING = "dataclasses.MISSING"
 const val CON_BYTES_Q_NAME = "pydantic.types.conbytes"
 const val CON_DECIMAL_Q_NAME = "pydantic.types.condecimal"
@@ -79,6 +82,12 @@ val DATA_CLASS_Q_NAMES = listOf(DATA_CLASS_Q_NAME, DATA_CLASS_SHORT_Q_NAME)
 val VERSION_QUALIFIED_NAME = QualifiedName.fromDottedString(VERSION_Q_NAME)
 
 val BASE_CONFIG_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_CONFIG_Q_NAME)
+
+val CONFIG_DICT_QUALIFIED_NAME = QualifiedName.fromDottedString(CONFIG_DICT_Q_NAME)
+
+val CONFIG_DICT_DEFAULTS_QUALIFIED_NAME = QualifiedName.fromDottedString(CONFIG_DICT_DEFAULTS_Q_NAME)
+
+val CONFIG_DICT_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(CONFIG_DICT_SHORT_Q_NAME)
 
 val BASE_MODEL_QUALIFIED_NAME = QualifiedName.fromDottedString(BASE_MODEL_Q_NAME)
 
@@ -155,10 +164,16 @@ val CONFIG_TYPES = mapOf(
     "allow_mutation" to ConfigType.BOOLEAN,
     "frozen" to ConfigType.BOOLEAN,
     "keep_untouched" to ConfigType.LIST_PYTYPE,
-    "extra" to ConfigType.EXTRA
+    "extra" to ConfigType.EXTRA,
+    "populate_by_name" to ConfigType.BOOLEAN,
+    "from_attributes" to ConfigType.BOOLEAN,
 )
 
 const val CUSTOM_ROOT_FIELD = "__root__"
+
+const val MODEL_FIELD_PREFIX = "model_"
+
+const val MODEL_CONFIG_FIELD = "model_config"
 
 fun PyTypedElement.getType(context: TypeEvalContext): PyType? = context.getType(this)
 
@@ -369,16 +384,15 @@ fun getPsiElementByQualifiedName(
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
 }
 
-fun isValidField(field: PyTargetExpression, context: TypeEvalContext): Boolean {
-    if (field.name?.isValidFieldName != true) return false
+fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Boolean): Boolean {
+    if (field.name?.isValidFieldName(isV2) != true) return false
 
     val annotationValue = field.annotation?.value ?: return true
     // TODO Support a variable.
     return getQualifiedName(annotationValue, context) != CLASSVAR_Q_NAME
 }
 
-val String.isValidFieldName: Boolean get() = !startsWith('_') || this == CUSTOM_ROOT_FIELD
-
+fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this.startsWith(MODEL_FIELD_PREFIX))
 
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
@@ -425,6 +439,7 @@ fun validateConfig(pyClass: PyClass, context: TypeEvalContext): List<PsiElement>
     return results
 }
 
+
 fun getConfig(
     pyClass: PyClass,
     context: TypeEvalContext,
@@ -443,6 +458,31 @@ fun getConfig(
                 }
             }
         }
+    if (version?.isV2 == true) {
+        val configDict = pyClass.findClassAttribute(MODEL_CONFIG_FIELD, false, context)?.findAssignedValue().let {
+            when (it) {
+                is PyReferenceExpression -> {
+                    val targetExpression = getResolvedPsiElements(it, context).firstOrNull() ?: return@let null
+                    (targetExpression as? PyTargetExpression)?.findAssignedValue() ?: return@let null
+                }
+                else -> it
+            }
+        }
+        when (configDict) {
+            is PyDictLiteralExpression -> configDict.elements.forEach { element ->
+                    element.key.text.drop(1).dropLast(1).let { name ->
+                        config[name] = getConfigValue(name, element.value, context)
+                    }
+                }
+            is PyCallExpression -> configDict.arguments.forEach { argument ->
+                    argument.name?.let {name ->
+                        configDict.getKeywordArgument(name)?.let { value ->
+                            config[name] = getConfigValue(name, value, context)
+                        }
+                    }
+                }
+        }
+    }
     pyClass.nestedClasses.firstOrNull { it.isConfigClass }?.let {
         it.classAttributes.forEach { attribute ->
             attribute.findAssignedValue()?.let { value ->
@@ -462,10 +502,18 @@ fun getConfig(
     }
 
     if (setDefault) {
-        DEFAULT_CONFIG.forEach { (key, value) ->
-            if (!config.containsKey(key)) {
-                config[key] = getConfigValue(key, value, context)
+        if (version?.isV2 == true) {
+            PydanticCacheService.getConfigDictDefaults(pyClass.project, context)
+                ?.filterNot { config.containsKey(it.key) }
+                ?.forEach { (name, value) ->
+                    config[name] = value
+                }
             }
+        } else {
+            DEFAULT_CONFIG.forEach { (key, value) ->
+                if (!config.containsKey(key)) {
+                    config[key] = getConfigValue(key, value, context)
+                }
         }
     }
     return config
@@ -495,17 +543,29 @@ fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? 
     return getPyClassFromQualifiedName(BASE_CONFIG_QUALIFIED_NAME, project, context)
 }
 
+fun getPydanticConfigDictDefaults(project: Project, context: TypeEvalContext): PyCallExpression? {
+    val targetExpression = getPyTargetExpressionFromQualifiedName(CONFIG_DICT_DEFAULTS_QUALIFIED_NAME, project, context) ?: return null
+    return targetExpression.findAssignedValue() as? PyCallExpression
+}
+
 fun getPydanticBaseModel(project: Project, context: TypeEvalContext): PyClass? {
     return getPyClassFromQualifiedName(BASE_MODEL_QUALIFIED_NAME, project, context)
 }
 
-fun getPyClassFromQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PyClass? {
+fun getPsiElementFromQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PsiElement? {
     val module = project.modules.firstOrNull() ?: return null
     val pythonSdk = module.pythonSdk
     val contextAnchor = ModuleBasedContextAnchor(module)
-    return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context)) as? PyClass
+    return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
 }
 
+fun getPyClassFromQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PyClass? {
+    return getPsiElementFromQualifiedName(qualifiedName, project, context) as? PyClass
+}
+
+fun getPyTargetExpressionFromQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PyTargetExpression? {
+    return getPsiElementFromQualifiedName(qualifiedName, project, context) as? PyTargetExpression
+}
 fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
     return pyPsiElement?.parent?.parent as? PyClass
 }
