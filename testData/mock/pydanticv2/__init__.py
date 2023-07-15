@@ -19,6 +19,7 @@ from .main import *
 from .networks import *
 from .tools import *
 from .types import *
+from .config import ConfigDict
 from .version import VERSION
 
 __version__ = VERSION
