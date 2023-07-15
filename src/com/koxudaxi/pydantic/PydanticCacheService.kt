@@ -90,7 +90,7 @@ class PydanticCacheService(val project: Project) {
         }
 
         fun getConfigDictDefaults(project: Project, context: TypeEvalContext): Map<String, Any?>? {
-            return getInstance(project).getConfigDictDefaults(project, context)
+            return getInstance(project).getOrConfigDictDefaults(project, context)
         }
 
         fun clear(project: Project) {
