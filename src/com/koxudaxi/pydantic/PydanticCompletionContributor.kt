@@ -401,10 +401,11 @@ class PydanticCompletionContributor : CompletionContributor() {
             context: ProcessingContext,
             result: CompletionResultSet,
         ) {
-            val pydanticModel = getPydanticModelByAttribute(parameters.position.parent?.parent, true,  parameters.getTypeEvalContext()) ?: return
+            val typeEvalContext = parameters.getTypeEvalContext()
+            val pydanticModel = getPydanticModelByAttribute(parameters.position.parent?.parent, true,  typeEvalContext) ?: return
             val element = when {
                 PydanticCacheService.getInstance(pydanticModel.project).isV2 -> {
-                    if (pydanticModel.findNestedClass(MODEL_CONFIG_FIELD, false) != null) return
+                    if (pydanticModel.findClassAttribute(MODEL_CONFIG_FIELD, false, typeEvalContext) != null) return
                     PrioritizedLookupElement.withGrouping(
                         LookupElementBuilder
                             .create("$MODEL_CONFIG_FIELD = ConfigDict()").withInsertHandler { context, _ ->
