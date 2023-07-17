@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+- Add migration guide url for 231 [[#750](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/750)]
+- Update v2 external document url for 231 [[#748](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/748)]
+- Support ConfigDict for 231 [[#738](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/738)]
+
+## [0.4.4] - 2023-07-14
 - Support pydantic v2 validators for 231 [[#736](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/736)]
 
 ## [0.4.3] - 2023-06-26
