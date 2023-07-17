@@ -94,6 +94,31 @@ class PydanticInspection : PyInspection() {
             inspectDefaultFactory(node)
         }
 
+        override fun visitPyReferenceExpression(node: PyReferenceExpression) {
+            if(!pydanticCacheService.isV2) return
+            val pyFunction = node.reference.resolve() as? PyFunction ?: return
+
+            val qualifiedName = (pyFunction as? PyQualifiedNameOwner)?.qualifiedName ?: return
+            if (!qualifiedName.startsWith("pydantic.")) return
+            if (!isPydanticDeprecatedSince20(pyFunction)) return
+            registerProblem(
+                node.nameElement?.psi ?: node,
+                 "<html><body>" +
+                         "Pydantic V2 Migration Guide: " +
+                         "<a href=\"https://docs.pydantic.dev/dev-v2/migration/\">" +
+                         "https://docs.pydantic.dev/dev-v2/migration/" +
+                         "</a>" +
+                         "</body></html>",
+                ProblemHighlightType.LIKE_DEPRECATED
+            )
+
+        }
+        private fun isPydanticDeprecatedSince20(pyFunction: PyFunction): Boolean =
+            pyFunction.statementList.statements.filterIsInstance<PyExpressionStatement>()
+                .mapNotNull { (it.expression as? PyCallExpression)?.getArgument(1, PyReferenceExpression::class.java) }
+                .any { (it.reference.resolve() as? PyTargetExpression)?.findAssignedValue()?.name == "PydanticDeprecatedSince20" }
+
+
         private fun inspectCustomRootFieldV2(pyClass: PyClass) {
             if (getRootField(pyClass) == null) return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return

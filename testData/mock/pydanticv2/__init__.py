@@ -21,5 +21,6 @@ from .tools import *
 from .types import *
 from .config import ConfigDict
 from .version import VERSION
+from .deprecated import validator, root_validator
 
 __version__ = VERSION
