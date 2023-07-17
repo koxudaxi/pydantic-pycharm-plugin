@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.5] - 2023-07-17
 - Add migration guide url for 231 [[#750](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/750)]
 - Update v2 external document url for 231 [[#748](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/748)]
 - Support ConfigDict for 231 [[#738](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/738)]
@@ -413,7 +415,10 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2-231...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.5...HEAD
+[0.4.5]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.4...v0.4.5
+[0.4.4]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.3...v0.4.4
+[0.4.3]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2-231...v0.4.3
 [0.4.2]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.1-231...v0.4.2
 [0.4.2-231]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2...v0.4.2-231
 [0.4.1-231]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.0...v0.4.1-231
