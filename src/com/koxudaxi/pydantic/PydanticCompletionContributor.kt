@@ -12,7 +12,6 @@ import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHint
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.PyGenericType
 import com.jetbrains.python.psi.types.PyType
@@ -60,7 +59,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                 PyStatementList::class.java,
                 PyClass::class.java,
                 ),
-            validatorFieldCompletionProvider)
+            ValidatorFieldCompletionProvider)
     }
 
     private abstract class PydanticCompletionProvider : CompletionProvider<CompletionParameters>() {
@@ -435,7 +434,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
     }
 
-    private object validatorFieldCompletionProvider : PydanticConfigCompletionProvider() {
+    private object ValidatorFieldCompletionProvider : PydanticConfigCompletionProvider() {
 
         override val icon: Icon = AllIcons.Nodes.Field
 
