@@ -5,6 +5,7 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.PyTokenTypes
@@ -48,6 +49,18 @@ class PydanticCompletionContributor : CompletionContributor() {
                 PyStatementList::class.java,
                 PyClass::class.java),
             ConfigClassCompletionProvider)
+        extend(CompletionType.BASIC,
+            psiElement(PyTokenTypes.SINGLE_QUOTED_STRING).withParents(
+                PyStringLiteralExpression::class.java,
+                PyArgumentList::class.java,
+                PyCallExpression::class.java,
+                PyDecorator::class.java,
+                PyDecoratorList::class.java,
+                PyFunction::class.java,
+                PyStatementList::class.java,
+                PyClass::class.java,
+                ),
+            validatorCompletionProvider)
     }
 
     private abstract class PydanticCompletionProvider : CompletionProvider<CompletionParameters>() {
@@ -423,6 +436,49 @@ class PydanticCompletionContributor : CompletionContributor() {
                 }
             }
             result.addElement(PrioritizedLookupElement.withPriority(element, 100.0))
+        }
+    }
+
+    private object validatorCompletionProvider : PydanticConfigCompletionProvider() {
+
+        override val icon: Icon = AllIcons.Nodes.Field
+
+        override fun addCompletions(
+            parameters: CompletionParameters,
+            context: ProcessingContext,
+            result: CompletionResultSet,
+        ) {
+            val typeEvalContext = parameters.getTypeEvalContext()
+            val  pyClass = PsiTreeUtil.getParentOfType(parameters.position, PyClass::class.java) ?: return
+            val includeDataclass = true
+            if (!isPydanticModel(pyClass, includeDataclass, typeEvalContext)) return
+
+            val pyCallExpression = PsiTreeUtil.getParentOfType(parameters.position, PyCallExpression::class.java) ?: return
+            val pyFunction = pyCallExpression.callee?.reference?.resolve() as? PyFunction ?: return
+            if (pyFunction.qualifiedName !in FIELD_VALIDATOR_Q_NAMES) return
+
+            val isV2 = PydanticCacheService(pyClass.project).isV2
+            val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
+
+            getClassVariables(pyClass, typeEvalContext)
+                .filter { it.name != null }
+//                .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
+                .filter { isValidField(it, typeEvalContext, isV2) }
+//                .filter { !isDataclass || isInInit(it) }
+                .forEach {
+                    val elementName = it.name!!
+                    val assignedValue = it.findAssignedValue()!!
+//                    if (excludes == null || !excludes.contains(elementName)) {
+                        val element = PrioritizedLookupElement.withGrouping(
+                            LookupElementBuilder
+                                .createWithSmartPointer(elementName, it)
+//                                .withTypeText(configClass.name)
+                                .withIcon(icon), 1)
+                        newElements[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+//                    }
+                }
+            result.runRemainingContributors(parameters, false)
+            result.addAllElements(newElements.values)
         }
     }
 
