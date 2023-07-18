@@ -16,6 +16,7 @@ import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.packaging.PyPackageManagers
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
@@ -761,3 +762,9 @@ val KotlinVersion?.isV2: Boolean
 val Sdk.pydanticVersion: String?
     get() = PyPackageManagers.getInstance()
         .forSdk(this).packages?.find { it.name == "pydantic" }?.version
+
+internal fun isInInit(field: PyTargetExpression): Boolean {
+    val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true
+    val initValue = assignedValue.getKeywordArgument("init") ?: return true
+    return PyEvaluator.evaluateAsBoolean(initValue, true)
+}

@@ -60,7 +60,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                 PyStatementList::class.java,
                 PyClass::class.java,
                 ),
-            validatorCompletionProvider)
+            validatorFieldCompletionProvider)
     }
 
     private abstract class PydanticCompletionProvider : CompletionProvider<CompletionParameters>() {
@@ -110,11 +110,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                 .let { typeHint -> "${typeHint}$defaultValue ${pyClass.name}" }
         }
 
-        private fun isInInit(field: PyTargetExpression): Boolean {
-            val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true
-            val initValue = assignedValue.getKeywordArgument("init") ?: return true
-            return PyEvaluator.evaluateAsBoolean(initValue, true)
-        }
+
 
         private fun addFieldElement(
             pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
@@ -439,44 +435,59 @@ class PydanticCompletionContributor : CompletionContributor() {
         }
     }
 
-    private object validatorCompletionProvider : PydanticConfigCompletionProvider() {
+    private object validatorFieldCompletionProvider : PydanticConfigCompletionProvider() {
 
         override val icon: Icon = AllIcons.Nodes.Field
 
+        private fun addFieldCompletions(
+            pyClass: PyClass, typeEvalContext: TypeEvalContext, config: HashMap<String, Any?>, isV2: Boolean, isDataclass: Boolean, excludes: HashSet<String>, newElements: LinkedHashMap<String, LookupElement>) {
+
+            getClassVariables(pyClass, typeEvalContext)
+                .filter { it.name != null }
+                .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
+                .filter { isValidField(it, typeEvalContext, isV2) }
+                .filter { !isDataclass || isInInit(it) }
+                .forEach {
+                    val elementName = it.name!!
+                    if (!excludes.contains(elementName)) {
+                        val element = PrioritizedLookupElement.withGrouping(
+                            LookupElementBuilder
+                                .createWithSmartPointer(elementName, it)
+                                .withTypeText(it.containingClass?.name)
+                                .withIcon(icon), 1)
+                        newElements[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+                    }
+                }
+
+        }
         override fun addCompletions(
             parameters: CompletionParameters,
             context: ProcessingContext,
             result: CompletionResultSet,
         ) {
             val typeEvalContext = parameters.getTypeEvalContext()
-            val  pyClass = PsiTreeUtil.getParentOfType(parameters.position, PyClass::class.java) ?: return
-            val includeDataclass = true
-            if (!isPydanticModel(pyClass, includeDataclass, typeEvalContext)) return
 
             val pyCallExpression = PsiTreeUtil.getParentOfType(parameters.position, PyCallExpression::class.java) ?: return
             val pyFunction = pyCallExpression.callee?.reference?.resolve() as? PyFunction ?: return
             if (pyFunction.qualifiedName !in FIELD_VALIDATOR_Q_NAMES) return
 
-            val isV2 = PydanticCacheService(pyClass.project).isV2
+
+            val isV2 = PydanticCacheService(pyFunction.project).isV2
             val newElements: LinkedHashMap<String, LookupElement> = LinkedHashMap()
 
-            getClassVariables(pyClass, typeEvalContext)
-                .filter { it.name != null }
-//                .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext, isV2) }
-//                .filter { !isDataclass || isInInit(it) }
-                .forEach {
-                    val elementName = it.name!!
-                    val assignedValue = it.findAssignedValue()!!
-//                    if (excludes == null || !excludes.contains(elementName)) {
-                        val element = PrioritizedLookupElement.withGrouping(
-                            LookupElementBuilder
-                                .createWithSmartPointer(elementName, it)
-//                                .withTypeText(configClass.name)
-                                .withIcon(icon), 1)
-                        newElements[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
-//                    }
-                }
+            val pyClass = PsiTreeUtil.getParentOfType(parameters.position, PyClass::class.java) ?: return
+            val isDataclass = pyClass.isPydanticDataclass
+            val config = getConfig(pyClass, typeEvalContext, true)
+            val definedSet = pyCallExpression.arguments
+                .filterIsInstance<PyStringLiteralExpression>()
+                .filterNot { it == parameters.position.parent }
+                .map { it.stringValue }
+                .toHashSet()
+
+            getAncestorPydanticModels(pyClass, isDataclass, typeEvalContext).reversed().forEach {
+                addFieldCompletions(it, typeEvalContext, config, isV2, isDataclass, definedSet, newElements)
+            }
+            addFieldCompletions(pyClass, typeEvalContext, config, isV2, isDataclass, definedSet, newElements)
             result.runRemainingContributors(parameters, false)
             result.addAllElements(newElements.values)
         }
