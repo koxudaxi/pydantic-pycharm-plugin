@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.4.5-232] - 2023-07-17
+- Add migration guide url for 232 [[#752](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/752)]
+- Update v2 external document url for 232 [[#749](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/749)]
+- Support ConfigDict for 232 [[#747](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/747)]
+
+## [0.4.4-232] - 2023-07-14
+- Support pydantic v2 validators for 232 [[#737](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/737)]
+
 ## [0.4.3-232] - 2023-06-26
 - Support Kotlin 1.8.20 [[#719](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/719)]
 - Update build.yml [[#724](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/724)]
@@ -414,7 +422,9 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.3-232...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.5-232...HEAD
+[0.4.5-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.4-232...v0.4.5-232
+[0.4.4-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.3-232...v0.4.4-232
 [0.4.3]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2-231...v0.4.3
 [0.4.3-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.3...v0.4.3-232
 [0.4.2]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.1-231...v0.4.2

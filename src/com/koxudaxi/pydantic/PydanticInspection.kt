@@ -35,7 +35,7 @@ class PydanticInspection : PyInspection() {
             super.visitPyFunction(node)
 
             if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
-            if (!node.isValidatorMethod) return
+            if (!node.isValidatorMethod(pydanticCacheService.getOrPutVersion())) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
@@ -87,12 +87,37 @@ class PydanticInspection : PyInspection() {
         override fun visitPyClass(node: PyClass) {
             super.visitPyClass(node)
 
-            if(pydanticCacheService.isV2(myTypeEvalContext)) {
+            if(pydanticCacheService.isV2) {
                 inspectCustomRootFieldV2(node)
             }
             inspectConfig(node)
             inspectDefaultFactory(node)
         }
+
+        override fun visitPyReferenceExpression(node: PyReferenceExpression) {
+            if(!pydanticCacheService.isV2) return
+            val pyFunction = node.reference.resolve() as? PyFunction ?: return
+
+            val qualifiedName = (pyFunction as? PyQualifiedNameOwner)?.qualifiedName ?: return
+            if (!qualifiedName.startsWith("pydantic.")) return
+            if (!isPydanticDeprecatedSince20(pyFunction)) return
+            registerProblem(
+                node.nameElement?.psi ?: node,
+                 "<html><body>" +
+                         "Pydantic V2 Migration Guide: " +
+                         "<a href=\"https://docs.pydantic.dev/dev-v2/migration/\">" +
+                         "https://docs.pydantic.dev/dev-v2/migration/" +
+                         "</a>" +
+                         "</body></html>",
+                ProblemHighlightType.LIKE_DEPRECATED
+            )
+
+        }
+        private fun isPydanticDeprecatedSince20(pyFunction: PyFunction): Boolean =
+            pyFunction.statementList.statements.filterIsInstance<PyExpressionStatement>()
+                .mapNotNull { (it.expression as? PyCallExpression)?.getArgument(1, PyReferenceExpression::class.java) }
+                .any { (it.reference.resolve() as? PyTargetExpression)?.findAssignedValue()?.name == "PydanticDeprecatedSince20" }
+
 
         private fun inspectCustomRootFieldV2(pyClass: PyClass) {
             if (getRootField(pyClass) == null) return
@@ -182,7 +207,7 @@ class PydanticInspection : PyInspection() {
                 .flatMap { pydanticModel ->
                     getClassVariables(pydanticModel, myTypeEvalContext)
                         .filter { it.name != null }
-                        .filter { isValidField(it, myTypeEvalContext) }
+                        .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2) }
                         .map { it.name }
                 }.toSet()
             pyCallExpression.arguments
@@ -217,7 +242,7 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectConfig(pyClass: PyClass) {
-            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, myTypeEvalContext)
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
             if (pydanticVersion?.isAtLeast(1, 8) != true) return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             validateConfig(pyClass, myTypeEvalContext)?.forEach {
@@ -237,7 +262,7 @@ class PydanticInspection : PyInspection() {
             val pyClass = pyClassType.pyClass
             val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return
             val config = getConfig(pyClass, myTypeEvalContext, true)
-            val version = PydanticCacheService.getVersion(pyClass.project, myTypeEvalContext)
+            val version = PydanticCacheService.getVersion(pyClass.project)
             if (config["allow_mutation"] == false || (version?.isAtLeast(1, 8) == true && config["frozen"] == true)) {
                 registerProblem(
                     node,
@@ -250,7 +275,7 @@ class PydanticInspection : PyInspection() {
         private fun inspectWarnUntypedFields(node: PyAssignmentStatement) {
             if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
             if (node.annotation != null) return
-            if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.isValidFieldName != true) return
+            if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.isValidFieldName(pydanticCacheService.isV2) != true) return
             registerProblem(
                 node,
                 "Untyped fields disallowed", ProblemHighlightType.WARNING

@@ -7,7 +7,7 @@ from pydantic_core.core_schema import (
     ValidationInfo,
     ValidatorFunctionWrapHandler,
 )
-
+from .field_validator import field_validator, model_validator
 from . import dataclasses
 from .analyzed_type import AnalyzedType
 from .config import BaseConfig, ConfigDict, Extra
@@ -19,6 +19,8 @@ from .main import *
 from .networks import *
 from .tools import *
 from .types import *
+from .config import ConfigDict
 from .version import VERSION
+from .deprecated import validator, root_validator
 
 __version__ = VERSION

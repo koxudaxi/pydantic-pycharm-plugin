@@ -113,11 +113,11 @@ class PydanticCompletionContributor : CompletionContributor() {
             genericTypeMap: Map<PyGenericType, PyType>?,
             withEqual: Boolean
         ) {
-            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project, typeEvalContext)
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
             getClassVariables(pyClass, typeEvalContext)
                 .filter { it.name != null }
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext) }
+                .filter { isValidField(it, typeEvalContext, pydanticVersion.isV2) }
                 .filter { !isDataclass || isInInit(it) }
                 .forEach {
                     val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion, config, withEqual)
@@ -198,7 +198,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             if (!isPydanticModel(pyClass, true, typeEvalContext)) return
 
             val fieldElements: HashSet<String> = HashSet()
-
+            val isV2 = PydanticCacheService.getVersion(pyClass.project).isV2
             getAncestorPydanticModels(pyClass, true, typeEvalContext)
                 .forEach {
                     fieldElements.addAll(it.classAttributes
@@ -208,7 +208,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                                 typeEvalContext)
                         }
                         .filter { attribute ->
-                            isValidField(attribute, typeEvalContext)
+                            isValidField(attribute, typeEvalContext, isV2)
                         }
                         .mapNotNull { attribute -> attribute?.name })
                 }
@@ -217,7 +217,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             fieldElements.addAll(pyClass.classAttributes
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext) }
+                .filter { isValidField(it, typeEvalContext, isV2) }
                 .mapNotNull { attribute -> attribute?.name })
 
             result.runRemainingContributors(parameters)
@@ -401,12 +401,27 @@ class PydanticCompletionContributor : CompletionContributor() {
             context: ProcessingContext,
             result: CompletionResultSet,
         ) {
-            val pydanticModel = getPydanticModelByAttribute(parameters.position.parent?.parent, true,  parameters.getTypeEvalContext()) ?: return
-            if (pydanticModel.findNestedClass("Config", false) != null) return
-            val element = PrioritizedLookupElement.withGrouping(
-                LookupElementBuilder
-                    .create("class Config:")
-                    .withIcon(icon), 1)
+            val typeEvalContext = parameters.getTypeEvalContext()
+            val pydanticModel = getPydanticModelByAttribute(parameters.position.parent?.parent, true,  typeEvalContext) ?: return
+            val element = when {
+                PydanticCacheService.getInstance(pydanticModel.project).isV2 -> {
+                    if (pydanticModel.findClassAttribute(MODEL_CONFIG_FIELD, false, typeEvalContext) != null) return
+                    PrioritizedLookupElement.withGrouping(
+                        LookupElementBuilder
+                            .create("$MODEL_CONFIG_FIELD = ConfigDict()").withInsertHandler { context, _ ->
+                                context.editor.caretModel.moveCaretRelatively(-1, 0, false, false, false)
+                            }
+                            .withIcon(icon), 1)
+                    }
+                else -> {
+                    if (pydanticModel.findNestedClass("Config", false) != null) return
+                    PrioritizedLookupElement.withGrouping(
+                        LookupElementBuilder
+                            .create("class Config:")
+                            .withIcon(icon), 1
+                    )
+                }
+            }
             result.addElement(PrioritizedLookupElement.withPriority(element, 100.0))
         }
     }
