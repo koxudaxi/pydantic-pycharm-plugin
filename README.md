@@ -46,6 +46,9 @@ You can install the stable version on PyCharm's `Marketplace` (Preference -> Plu
 * Config/ConfigDict support
  * Auto-completion for Config/ConfigDict
  * Read Model config such `frozen=True` from Config/ConfigDict
+* validator/field_validator support
+ * Auto-completion for field name arguments of validator/field_validator
+ * respect first argument is `cls` of the method
 
 #### pydantic.generics.GenericModel
 * Support same features as `pydantic.BaseModel`
