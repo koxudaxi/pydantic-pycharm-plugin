@@ -5,6 +5,8 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.*
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.types.TypeEvalContext
+
 class PydanticReferenceContributor : PsiReferenceContributor() {
 
     private object Holder {
@@ -14,7 +16,7 @@ class PydanticReferenceContributor : PsiReferenceContributor() {
                     if (element !is PyStringLiteralExpression) {
                         return false
                     }
-                    return isValidatorField(element)
+                    return isValidatorField(element, TypeEvalContext.userInitiated(element.project, element.containingFile))
                 }
             }
     }

@@ -289,13 +289,13 @@ internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): 
         .any { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr || pyFunction.isCustomModelField }
 }
 
-internal fun isValidatorField(stringLiteralExpression: StringLiteralExpression): Boolean {
+internal fun isValidatorField(stringLiteralExpression: StringLiteralExpression, typeEvalContext: TypeEvalContext): Boolean {
     val pyArgumentList = stringLiteralExpression.parent as? PyArgumentList ?: return false
     val pyCallExpression = pyArgumentList.parent as? PyCallExpression ?: return false
     val pyFunction = pyCallExpression.callee?.reference?.resolve() as? PyFunction ?: return false
     if(pyFunction.qualifiedName !in FIELD_VALIDATOR_Q_NAMES) return false
     val pyClass = PsiTreeUtil.getParentOfType(pyCallExpression, PyClass::class.java) ?: return false
-    return isPydanticModel(pyClass, true, TypeEvalContext.userInitiated(pyClass.project, pyClass.containingFile))
+    return isPydanticModel(pyClass, true, typeEvalContext)
 }
 
 internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
