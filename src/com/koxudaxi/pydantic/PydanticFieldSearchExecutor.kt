@@ -145,6 +145,21 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
                 )
             } != null
     }
+    private fun searchValidator(
+        pyClass: PyClass,
+        elementName: String,
+        consumer: Processor<in PsiReference>,
+        searchScope: SearchScope,
+        context: TypeEvalContext
+    ): Boolean {
+        if (!pyClass.isInScope(searchScope)) return false
+        pyClass.methods
+            .mapNotNull { it.decoratorList?.decorators?.firstOrNull {
+                decorator ->  (decorator.callee?.reference?.resolve() as? PyFunction)?.qualifiedName in FIELD_VALIDATOR_Q_NAMES }}
+            .mapNotNull { it.arguments.filterIsInstance<PyStringLiteralExpression>().firstOrNull { argument -> argument.stringValue == elementName } }
+            .forEach { consumer.process(it.reference) }
+        return true
+    }
 
     private fun searchAllElementReference(
         pyClass: PyClass,
@@ -156,6 +171,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     ) {
         added.add(pyClass)
         searchField(pyClass, elementName, consumer, searchScope, context)
+        searchValidator(pyClass, elementName, consumer, searchScope, context)
         searchKeywordArgument(pyClass, elementName, consumer, searchScope, context)
 
         getAncestorPydanticModels(pyClass, true, context)
