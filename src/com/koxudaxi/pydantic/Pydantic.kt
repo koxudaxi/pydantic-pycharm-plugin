@@ -16,6 +16,7 @@ import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.packaging.PyPackageManagers
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
@@ -31,6 +32,7 @@ const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
 const val DATA_CLASS_SHORT_Q_NAME = "pydantic.dataclass"
 const val VALIDATOR_Q_NAME = "pydantic.class_validators.validator"
 const val VALIDATOR_SHORT_Q_NAME = "pydantic.validator"
+const val VALIDATOR_DECORATOR_Q_NAME = "pydantic.deprecated.class_validators.validator"
 const val ROOT_VALIDATOR_Q_NAME = "pydantic.class_validators.root_validator"
 const val ROOT_VALIDATOR_SHORT_Q_NAME = "pydantic.root_validator"
 const val FIELD_VALIDATOR_Q_NAME = "pydantic.field_validator"
@@ -134,6 +136,14 @@ val V2_VALIDATOR_QUALIFIED_NAMES = listOf(
     FIELD_VALIDATOR_SHORT_QUALIFIED_NAME,
     MODEL_VALIDATOR_QUALIFIED_NAME,
     MODEL_VALIDATOR_SHORT_QUALIFIED_NAME
+)
+
+val FIELD_VALIDATOR_Q_NAMES = listOf(
+    VALIDATOR_Q_NAME,
+    VALIDATOR_SHORT_Q_NAME,
+    VALIDATOR_DECORATOR_Q_NAME,
+    FIELD_VALIDATOR_Q_NAME,
+    FIELD_VALIDATOR_SHORT_Q_NAME
 )
 
 val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
@@ -752,3 +762,9 @@ val KotlinVersion?.isV2: Boolean
 val Sdk.pydanticVersion: String?
     get() = PyPackageManagers.getInstance()
         .forSdk(this).packages?.find { it.name == "pydantic" }?.version
+
+internal fun isInInit(field: PyTargetExpression): Boolean {
+    val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true
+    val initValue = assignedValue.getKeywordArgument("init") ?: return true
+    return PyEvaluator.evaluateAsBoolean(initValue, true)
+}

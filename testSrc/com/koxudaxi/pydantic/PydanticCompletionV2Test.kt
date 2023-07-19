@@ -43,7 +43,7 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "__pydantic_core_schema__ = ",
             "__pydantic_generic_parameters__ = ",
             "__pydantic_parent_namespace__ = "
-            )
+        )
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression || it.psiElement == null
         }.filterNot {
@@ -58,6 +58,21 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
         doFieldTest(
             listOf(
                 "model_config = ConfigDict()" to "null"
+            )
+        )
+    }
+
+    fun testValidatorField() {
+        configureByFile()
+        assertEquals(
+            myFixture!!.completeBasic()
+                .map { it!!.lookupString to LookupElementPresentation.renderElement(it).typeText }.toList(),
+            listOf(
+                "abc" to "A",
+                "cde" to "B",
+                "hij" to "B",
+                "efg" to "C",
+                "klm" to "C"
             )
         )
     }
