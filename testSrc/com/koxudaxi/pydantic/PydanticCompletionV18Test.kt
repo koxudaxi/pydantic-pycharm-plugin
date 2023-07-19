@@ -102,4 +102,19 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
             )
         )
     }
+
+    fun testValidatorField() {
+        configureByFile()
+        assertEquals(
+            myFixture!!.completeBasic()
+                .map { it!!.lookupString to LookupElementPresentation.renderElement(it).typeText }.toList(),
+            listOf(
+                "abc" to "A",
+                "cde" to "B",
+                "hij" to "B",
+                "efg" to "C",
+                "klm" to "C"
+            )
+        )
+    }
 }
