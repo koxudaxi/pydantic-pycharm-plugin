@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+- Associating fields with validator fields for 232 [[#762](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/762)]
+- Add validator field argument completion for 232 [[#758](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/758)]
 
 ## [0.4.5-232] - 2023-07-17
 - Add migration guide url for 232 [[#752](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/752)]
