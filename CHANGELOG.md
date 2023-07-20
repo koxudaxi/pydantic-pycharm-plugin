@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.6-232] - 2023-07-20
 - Associating fields with validator fields for 232 [[#762](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/762)]
 - Add validator field argument completion for 232 [[#758](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/758)]
 
@@ -424,7 +426,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.5-232...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.6-232...HEAD
+[0.4.6-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.5-232...v0.4.6-232
 [0.4.5-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.4-232...v0.4.5-232
 [0.4.4-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.3-232...v0.4.4-232
 [0.4.3]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.2-231...v0.4.3
