@@ -105,6 +105,8 @@ val FIELD_VALIDATOR_QUALIFIED_NAME = QualifiedName.fromDottedString(FIELD_VALIDA
 
 val FIELD_VALIDATOR_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(FIELD_VALIDATOR_SHORT_Q_NAME)
 
+val VALIDATOR_DECORATOR_QUALIFIED_NAME = QualifiedName.fromDottedString(VALIDATOR_DECORATOR_Q_NAME)
+
 val MODEL_VALIDATOR_QUALIFIED_NAME = QualifiedName.fromDottedString(MODEL_VALIDATOR_Q_NAME)
 
 val MODEL_VALIDATOR_SHORT_QUALIFIED_NAME = QualifiedName.fromDottedString(MODEL_VALIDATOR_SHORT_Q_NAME)
@@ -144,6 +146,14 @@ val FIELD_VALIDATOR_Q_NAMES = listOf(
     VALIDATOR_DECORATOR_Q_NAME,
     FIELD_VALIDATOR_Q_NAME,
     FIELD_VALIDATOR_SHORT_Q_NAME
+)
+
+val FIELD_VALIDATOR_QUALIFIED_NAMES = listOf(
+    VALIDATOR_QUALIFIED_NAME,
+    VALIDATOR_SHORT_QUALIFIED_NAME,
+    VALIDATOR_DECORATOR_QUALIFIED_NAME,
+    FIELD_VALIDATOR_QUALIFIED_NAME,
+    FIELD_VALIDATOR_SHORT_QUALIFIED_NAME
 )
 
 val VERSION_SPLIT_PATTERN: Pattern = Pattern.compile("[.a-zA-Z]")!!
@@ -277,6 +287,15 @@ internal fun isPydanticRegex(stringLiteralExpression: StringLiteralExpression): 
     val context = TypeEvalContext.userInitiated(pyCallExpression.project, pyCallExpression.containingFile)
     return pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context)).filterIsInstance<PyFunction>()
         .any { pyFunction -> pyFunction.isPydanticField || pyFunction.isConStr || pyFunction.isCustomModelField }
+}
+
+internal fun isValidatorField(stringLiteralExpression: StringLiteralExpression, typeEvalContext: TypeEvalContext): Boolean {
+    val pyArgumentList = stringLiteralExpression.parent as? PyArgumentList ?: return false
+    val pyCallExpression = pyArgumentList.parent as? PyCallExpression ?: return false
+    val pyFunction = pyCallExpression.callee?.reference?.resolve() as? PyFunction ?: return false
+    if(pyFunction.qualifiedName !in FIELD_VALIDATOR_Q_NAMES) return false
+    val pyClass = PsiTreeUtil.getParentOfType(pyCallExpression, PyClass::class.java) ?: return false
+    return isPydanticModel(pyClass, true, typeEvalContext)
 }
 
 internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {

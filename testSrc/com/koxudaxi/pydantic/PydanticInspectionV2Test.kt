@@ -27,4 +27,8 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     fun testValidators() {
         doTest()
     }
+
+    fun testValidatorField() {
+        doTest()
+    }
 }
