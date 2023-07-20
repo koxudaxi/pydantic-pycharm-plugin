@@ -1,9 +1,12 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.psi.PsiReference
+import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.psi.PyElement
 import com.jetbrains.python.psi.PyFunction
+import com.jetbrains.python.psi.PyStringLiteralExpression
 import com.jetbrains.python.psi.types.TypeEvalContext
+import junit.framework.TestCase
 
 
 open class PydanticIgnoreInspectionTest : PydanticTestCase() {
@@ -19,10 +22,18 @@ open class PydanticIgnoreInspectionTest : PydanticTestCase() {
 
     private fun doIgnoreUnresolvedReference(expected: Boolean) {
         configureByFile()
-        val pyElement = myFixture!!.elementAtCaret as PyElement
-        val psiReference = pyElement.reference as PsiReference
+        val psiElement = myFixture!!.file.findElementAt(myFixture!!.caretOffset)
+        val pyStringLiteralExpression = PsiTreeUtil.getParentOfType(psiElement, PyStringLiteralExpression::class.java) as PyStringLiteralExpression
+        val psiReference = pyStringLiteralExpression.reference
+        if (psiReference == null){
+            assertFalse(expected)
+            return
+        }
         val context = TypeEvalContext.codeInsightFallback(myFixture!!.project)
-        val actual = PydanticIgnoreInspection().ignoreUnresolvedReference(pyElement, psiReference, context)
+        val invalidElement = PydanticIgnoreInspection().ignoreUnresolvedReference(pyStringLiteralExpression.parent as PyElement, psiReference, context)
+        assertFalse(invalidElement)
+
+        val actual = PydanticIgnoreInspection().ignoreUnresolvedReference(pyStringLiteralExpression, psiReference, context)
         assertEquals(expected, actual)
     }
 
