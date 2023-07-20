@@ -11,6 +11,7 @@ import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyCallExpressionImpl
+import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.*
@@ -92,6 +93,31 @@ class PydanticInspection : PyInspection() {
             }
             inspectConfig(node)
             inspectDefaultFactory(node)
+        }
+
+        private fun inspectValidatorField(pyStringLiteralExpression: PyStringLiteralExpression) {
+            if (pyStringLiteralExpression.reference?.resolve() != null) return
+            val pyArgumentList = pyStringLiteralExpression.parent as? PyArgumentList ?: return
+            pyArgumentList.getKeywordArgument("check_fields")?.let { it ->
+                val checkFields = when (val value = it.valueExpression){
+                   is PyReferenceExpression -> (value.reference.resolve() as? PyTargetExpression)?.findAssignedValue()
+                   else -> value
+                }?.let { PyEvaluator.evaluateAsBoolean(it) }
+                // ignore unresolved value
+                if (checkFields != true) return
+            }
+            registerProblem(
+                pyStringLiteralExpression,
+                "Cannot find field '${pyStringLiteralExpression.stringValue}'",
+                ProblemHighlightType.GENERIC_ERROR
+            )
+        }
+        override fun visitPyStringLiteralExpression(node: PyStringLiteralExpression) {
+            super.visitPyStringLiteralExpression(node)
+
+            if (isValidatorField(node, myTypeEvalContext)) {
+                inspectValidatorField(node)
+            }
         }
 
         override fun visitPyReferenceExpression(node: PyReferenceExpression) {
