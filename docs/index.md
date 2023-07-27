@@ -27,8 +27,14 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 * Support typing.Annotated (PEP 593)
 * Regex arguments in `Field` and `constr` are treated as Python's regex string literals
 * Config/ConfigDict support
- * Auto-completion for Config/ConfigDict
- * Read Model config such `frozen=True` from Config/ConfigDict
+  * Auto-completion for Config/ConfigDict
+  * Read Model config such `frozen=True` from Config/ConfigDict
+* validator/field_validator support
+  * respect first argument is `cls` of the method
+  * Auto-completion for field name arguments of validator/field_validator
+  * Associate validator/field_validator with field
+    * Support refactoring/jumping
+    * Validate field name on validator arguments
 
 #### pydantic.generics.GenericModel
 * Support same features as `pydantic.BaseModel`

@@ -26,6 +26,7 @@
         <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer" order="last"/>
         <localInspection language="Python" shortName="PydanticTypeCheckerInspection" suppressId="PydanticTypeChecker" bundle="messages.PyPsiBundle" displayName="Type checker compatible with Pydantic" groupKey="INSP.GROUP.python" enabledByDefault="false"  level="WARNING" implementationClass="com.koxudaxi.pydantic.PydanticTypeCheckerInspection"/>
         <multiHostInjector implementation="com.koxudaxi.pydantic.PydanticRegexInjector"/>
+        <psi.referenceContributor implementation="com.koxudaxi.pydantic.PydanticReferenceContributor"/>
         <lang.inspectionSuppressor language="Python"
                                    implementationClass="com.koxudaxi.pydantic.PydanticTypeIgnoreInspectionSuppressor"/>
     </extensions>
