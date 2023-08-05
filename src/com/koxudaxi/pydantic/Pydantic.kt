@@ -140,6 +140,10 @@ val V2_VALIDATOR_QUALIFIED_NAMES = listOf(
     MODEL_VALIDATOR_SHORT_QUALIFIED_NAME
 )
 
+val MODEL_VALIDATOR_QUALIFIED_NAMES = listOf(
+    MODEL_VALIDATOR_QUALIFIED_NAME,
+    MODEL_VALIDATOR_SHORT_QUALIFIED_NAME
+)
 val FIELD_VALIDATOR_Q_NAMES = listOf(
     VALIDATOR_Q_NAME,
     VALIDATOR_SHORT_Q_NAME,
@@ -241,13 +245,9 @@ internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalCont
 internal val PyClass.isBaseSettings: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME
 
 
-internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean {
-    return pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.any {
-        PyResolveUtil.resolveImportedElementQNameLocally(it).any { decoratorQualifiedName ->
-            refNames.any { refName -> decoratorQualifiedName == refName }
-        }
-    } ?: false
-}
+internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean =
+    pyDecoratable.decoratorList?.decorators?.any {it.include(refNames)} ?: false
+
 
 internal val PyClass.isPydanticDataclass: Boolean get() = hasDecorator(this, DATA_CLASS_QUALIFIED_NAMES)
 
@@ -269,11 +269,27 @@ internal fun isDataclassMissing(pyTargetExpression: PyTargetExpression): Boolean
     return pyTargetExpression.qualifiedName == DATACLASS_MISSING
 }
 
-internal fun PyFunction.isValidatorMethod(pydanticVersion: KotlinVersion?): Boolean =
+internal fun PyFunction.hasValidatorMethod(pydanticVersion: KotlinVersion?): Boolean =
     hasDecorator(this, if(pydanticVersion.isV2) V2_VALIDATOR_QUALIFIED_NAMES else VALIDATOR_QUALIFIED_NAMES)
 
+internal fun PyDecorator.include(refNames: List<QualifiedName>): Boolean = (callee as? PyReferenceExpression)?.let {
+        PyResolveUtil.resolveImportedElementQNameLocally(it).any { decoratorQualifiedName ->
+            refNames.any { refName -> decoratorQualifiedName == refName }
+        }
+} ?: false
 
+internal val PyKeywordArgument.value: PyExpression?
+    get() = when (val value = valueExpression) {
+            is PyReferenceExpression -> (value.reference.resolve() as? PyTargetExpression)?.findAssignedValue()
+            else -> value
+        }
 
+internal fun PyFunction.hasModelValidatorModeAfter(): Boolean = decoratorList?.decorators
+    ?.filter { it.include(MODEL_VALIDATOR_QUALIFIED_NAMES) }
+    ?.any { modelValidator ->
+        modelValidator.argumentList?.getKeywordArgument("mode")
+            ?.let { it.value as? PyStringLiteralExpression }?.stringValue == "after"
+    } ?: false
 internal val PyClass.isConfigClass: Boolean get() = name == "Config"
 
 
