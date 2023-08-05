@@ -51,6 +51,10 @@ class A(BaseModel):
     def validate_c(**kwargs):
         pass
 
+    @field_validator('*')
+    def validate_c(**kwargs):
+        pass
+
     @model_validator('x')
     def validate_model(cls):
         pass

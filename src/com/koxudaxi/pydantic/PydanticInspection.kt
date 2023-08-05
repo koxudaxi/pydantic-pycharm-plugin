@@ -106,9 +106,11 @@ class PydanticInspection : PyInspection() {
                 // ignore unresolved value
                 if (checkFields != true) return
             }
+            val stringValue = pyStringLiteralExpression.stringValue
+            if (stringValue == "*") return
             registerProblem(
                 pyStringLiteralExpression,
-                "Cannot find field '${pyStringLiteralExpression.stringValue}'",
+                "Cannot find field '${stringValue}'",
                 ProblemHighlightType.GENERIC_ERROR
             )
         }

@@ -113,7 +113,8 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
                 "cde" to "B",
                 "hij" to "B",
                 "efg" to "C",
-                "klm" to "C"
+                "klm" to "C",
+                "*" to "C"
             )
         )
     }
