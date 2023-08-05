@@ -31,7 +31,7 @@ class PydanticDocumentationLinkProvider : PythonDocumentationLinkProvider {
         CONFIG_DICT_SHORT_Q_NAME to "https://docs.pydantic.dev/dev-v2/api/config/#pydantic.config.ConfigDict",
     )
 
-    override fun getExternalDocumentationUrl(element: PsiElement, originalElement: PsiElement): String? {
+    override fun getExternalDocumentationUrl(element: PsiElement?, originalElement: PsiElement?): String? {
         val qualifiedName = (element as? PyQualifiedNameOwner)?.qualifiedName ?: return null
         if (!qualifiedName.startsWith("pydantic.")) return null
 
