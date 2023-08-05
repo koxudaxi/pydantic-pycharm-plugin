@@ -36,7 +36,8 @@ class PydanticInspection : PyInspection() {
             super.visitPyFunction(node)
 
             if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
-            if (!node.isValidatorMethod(pydanticCacheService.getOrPutVersion())) return
+            if (!node.hasValidatorMethod(pydanticCacheService.getOrPutVersion())) return
+            if (node.hasModelValidatorModeAfter()) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
@@ -98,13 +99,9 @@ class PydanticInspection : PyInspection() {
         private fun inspectValidatorField(pyStringLiteralExpression: PyStringLiteralExpression) {
             if (pyStringLiteralExpression.reference?.resolve() != null) return
             val pyArgumentList = pyStringLiteralExpression.parent as? PyArgumentList ?: return
-            pyArgumentList.getKeywordArgument("check_fields")?.let { it ->
-                val checkFields = when (val value = it.valueExpression){
-                   is PyReferenceExpression -> (value.reference.resolve() as? PyTargetExpression)?.findAssignedValue()
-                   else -> value
-                }?.let { PyEvaluator.evaluateAsBoolean(it) }
+            pyArgumentList.getKeywordArgument("check_fields")?.let {
                 // ignore unresolved value
-                if (checkFields != true) return
+                if (PyEvaluator.evaluateAsBoolean(it.value)!= true) return
             }
             val stringValue = pyStringLiteralExpression.stringValue
             if (stringValue == "*") return

@@ -55,7 +55,7 @@ class A(BaseModel):
     def validate_c(**kwargs):
         pass
 
-    @model_validator('x')
+    @model_validator(model='before')
     def validate_model(cls):
         pass
 
