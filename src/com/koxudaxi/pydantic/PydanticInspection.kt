@@ -6,6 +6,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
+import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
@@ -311,7 +312,9 @@ class PydanticInspection : PyInspection() {
         private fun inspectCustomRootField(node: PyAssignmentStatement) {
             val pyClass = getPydanticModelByAttribute(node, false, myTypeEvalContext) ?: return
 
-            val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
+            val field = node.leftHandSideExpression as? PyTargetExpression ?: return
+            if (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext)) return
+            val fieldName = field.text ?: return
             if (fieldName.startsWith('_')) return
             val rootModel = getRootField(pyClass)?.containingClass ?: return
             if (!isPydanticModel(rootModel, false, myTypeEvalContext)) return

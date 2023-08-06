@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from pydantic import BaseModel
 
 
@@ -26,4 +28,8 @@ class E:
 def f():
     __root__ = 'xyz'
     g = 'xyz'
+
+class G(BaseModel):
+    ATTRIBUTE_NAME: ClassVar[str] = "testing"
+    __root__ = 'xyz'
 
