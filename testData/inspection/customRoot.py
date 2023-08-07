@@ -13,7 +13,7 @@ class B(BaseModel):
 
 class C(BaseModel):
     __root__ = 'xyz'
-    <warning descr="__root__ cannot be mixed with other fields">b = 'xyz'</warning>
+    <warning descr="__root__ cannot be mixed with other fields">b</warning> = 'xyz'
 
 
 class D(BaseModel):
@@ -32,4 +32,8 @@ def f():
 class G(BaseModel):
     ATTRIBUTE_NAME: ClassVar[str] = "testing"
     __root__ = 'xyz'
+
+class H(BaseModel):
+    __root__ = 'xyz'
+    <warning descr="__root__ cannot be mixed with other fields">b</warning>: str
 

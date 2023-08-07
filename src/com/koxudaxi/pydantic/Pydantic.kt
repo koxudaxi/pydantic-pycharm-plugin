@@ -27,6 +27,7 @@ import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
+const val ROOT_MODEL_Q_NAME = "pydantic.root_model.RootModel"
 const val GENERIC_MODEL_Q_NAME = "pydantic.generics.GenericModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
 const val DATA_CLASS_SHORT_Q_NAME = "pydantic.dataclass"
@@ -232,6 +233,10 @@ internal fun isSubClassOfPydanticGenericModel(pyClass: PyClass, context: TypeEva
 
 internal fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return pyClass.isSubclass(BASE_MODEL_Q_NAME, context)
+}
+
+internal fun isSubClassOfPydanticRootModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
+    return pyClass.isSubclass(ROOT_MODEL_Q_NAME, context)
 }
 
 internal fun isSubClassOfBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean {
