@@ -6,6 +6,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
+import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.inspections.quickfix.RenameParameterQuickFix
@@ -36,7 +37,8 @@ class PydanticInspection : PyInspection() {
             super.visitPyFunction(node)
 
             if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
-            if (!node.isValidatorMethod(pydanticCacheService.getOrPutVersion())) return
+            if (!node.hasValidatorMethod(pydanticCacheService.getOrPutVersion())) return
+            if (node.hasModelValidatorModeAfter()) return
             val paramList = node.parameterList
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
@@ -98,13 +100,9 @@ class PydanticInspection : PyInspection() {
         private fun inspectValidatorField(pyStringLiteralExpression: PyStringLiteralExpression) {
             if (pyStringLiteralExpression.reference?.resolve() != null) return
             val pyArgumentList = pyStringLiteralExpression.parent as? PyArgumentList ?: return
-            pyArgumentList.getKeywordArgument("check_fields")?.let { it ->
-                val checkFields = when (val value = it.valueExpression){
-                   is PyReferenceExpression -> (value.reference.resolve() as? PyTargetExpression)?.findAssignedValue()
-                   else -> value
-                }?.let { PyEvaluator.evaluateAsBoolean(it) }
+            pyArgumentList.getKeywordArgument("check_fields")?.let {
                 // ignore unresolved value
-                if (checkFields != true) return
+                if (PyEvaluator.evaluateAsBoolean(it.value)!= true) return
             }
             val stringValue = pyStringLiteralExpression.stringValue
             if (stringValue == "*") return
@@ -314,7 +312,9 @@ class PydanticInspection : PyInspection() {
         private fun inspectCustomRootField(node: PyAssignmentStatement) {
             val pyClass = getPydanticModelByAttribute(node, false, myTypeEvalContext) ?: return
 
-            val fieldName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.text ?: return
+            val field = node.leftHandSideExpression as? PyTargetExpression ?: return
+            if (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext)) return
+            val fieldName = field.text ?: return
             if (fieldName.startsWith('_')) return
             val rootModel = getRootField(pyClass)?.containingClass ?: return
             if (!isPydanticModel(rootModel, false, myTypeEvalContext)) return

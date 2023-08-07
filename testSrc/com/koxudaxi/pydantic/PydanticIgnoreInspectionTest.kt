@@ -72,4 +72,8 @@ open class PydanticIgnoreInspectionTest : PydanticTestCase() {
     fun testDecoratorField() {
         doIgnoreUnresolvedReference(false)
     }
+
+    fun testValidatorModeAfter() {
+        doIgnoreMethodParametersTest(false)
+    }
 }

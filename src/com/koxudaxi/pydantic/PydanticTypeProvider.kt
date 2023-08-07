@@ -79,8 +79,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 getRefTypeFromFieldName(name, context, pyClass)
             }
 
-            param.isSelf && func.isValidatorMethod(PydanticCacheService.getVersion(func.project)
-                ) -> {
+            param.isSelf && func.hasValidatorMethod(PydanticCacheService.getVersion(func.project)) && !func.hasModelValidatorModeAfter()
+                -> {
                 val pyClass = func.containingClass ?: return null
                 if (!isPydanticModel(pyClass, false, context)) return null
                 context.getType(pyClass)

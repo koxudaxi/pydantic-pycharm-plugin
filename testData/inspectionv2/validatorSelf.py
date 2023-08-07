@@ -36,7 +36,13 @@ class A(BaseModel):
     def validate_model<error descr="Method must have a first parameter, usually called 'cls'">()</error>:
         pass
 
+    @model_validator(mode='after')
+    def validate_model_after(self):
+        pass
 
+    @model_validator(mode='before')
+    def validate_model_before<error descr="Method must have a first parameter, usually called 'cls'">()</error>:
+        pass
     def dummy(self):
         pass
 
