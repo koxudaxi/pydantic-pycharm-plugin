@@ -52,3 +52,6 @@ class H(RootModel):
     root = 'xyz'
     <warning descr="Unexpected field with name b; only 'root' is allowed as a field of a `RootModel`">b</warning>: str
 
+class I(RootModel):
+    <warning descr="Unexpected field with name b; only 'root' is allowed as a field of a `RootModel`">b</warning>: str
+
