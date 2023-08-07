@@ -76,8 +76,8 @@ class PydanticInspection : PyInspection() {
             if (pydanticConfigService.currentWarnUntypedFields) {
                 inspectWarnUntypedFields(node)
             }
-            inspectCustomRootField(node)
             inspectReadOnlyProperty(node)
+            inspectCustomRootField(node)
             inspectAnnotatedAssignedField(node)
         }
 
@@ -85,6 +85,7 @@ class PydanticInspection : PyInspection() {
             super.visitPyTypeDeclarationStatement(node)
 
             inspectAnnotatedField(node)
+            inspectCustomRootField(node)
         }
 
         override fun visitPyClass(node: PyClass) {
@@ -148,6 +149,7 @@ class PydanticInspection : PyInspection() {
         private fun inspectCustomRootFieldV2(pyClass: PyClass) {
             if (getRootField(pyClass) == null) return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            if (isSubClassOfPydanticRootModel(pyClass, myTypeEvalContext)) return
             registerProblem(
                 pyClass.nameNode?.psi,
                 "__root__ models are no longer supported in v2; a migration guide will be added in the near future", ProblemHighlightType.GENERIC_ERROR
@@ -310,18 +312,35 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectCustomRootField(node: PyAssignmentStatement) {
-            val pyClass = getPydanticModelByAttribute(node, false, myTypeEvalContext) ?: return
-
             val field = node.leftHandSideExpression as? PyTargetExpression ?: return
+            inspectCustomRootField(field)
+        }
+        private fun inspectCustomRootField(node: PyTypeDeclarationStatement) {
+            val field = node.target as? PyTargetExpression ?: return
+            inspectCustomRootField(field)
+        }
+        private fun inspectCustomRootField(field: PyTargetExpression) {
+            val pyClass = getPydanticModelByAttribute(field.parent, false, myTypeEvalContext) ?: return
+
             if (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext)) return
             val fieldName = field.text ?: return
+            val isV2 = pydanticCacheService.isV2
+            if (isV2 && fieldName == "__root__") {
+                registerProblem(field, "To define root models, use `pydantic.RootModel` rather than a field called '__root__'", ProblemHighlightType.WARNING)
+                return
+            }
             if (fieldName.startsWith('_')) return
-            val rootModel = getRootField(pyClass)?.containingClass ?: return
-            if (!isPydanticModel(rootModel, false, myTypeEvalContext)) return
-            registerProblem(
-                node,
-                "__root__ cannot be mixed with other fields", ProblemHighlightType.WARNING
-            )
+            val message = when {
+                isV2 -> {
+                    if (!isSubClassOfPydanticRootModel(pyClass, myTypeEvalContext)) return
+                    "Unexpected field with name ${fieldName}; only 'root' is allowed as a field of a `RootModel`"
+                }
+                else -> {
+                    if (getRootField(pyClass) == null ) return
+                    "__root__ cannot be mixed with other fields"
+                }
+            }
+            registerProblem(field, message, ProblemHighlightType.WARNING)
         }
 
         private fun validateDefaultAndDefaultFactory(default: PyExpression?, defaultFactory: PyExpression?): Boolean {
@@ -396,6 +415,7 @@ class PydanticInspection : PyInspection() {
         private fun getRootField(pyClass: PyClass): PyTargetExpression? {
             return pyClass.findClassAttribute("__root__", true, myTypeEvalContext)
         }
+
     }
 
 //    override fun createOptionsPanel(): JComponent? {
