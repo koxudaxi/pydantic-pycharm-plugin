@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+- Fix false positive "__root__ cannot be mixed with other fields" -- ty… [#780](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/780)]
+- treat model validator as an instance method when mode='after' [#779](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/779)]
+- Fix NullPointerException of getExternalDocumentationUrl [#778](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/778)]
+- Fix false positive validator asterisk [[#777](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/777)]
 
 ## [0.4.6-232] - 2023-07-20
 - Associating fields with validator fields for 232 [[#762](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/762)]
