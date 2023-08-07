@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.7] - 2023-08-07
 - Fix false positive "__root__ cannot be mixed with other fields" -- ty… [#780](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/780)]
 - treat model validator as an instance method when mode='after' [#779](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/779)]
 - Fix NullPointerException of getExternalDocumentationUrl [#778](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/778)]
@@ -430,7 +432,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.6-232...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.7...HEAD
+[0.4.7]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.6-232...v0.4.7
 [0.4.6-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.5-232...v0.4.6-232
 [0.4.5-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.4-232...v0.4.5-232
 [0.4.4-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.3-232...v0.4.4-232
