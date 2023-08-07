@@ -1,3 +1,4 @@
+from typing import ClassVar
 from pydantic import BaseModel, RootModel
 
 
@@ -21,13 +22,13 @@ class A(RootModel):
     root = 'xyz'
 
 
-class B(BaseModel):
-    a = 'xyz'
+class B(RootModel):
+    <warning descr="Unexpected field with name a; only 'root' is allowed as a field of a `RootModel`">a</warning> = 'xyz'
 
 
 class C(RootModel):
     root = 'xyz'
-    b = 'xyz'
+    <warning descr="Unexpected field with name b; only 'root' is allowed as a field of a `RootModel`">b</warning> = 'xyz'
 
 
 class D(RootModel):
@@ -49,5 +50,5 @@ class G(RootModel):
 
 class H(RootModel):
     root = 'xyz'
-    <warning descr="__root__ cannot be mixed with other fields">b</warning>: str
+    <warning descr="Unexpected field with name b; only 'root' is allowed as a field of a `RootModel`">b</warning>: str
 
