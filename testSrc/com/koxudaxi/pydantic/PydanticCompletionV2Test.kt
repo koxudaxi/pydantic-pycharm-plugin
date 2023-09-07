@@ -77,4 +77,12 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             )
         )
     }
+    fun testKeywordArgumentPopulateByName() {
+        doFieldTest(
+            listOf(
+                Pair("abc=", "str A"),
+                Pair("cde=", "str A")
+            )
+        )
+    }
 }

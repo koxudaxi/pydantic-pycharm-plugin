@@ -581,6 +581,10 @@ fun getFieldName(
             config["allow_population_by_alias"] == true -> field.name
             else -> getAliasedFieldName(field, context, pydanticVersion)
         }
+        2 -> when {
+            config["populate_by_name"] == true -> field.name
+            else -> getAliasedFieldName(field, context, pydanticVersion)
+        }
         else -> when {
             config["allow_population_by_field_name"] == true -> field.name
             else -> getAliasedFieldName(field, context, pydanticVersion)
