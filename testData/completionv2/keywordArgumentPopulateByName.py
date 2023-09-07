@@ -1,6 +1,6 @@
 
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class A(BaseModel):
     model_config = ConfigDict(
