@@ -487,6 +487,13 @@ class PydanticCompletionContributor : CompletionContributor() {
                 addFieldCompletions(it, typeEvalContext, config, isV2, isDataclass, definedSet, newElements)
             }
             addFieldCompletions(pyClass, typeEvalContext, config, isV2, isDataclass, definedSet, newElements)
+
+            val element = PrioritizedLookupElement.withGrouping(
+                LookupElementBuilder
+                    .create("*")
+                    .withTypeText(pyClass.name)
+                    .withIcon(icon), 1)
+            newElements["*"] = PrioritizedLookupElement.withPriority(element, 99.0)
             result.runRemainingContributors(parameters, false)
             result.addAllElements(newElements.values)
         }

@@ -42,7 +42,13 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "__pydantic_model_complete__ = ",
             "__pydantic_core_schema__ = ",
             "__pydantic_generic_parameters__ = ",
-            "__pydantic_parent_namespace__ = "
+            "__pydantic_parent_namespace__ = ",
+            "None",
+            "not",
+            "ConfigDict",
+            "async",
+            "False",
+            "True"
         )
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression || it.psiElement == null
@@ -72,7 +78,16 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
                 "cde" to "B",
                 "hij" to "B",
                 "efg" to "C",
-                "klm" to "C"
+                "klm" to "C",
+                "*" to "C"
+            )
+        )
+    }
+    fun testKeywordArgumentPopulateByName() {
+        doFieldTest(
+            listOf(
+                Pair("abc=", "str A"),
+                Pair("cde=", "str A")
             )
         )
     }
