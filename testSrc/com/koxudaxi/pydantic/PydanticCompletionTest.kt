@@ -712,6 +712,34 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testKeywordArgumentInitArgsKwargs() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str A"),
+                        Pair("efg=", "str A")
+                )
+        )
+    }
+
+    fun testKeywordArgumentInitKwargs() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str A"),
+                        Pair("efg=", "str A")
+                )
+        )
+    }
+
+    fun testKeywordArgumentInitPosition() {
+        doFieldTest(
+                listOf(
+                        Pair("xyz=", "str A")
+                )
+        )
+    }
+
     fun testdataclassKeywordArgument() {
         doFieldTest(
             listOf(
