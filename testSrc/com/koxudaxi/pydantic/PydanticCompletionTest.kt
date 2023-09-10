@@ -721,7 +721,18 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 )
         )
     }
-
+    fun testKeywordArgumentInitArgsKwargsDisable() {
+        val config = PydanticConfigService.getInstance(myFixture!!.project)
+        config.ignoreInitMethodKeywordArguments = false
+        try {
+            doFieldTest(
+                emptyList(
+                )
+        )}
+        finally {
+            config.ignoreInitMethodKeywordArguments = true
+        }
+    }
     fun testKeywordArgumentInitKwargs() {
         doFieldTest(
                 listOf(
@@ -734,9 +745,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
 
     fun testKeywordArgumentInitPosition() {
         doFieldTest(
-                listOf(
-                        Pair("xyz=", "str A")
-                )
+            emptyList()
         )
     }
 

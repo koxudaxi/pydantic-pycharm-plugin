@@ -479,18 +479,6 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         getPydanticModelInit(pyClass, context)?.let {
             val callParameters = it.getParameters(context)
                 .filterNot { parameter -> parameter.isSelf }
-            val callParametersWithoutKeywordContainer = callParameters.filterNot {
-                parameter -> parameter.isKeywordContainer
-            }
-            val hasKeywordContainer = callParametersWithoutKeywordContainer.size != callParameters.size
-            if (hasKeywordContainer) {
-                val hasNonPositionalContainer = callParametersWithoutKeywordContainer.any {
-                    parameter -> !parameter.isPositionalContainer
-                }
-                if (!hasNonPositionalContainer) {
-                    return@let null
-                }
-            }
             return PyCallableTypeImpl(callParameters, clsType.toInstance())
         }
 
