@@ -60,6 +60,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
                 assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
                 assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)
                 assertEquals(this.pydanticConfigService.ignoreInitMethodArguments, true)
+                assertEquals(this.pydanticConfigService.ignoreInitMethodKeywordArguments, false)
             }
         }
     }
@@ -96,6 +97,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
                 assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
                 assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
                 assertEquals(this.pydanticConfigService.ignoreInitMethodArguments, false)
+                assertEquals(this.pydanticConfigService.ignoreInitMethodKeywordArguments, true)
            }
         }
     }

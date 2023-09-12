@@ -142,6 +142,8 @@ class PydanticInitializer : ProjectActivity {
             getHighlightLevel(table, "acceptable-type-highlight", ProblemHighlightType.WEAK_WARNING)
 
         configService.ignoreInitMethodArguments = table.getBoolean("ignore-init-method-arguments") ?: false
+        configService.ignoreInitMethodKeywordArguments =
+            table.getBoolean("ignore-init-method-keyword-arguments") ?: true
     }
 
     private fun getHighlightLevel(table: TomlTable, path: String, default: ProblemHighlightType): ProblemHighlightType {

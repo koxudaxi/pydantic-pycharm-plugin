@@ -712,6 +712,43 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testKeywordArgumentInitArgsKwargs() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str A"),
+                        Pair("efg=", "str A")
+                )
+        )
+    }
+    fun testKeywordArgumentInitArgsKwargsDisable() {
+        val config = PydanticConfigService.getInstance(myFixture!!.project)
+        config.ignoreInitMethodKeywordArguments = false
+        try {
+            doFieldTest(
+                emptyList(
+                )
+        )}
+        finally {
+            config.ignoreInitMethodKeywordArguments = true
+        }
+    }
+    fun testKeywordArgumentInitKwargs() {
+        doFieldTest(
+                listOf(
+                        Pair("abc=", "str A"),
+                        Pair("cde=", "str A"),
+                        Pair("efg=", "str A")
+                )
+        )
+    }
+
+    fun testKeywordArgumentInitPosition() {
+        doFieldTest(
+            emptyList()
+        )
+    }
+
     fun testdataclassKeywordArgument() {
         doFieldTest(
             listOf(
