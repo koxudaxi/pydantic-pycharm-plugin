@@ -60,7 +60,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                             ?.let { pyClass ->
                                 val context = TypeEvalContext.codeAnalysis(element.project, element.containingFile)
                                  if (pyClass.findClassAttribute(name, true, context) == element ) {
-                                     addAllElement(pyClass, name, added, context)
+                                     addAllElement(pyClass, name, added, true, context)
                                  }
                             }
                         suggestAllNames(name, newName)
@@ -70,7 +70,7 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
                         val context = TypeEvalContext.userInitiated(element.project, element.containingFile)
                         getPydanticModelByPyKeywordArgument(element, true,context)
                             ?.let { pyClass ->
-                                addAllElement(pyClass, name, added, context)
+                                addAllElement(pyClass, name, added, true, context)
                             }
                         suggestAllNames(name, newName)
                     }
@@ -81,17 +81,21 @@ class PydanticFieldRenameFactory : AutomaticRenamerFactory {
             pyClass: PyClass,
             elementName: String,
             added: MutableSet<PyClass>,
+            includeInherited: Boolean,
             context: TypeEvalContext,
         ) {
             added.add(pyClass)
             addClassAttributes(pyClass, elementName)
             addKeywordArguments(pyClass, elementName)
-            getAncestorPydanticModels(pyClass, true, context).filterNot { added.contains(it) }
-                .forEach { addAllElement(it, elementName, added, context) }
-
-            PyClassInheritorsSearch.search(pyClass, true)
+            getAncestorPydanticModels(pyClass, true, context)
                 .filterNot { added.contains(it) }
-                .forEach { addAllElement(it, elementName, added, context) }
+                .filter { isPydanticModel(it, true, context) }
+                .forEach { addAllElement(it, elementName, added, false, context) }
+            if (includeInherited) {
+                PyClassInheritorsSearch.search(pyClass, true)
+                    .filterNot { added.contains(it) }
+                    .forEach { addAllElement(it, elementName, added, true, context) }
+            }
         }
 
         private fun addClassAttributes(pyClass: PyClass, elementName: String) {
