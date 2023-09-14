@@ -1,11 +1,15 @@
 # Changelog
 
 ## [Unreleased]
+- Improve RootModel inspection [[#783](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/783)]
+- Fix populate_by_name [[#779](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/797)]
+- Ignore `__init__` method if parameter is only only `**kwargs` arguments. [[#798](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/798)]
+- Fixed problem refactoring unrelated fields [[#800](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/800)]
 
 ## [0.4.7] - 2023-08-07
-- Fix false positive "__root__ cannot be mixed with other fields" -- ty… [#780](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/780)]
-- treat model validator as an instance method when mode='after' [#779](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/779)]
-- Fix NullPointerException of getExternalDocumentationUrl [#778](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/778)]
+- Fix false positive "__root__ cannot be mixed with other fields" -- ty… [[#780](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/780)]
+- treat model validator as an instance method when mode='after' [[#779](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/779)]
+- Fix NullPointerException of getExternalDocumentationUrl [[#778](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/778)]
 - Fix false positive validator asterisk [[#777](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/777)]
 
 ## [0.4.6-232] - 2023-07-20
