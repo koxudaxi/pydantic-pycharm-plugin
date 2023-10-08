@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Support 2023.3 EAP [[#813](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/813)]
 
 ## [0.4.7] - 2023-08-07
 - Fix false positive "__root__ cannot be mixed with other fields" -- ty… [#780](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/780)]
