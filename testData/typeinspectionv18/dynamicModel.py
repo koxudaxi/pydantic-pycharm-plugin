@@ -29,7 +29,7 @@ DynamicBarModel = create_model(
 )
 
 DynamicBarModel(foo='name', bar=123, apple='green', banana='red')
-DynamicBarModel(<warning descr="Expected type 'str', got 'int' instead">foo=123</warning>, <warning descr="Expected type 'int', got 'str' instead">bar='name'</warning>, <warning descr="Expected type 'str', got 'int' instead">apple=123</warning>, <warning descr="Expected type 'str', got 'int' instead">banana=456</warning>)
+DynamicBarModel(<warning descr="Expected type 'str', got 'int' instead">foo=123</warning>, <warning descr="Expected type 'int', got 'LiteralString' instead">bar='name'</warning>, <warning descr="Expected type 'LiteralString', got 'int' instead">apple=123</warning>, <warning descr="Expected type 'LiteralString', got 'int' instead">banana=456</warning>)
 
 DynamicModifiedBarModel = create_model('DynamicModifiedFoobarModel', foo=(int, ...), bar='abc', __base__=DynamicBarModel)
 
