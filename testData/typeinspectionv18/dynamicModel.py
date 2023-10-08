@@ -8,7 +8,7 @@ class StaticFoobarModel(BaseModel):
 
 
 DynamicFoobarModel(foo='name', bar=123)
-DynamicFoobarModel(<warning descr="Expected type 'str', got 'int' instead">foo=123</warning>, <warning descr="Expected type 'int', got 'str' instead">bar='name'</warning>)
+DynamicFoobarModel(<warning descr="Expected type 'str', got 'int' instead">foo=123</warning>, <warning descr="Expected type 'int', got 'LiteralString' instead">bar='name'</warning>)
 
 BarModel = create_model(
     __model_name='BarModel',
@@ -18,7 +18,7 @@ BarModel = create_model(
 )
 
 BarModel(foo='name', bar=123, apple='green', banana='red')
-BarModel(<warning descr="Expected type 'str', got 'int' instead">foo=123</warning>, <warning descr="Expected type 'int', got 'str' instead">bar='name'</warning>, <warning descr="Expected type 'str', got 'int' instead">apple=123</warning>, <warning descr="Expected type 'str', got 'int' instead">banana=456</warning>)
+BarModel(<warning descr="Expected type 'str', got 'int' instead">foo=123</warning>, <warning descr="Expected type 'int', got 'LiteralString' instead">bar='name'</warning>, <warning descr="Expected type 'LiteralString', got 'int' instead">apple=123</warning>, <warning descr="Expected type 'LiteralString', got 'int' instead">banana=456</warning>)
 
 model_name = 'DynamicBarModel'
 DynamicBarModel = create_model(
@@ -34,4 +34,4 @@ DynamicBarModel(<warning descr="Expected type 'str', got 'int' instead">foo=123<
 DynamicModifiedBarModel = create_model('DynamicModifiedFoobarModel', foo=(int, ...), bar='abc', __base__=DynamicBarModel)
 
 DynamicModifiedBarModel(foo=456, bar='efg', apple='green', banana='red')
-DynamicModifiedBarModel(<warning descr="Expected type 'int', got 'str' instead">foo='123'</warning>, <warning descr="Expected type 'str', got 'int' instead">bar=456</warning>, <warning descr="Expected type 'str', got 'int' instead">apple=123</warning>, <warning descr="Expected type 'str', got 'int' instead">banana=456</warning>)
+DynamicModifiedBarModel(<warning descr="Expected type 'int', got 'LiteralString' instead">foo='123'</warning>, <warning descr="Expected type 'LiteralString', got 'int' instead">bar=456</warning>, <warning descr="Expected type 'LiteralString', got 'int' instead">apple=123</warning>, <warning descr="Expected type 'LiteralString', got 'int' instead">banana=456</warning>)

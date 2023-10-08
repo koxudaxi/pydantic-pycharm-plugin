@@ -59,7 +59,7 @@ class ChildClass(BaseClass[int, TypeY], Generic[TypeY, TypeZ]):
 # Replace TypeY by str
 ChildClass[str, float](x=1, y='y', z=3.1)
 
-ChildClass[float, bytes](<warning descr="Expected type 'int', got 'bytes' instead">x=b'1'</warning>, <warning descr="Expected type 'float', got 'str' instead">y='y'</warning>, <warning descr="Expected type 'bytes', got 'int' instead">z=1_3</warning>)
+ChildClass[float, bytes](<warning descr="Expected type 'int', got 'bytes' instead">x=b'1'</warning>, <warning descr="Expected type 'float', got 'LiteralString' instead">y='y'</warning>, <warning descr="Expected type 'bytes', got 'int' instead">z=1_3</warning>)
 
 DataT = TypeVar('DataT')
 
