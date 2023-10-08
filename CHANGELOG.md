@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Support 2023.3 EAP [[#813](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/813)]
 
 ## [0.4.8] - 2023-09-14
 
