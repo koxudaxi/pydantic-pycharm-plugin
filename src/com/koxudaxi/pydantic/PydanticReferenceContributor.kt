@@ -16,7 +16,10 @@ class PydanticReferenceContributor : PsiReferenceContributor() {
                     if (element !is PyStringLiteralExpression) {
                         return false
                     }
-                    return isValidatorField(element, TypeEvalContext.userInitiated(element.project, element.containingFile))
+                    return isValidatorField(
+                        element,
+                        TypeEvalContext.userInitiated(element.project, element.containingFile)
+                    )
                 }
             }
     }
@@ -41,16 +44,29 @@ class PydanticReferenceContributor : PsiReferenceContributor() {
             provider: PsiReferenceProvider
         ) {
             registrar.registerReferenceProvider(
-                PlatformPatterns.psiElement(
-                    PyStringLiteralExpression::class.java
-                ).withParents(
+                PlatformPatterns.or(
+                    PlatformPatterns.psiElement(
+                        PyStringLiteralExpression::class.java
+                    ).withParents(
                         PyArgumentList::class.java,
                         PyCallExpression::class.java,
                         PyDecorator::class.java,
                         PyDecoratorList::class.java,
                         PyFunction::class.java,
                         PyStatementList::class.java,
-                        PyClass::class.java).with(Holder.VALIDATOR_FIELD), provider
+                        PyClass::class.java
+                    ).with(Holder.VALIDATOR_FIELD),
+                    PlatformPatterns.psiElement(
+                        PyStringLiteralExpression::class.java
+                    ).withParents(
+                        PyArgumentList::class.java,
+                        PyCallExpression::class.java,
+                        PyCallExpression::class.java,
+                        PyAssignmentStatement::class.java,
+                        PyStatementList::class.java,
+                        PyClass::class.java
+                    ).with(Holder.VALIDATOR_FIELD)
+                ), provider
             )
         }
     }
