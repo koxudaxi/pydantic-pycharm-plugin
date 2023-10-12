@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.9] - 2023-10-12
+
 - Fix False positive for non-decorator use of validator [[#818](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/818)]
 - Support 2023.3 EAP [[#813](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/813)]
 
@@ -520,7 +523,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.8...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.9...HEAD
+[0.4.9]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.8...v0.4.9
 [0.4.8]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.7...v0.4.8
 [0.4.7]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.6-232...v0.4.7
 [0.4.6-232]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.5-232...v0.4.6-232
