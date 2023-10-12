@@ -28,4 +28,8 @@ open class PydanticInspectionV18Test : PydanticInspectionBase(version = "v18") {
     fun testDefaultFactory() {
         doTest()
     }
+
+    fun testValidatorField() {
+        doTest()
+    }
 }
