@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Fix False positive for non-decorator use of validator [[#818](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/818)]
 - Support 2023.3 EAP [[#813](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/813)]
 
 ## [0.4.8] - 2023-09-14
