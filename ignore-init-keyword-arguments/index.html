@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://koxudaxi.github.io/pydantic-pycharm-plugin/ignore-init-arguments/">
+        <link rel="canonical" href="https://koxudaxi.github.io/pydantic-pycharm-plugin/ignore-init-keyword-arguments/">
       
       
-        <link rel="prev" href="../mypy-compatible/">
-      
-      
-        <link rel="next" href="../development/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -24,7 +20,7 @@
     
     
       
-        <title>Ignore __init__ arguments - Pydantic PyCharm Plugin</title>
+        <title>Ignore __init__ method arguments - Pydantic PyCharm Plugin</title>
       
     
     
@@ -111,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Ignore __init__ arguments
+              Ignore __init__ method arguments
             
           </span>
         </div>
@@ -262,20 +258,18 @@
       
   
   
-    
-  
   
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -289,7 +283,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Usage
@@ -340,18 +334,9 @@
                 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../ignore-init-arguments/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -360,7 +345,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -450,7 +434,7 @@
 <h1 id="ignore-__init__-method-arguments">Ignore <code>__init__</code> method arguments<a class="headerlink" href="#ignore-__init__-method-arguments" title="Permanent link">🔗</a></h1>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p><strong>This feature is in version 0.3.4 or later</strong></p>
+<p><strong>This feature is in version 0.4.8 or later</strong></p>
 </div>
 <p>You can write <code>__init__</code> method on a model for adding some logic.</p>
 <p>However, default arguments on <code>__init__</code> method will be overridden, And you will lose autocompletion for <code>__init__</code> methods by the plugin.  </p>
@@ -460,21 +444,7 @@ The option ignore arguments on <code>__init__</code> method.</p>
 <p><img alt="options_ignore_init" src="../ignore_init_arguments.png" /></p>
 <p>The option has to be defined in pyproject.toml</p>
 <div class="codehilite"><pre><span></span><code><span class="k">[tool.pydantic-pycharm-plugin]</span>
-<span class="n">ignore-init-method-arguments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-</code></pre></div>
-
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-</div>
-<p><strong>This feature is in version 0.4.9 or later</strong></p>
-<p>If a third-party library provides a model that extends BaseModel, it may override the <code>__init__</code> method, as in <code>__init__(self, **kwargs)</code>.
-If this is the case, the plugin user should set <code>ignore-init-method-arguments = true</code> to ignore the <code>__init__</code> method argument.
-But it is difficult to tell if the library is using BaseModel or not.</p>
-<p>The plugin ignore the <code>__init__</code> method if argument is only <code>**kwargs</code>. the option is provided as <code>ignore-init-method-keyword-arguments</code>.
-This option is enabled by default, so if you create a model that inherits from BaseModel with a method like <code>__init__(self, **kwargs)</code> defined, ignore this <code>init</code> argument.</p>
-<p>If you want to disable this option, please put the following setting in <code>pyproject.toml</code>.</p>
-<div class="codehilite"><pre><span></span><code><span class="p">[</span><span class="n">tool</span><span class="p">.</span><span class="n">pydantic-pycharm-plugin</span><span class="p">].</span>
-<span class="n">ignore-init-method-keyword-arguments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">ignore-init-method-keyword-arguments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </code></pre></div>
 
 
