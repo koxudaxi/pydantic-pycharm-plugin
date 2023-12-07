@@ -473,7 +473,7 @@ But it is difficult to tell if the library is using BaseModel or not.</p>
 <p>The plugin ignore the <code>__init__</code> method if argument is only <code>**kwargs</code>. the option is provided as <code>ignore-init-method-keyword-arguments</code>.
 This option is enabled by default, so if you create a model that inherits from BaseModel with a method like <code>__init__(self, **kwargs)</code> defined, ignore this <code>init</code> argument.</p>
 <p>If you want to disable this option, please put the following setting in <code>pyproject.toml</code>.</p>
-<div class="codehilite"><pre><span></span><code><span class="p">[</span><span class="n">tool</span><span class="p">.</span><span class="n">pydantic-pycharm-plugin</span><span class="p">].</span>
+<div class="codehilite"><pre><span></span><code><span class="k">[tool.pydantic-pycharm-plugin]</span><span class="p">.</span>
 <span class="n">ignore-init-method-keyword-arguments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 </code></pre></div>
 
