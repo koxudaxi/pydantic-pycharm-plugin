@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Support PyCharm 2023.3 [[#840](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/840)]
 
 ## [0.4.9] - 2023-10-12
 
