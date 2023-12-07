@@ -25,10 +25,10 @@ class ChildDataclass(MyDataclass):
     d: int
 
 MyDataclass(a='apple', b=1)
-MyDataclass(<warning descr="Expected type 'str', got 'int' instead">a=2</warning>, <warning descr="Expected type 'int', got 'LiteralString' instead">b='orange'</warning>)
+MyDataclass(<warning descr="Expected type 'str', got 'int' instead">a=2</warning>, <warning descr="Expected type 'int', got 'str' instead">b='orange'</warning>)
 
 ChildDataclass(a='apple', b=1, c='berry', d=3)
-ChildDataclass(<warning descr="Expected type 'str', got 'int' instead">a=2</warning>, <warning descr="Expected type 'int', got 'LiteralString' instead">b='orange'</warning>, <warning descr="Expected type 'str', got 'int' instead">c=4</warning>, <warning descr="Expected type 'int', got 'LiteralString' instead">d='cherry'</warning>)
+ChildDataclass(<warning descr="Expected type 'str', got 'int' instead">a=2</warning>, <warning descr="Expected type 'int', got 'str' instead">b='orange'</warning>, <warning descr="Expected type 'str', got 'int' instead">c=4</warning>, <warning descr="Expected type 'int', got 'str' instead">d='cherry'</warning>)
 
 
 a: MyDataclass = MyDataclass(<warning descr="null">)</warning>

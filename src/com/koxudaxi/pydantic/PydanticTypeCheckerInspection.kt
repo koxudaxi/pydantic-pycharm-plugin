@@ -103,7 +103,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         private fun analyzeCallee(callSite: PyCallSiteExpression, mapping: PyArgumentsMapping) {
             val callableType = mapping.callableType ?: return
             val receiver = callSite.getReceiver(callableType.callable)
-            val substitutions = PyTypeChecker.unifyReceiverWithParamSpecs(receiver, myTypeEvalContext)
+            val substitutions = PyTypeChecker.unifyReceiver(receiver, myTypeEvalContext)
             val mappedParameters = mapping.mappedParameters
             val cachedParsableTypeMap = mutableMapOf<PyType, PyType?>()
             val cachedAcceptableTypeMap = mutableMapOf<PyType, PyType?>()
