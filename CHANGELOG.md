@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.10] - 2023-12-07
+
 - Support PyCharm 2023.3 [[#840](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/840)]
 
 ## [0.4.9] - 2023-10-12
@@ -524,7 +527,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.9...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.10...HEAD
+[0.4.10]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.9...v0.4.10
 [0.4.9]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.8...v0.4.9
 [0.4.8]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.7...v0.4.8
 [0.4.7]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.6-232...v0.4.7
