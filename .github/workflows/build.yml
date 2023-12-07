@@ -80,8 +80,12 @@ jobs:
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
+          
           ./gradlew listProductsReleases # prepare list of IDEs for Plugin Verifier
+          
+          # Add minimum version if listProductsReleases task doesn't output anything
+          PRODUCT_COUNT=$(cat ./build/listProductsReleases.txt | wc -c)
+          test "$PRODUCT_COUNT" = "0" && echo "PC-2023.3" >> ./build/listProductsReleases.txt
 
       # Run tests
       - name: Run Tests
