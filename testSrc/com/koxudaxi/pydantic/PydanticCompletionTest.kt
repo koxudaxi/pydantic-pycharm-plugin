@@ -24,6 +24,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
             "__slots__",
             "__text_signature__",
             "__weakrefoffset__",
+            "__type_params__",
             "Ellipsis",
             "EnvironmentError",
             "IOError",
