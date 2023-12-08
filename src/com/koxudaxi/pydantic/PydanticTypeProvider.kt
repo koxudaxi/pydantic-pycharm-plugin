@@ -565,7 +565,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         }?.let {
             when (genericTypeMap) {
                 null -> it
-                else -> PyTypeChecker.substitute(it, genericTypeMap, context)
+                else -> PyTypeChecker.substitute(it, PyTypeChecker.GenericSubstitutions(genericTypeMap), context)
             }
         }
 

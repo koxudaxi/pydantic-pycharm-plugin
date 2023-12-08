@@ -6,9 +6,9 @@ fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
     // Kotlin support
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.21"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij") version "1.16.0"
+    id("org.jetbrains.intellij") version "1.16.1"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.2.0"
     // Gradle Qodana Plugin
@@ -94,6 +94,10 @@ tasks {
                 )
             }
         })
+    }
+
+    runPluginVerifier {
+        ideVersions.set(listOf("PC-2023.3"))
     }
 
     // Configure UI tests plugin
