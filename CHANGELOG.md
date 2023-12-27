@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+- Fix named argument as positional in popup [[#855](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/855)]
+- (🎁) Add icon [[#849](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/849)]
 
 ## [0.4.10] - 2023-12-07
 

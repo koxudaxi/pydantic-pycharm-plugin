@@ -482,7 +482,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             return PyCallableTypeImpl(callParameters, clsType.toInstance())
         }
 
-        val ellipsis = PyElementGenerator.getInstance(pyClass.project).createEllipsis()
+        val pyElementGenerator = PyElementGenerator.getInstance(pyClass.project)
+        val ellipsis = pyElementGenerator.createEllipsis()
 
         val typed = !init || getInstance(pyClass.project).currentInitTyped
         val collected = linkedMapOf<String, PyCallableParameter>()
@@ -524,7 +525,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 }
                 .forEach { parameter -> collected[parameter.name!!] = parameter }
         }
-
+        collected["*"] = PyCallableParameterImpl.psi(pyElementGenerator.createSingleStarParameter())
         return PyCallableTypeImpl(collected.values.reversed(), clsType.toInstance())
     }
 
