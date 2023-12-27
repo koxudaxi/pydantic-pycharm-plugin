@@ -687,7 +687,7 @@ fun getPydanticUnFilledArguments(
                 .filterNot { it.isKeywordArgument }
                 .let { allParameters.drop(it.size) }
         } else {
-            allParameters
+            allParameters.filterNot { it.declarationElement is PySingleStarParameter }
         }
     } ?: listOf()
 
