@@ -650,7 +650,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (value is PyExpression) {
             return getDefaultValueByAssignedValue(field, ellipsis, context, pydanticVersion, isDataclass)
         }
-        val annotationValue = field.annotation?.value ?: return null
+        val annotationValue = field.annotation?.value
+
+        if (annotationValue == null) {
+            //  ?: return null
+            return null
+        }
 
         fun parseAnnotation(pyExpression: PyExpression, context: TypeEvalContext): PyExpression? {
             val qualifiedName = getQualifiedName(pyExpression, context)

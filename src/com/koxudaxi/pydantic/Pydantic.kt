@@ -740,14 +740,14 @@ internal fun getFieldFromPyExpression(
 }
 
 internal fun getFieldFromAnnotated(annotated: PyExpression, context: TypeEvalContext): PyCallExpression? =
-    annotated.children
-        .filterIsInstance<PyTupleExpression>()
-        .firstOrNull()
-        ?.children
-        ?.getOrNull(1)
-        ?.let {
-            getFieldFromPyExpression(it, context, null)
-        }
+        annotated.children
+                .filterIsInstance<PyTupleExpression>()
+                .firstOrNull()
+                ?.children
+                ?.drop(1)
+                ?.firstNotNullOfOrNull {
+                    getFieldFromPyExpression(it, context, null)
+                }
 
 internal fun getTypeExpressionFromAnnotated(annotated: PyExpression): PyExpression? =
     annotated.children
