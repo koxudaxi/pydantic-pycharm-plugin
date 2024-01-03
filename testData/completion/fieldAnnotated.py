@@ -9,8 +9,8 @@ class A(BaseModel):
     cde: Annotated[str, Field(example='example')] = 'default_value'
     efg: Annotated[str, Field(default_factory=lambda: 123)]
     a_id: Annotated[str, Field(alias='alias_a_id')]
-    klm: Annotated[str, Info(), Field(example='hij')]
-    nop: Annotated[str, Field(example='nop'), Info()]
+    klm: Annotated[str, Info(), Field(default_factory=lambda: 456)]
+    nop: Annotated[str, Field(default_factory=lambda: 789), Info()]
 class B(A):
     hij: str
 
