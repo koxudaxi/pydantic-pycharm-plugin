@@ -347,6 +347,7 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectAnnotatedField(node: PyTypeDeclarationStatement) {
+            if(pydanticCacheService.isV2) return
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             val fieldName = node.target.name ?: return
@@ -392,6 +393,7 @@ class PydanticInspection : PyInspection() {
                 )
                 return
             }
+            if(pydanticCacheService.isV2) return
             val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
             val default = getDefaultFromField(annotatedField, myTypeEvalContext)
             val defaultFactory = getDefaultFactoryFromField(annotatedField)
