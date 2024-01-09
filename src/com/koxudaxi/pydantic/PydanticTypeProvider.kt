@@ -668,9 +668,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     ?.run { return ellipsis }
 
                 ANNOTATED_Q_NAME -> return getFieldFromAnnotated(pyExpression, context)
-                        ?.takeIf {
-                            val defaultValue = getDefaultFactoryFromField(it) ?: if (pydanticVersion.isV2) getDefaultFromField(it, context) else null
-                            defaultValue != null
+                        ?.let {
+                            getDefaultFactoryFromField(it) ?: if (pydanticVersion.isV2) getDefaultFromField(it, context) else null
                         }
                     ?: value
                     ?: getTypeExpressionFromAnnotated(pyExpression)?.let {

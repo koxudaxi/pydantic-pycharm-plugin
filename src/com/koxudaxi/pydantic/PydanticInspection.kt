@@ -347,7 +347,6 @@ class PydanticInspection : PyInspection() {
         }
 
         private fun inspectAnnotatedField(node: PyTypeDeclarationStatement) {
-            if(pydanticCacheService.isV2) return
             val pyClass = getPyClassByAttribute(node) ?: return
             if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             val fieldName = node.target.name ?: return
@@ -357,14 +356,22 @@ class PydanticInspection : PyInspection() {
             if (qualifiedName != ANNOTATED_Q_NAME) return
 
             val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
-            val default = getDefaultFromField(annotatedField, myTypeEvalContext)
-            if (default != null) {
+            val default = getDefaultFromField(annotatedField, myTypeEvalContext) ?: return
+            if(!pydanticCacheService.isV2) {
                 registerProblem(
-                    default.parent,
-                    "`Field` default cannot be set in `Annotated` for '$fieldName'",
-                    ProblemHighlightType.WARNING
+                        default.parent,
+                        "`Field` default cannot be set in `Annotated` for '$fieldName'",
+                        ProblemHighlightType.WARNING
                 )
+                return
             }
+
+            val defaultFactory = getDefaultFactoryFromField(annotatedField) ?: return
+            registerProblem(
+                    defaultFactory.parent,
+                    "cannot specify both default and default_factory",
+                    ProblemHighlightType.WARNING
+            )
         }
 
         private fun inspectAnnotatedAssignedField(node: PyAssignmentStatement) {
@@ -393,7 +400,6 @@ class PydanticInspection : PyInspection() {
                 )
                 return
             }
-            if(pydanticCacheService.isV2) return
             val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
             val default = getDefaultFromField(annotatedField, myTypeEvalContext)
             val defaultFactory = getDefaultFactoryFromField(annotatedField)

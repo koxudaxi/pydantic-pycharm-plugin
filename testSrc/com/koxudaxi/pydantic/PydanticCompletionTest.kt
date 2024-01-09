@@ -841,9 +841,9 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 Pair("a_id", "str A"),
                 Pair("abc", "str A"),
                 Pair("cde", "str='default_value' A"),
-                Pair("efg", "str=Field(default_factory=lambda: 123) A"),
-                Pair("klm", "str=Field(default_factory=lambda: 456) A"),
-                Pair("nop", "str=Field(default_factory=lambda: 789) A"),
+                Pair("efg", "str=lambda: 123 A"),
+                Pair("klm", "str=lambda: 456 A"),
+                Pair("nop", "str=lambda: 789 A"),
                 Pair("___slots__", "BaseModel")
             )
         )
@@ -855,7 +855,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 Pair("abc=", "str A"),
                 Pair("alias_a_id=", "str A"),
                 Pair("cde=", "str='default_value' A"),
-                Pair("efg=", "str=Field(default_factory=lambda: 123) A")
+                Pair("efg=", "str=lambda: 123 A")
             )
         )
     }
