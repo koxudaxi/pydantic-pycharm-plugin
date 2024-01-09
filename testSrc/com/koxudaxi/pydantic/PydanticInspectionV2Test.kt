@@ -33,4 +33,8 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     fun testValidatorField() {
         doTest()
     }
+
+    fun testAnnotated() {
+        doTest()
+    }
 }

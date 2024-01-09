@@ -38,6 +38,26 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "from",
             "import",
             "lambda",
+            "model_config",
+            "model_fields",
+            "__class_vars__",
+            "__fields_set__",
+            "__json_encoder__",
+            "__private_attributes__",
+            "__pydantic_core_schema__",
+            "__pydantic_decorators__",
+            "__pydantic_generic_args__",
+            "__pydantic_generic_defaults__",
+            "__pydantic_generic_origin__",
+            "__pydantic_generic_parameters__",
+            "__pydantic_generic_typevars_map__",
+            "__pydantic_model_complete__",
+            "__pydantic_parent_namespace__",
+            "__pydantic_serializer__",
+            "__pydantic_validator__",
+            "__signature__",
+            "__doc__",
+            "__module__",
             "__pydantic_generic_typevars_map__ = ",
             "__pydantic_model_complete__ = ",
             "__pydantic_core_schema__ = ",
@@ -89,6 +109,25 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
                 Pair("abc=", "str A"),
                 Pair("cde=", "str A")
             )
+        )
+    }
+
+    fun testFieldAnnotated() {
+        doFieldTest(
+                listOf(
+                        Pair("a_id", "str A"),
+                        Pair("abc", "str A"),
+                        Pair("cde", "str='default_value' A"),
+                        Pair("default_abc", "str='example' A"),
+                        Pair("default_efg", "str='123' A"),
+                        Pair("default_klm", "str='456' A"),
+                        Pair("default_klm_positional", "str='456' A"),
+                        Pair("default_nop", "str='789' A"),
+                        Pair("default_nop_positional", "str='789' A"),
+                        Pair("efg", "str=lambda: 123 A"),
+                        Pair("klm", "str=lambda: 456 A"),
+                        Pair("nop", "str=lambda: 789 A"),
+                )
         )
     }
 }
