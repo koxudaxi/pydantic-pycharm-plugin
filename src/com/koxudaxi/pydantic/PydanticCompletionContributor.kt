@@ -122,11 +122,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             withEqual: Boolean
         ) {
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
-            getClassVariables(pyClass, typeEvalContext)
-                .filter { it.name != null }
-                .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext, pydanticVersion.isV2) }
-                .filter { !isDataclass || isInInit(it) }
+            getPydanticField(pyClass, typeEvalContext, config, pydanticVersion.isV2, isDataclass)
                 .forEach {
                     val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion, config, withEqual)
                     if (excludes == null || !excludes.contains(elementName)) {
