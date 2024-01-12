@@ -1,7 +1,7 @@
 # Changelog
 
 ## [Unreleased]
-- Improve annotated default detection for v2 [[#857](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/857]
+- Improve annotated default detection for v2 [[#857](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/857)]
 - Improve annotated default detection [[#856](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/856)]
 - Fix named argument as positional in popup [[#855](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/855)]
 - (🎁) Add icon [[#849](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/849)]
