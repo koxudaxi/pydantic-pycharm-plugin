@@ -39,7 +39,7 @@ class PydanticInspection : PyInspection() {
             if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
             if (!node.hasValidatorMethod(pydanticCacheService.getOrPutVersion())) return
             if (node.hasModelValidatorModeAfter()) return
-            val paramList = node.parameterList
+            val paramList = (node as? PyCallable)?.parameterList ?: return
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
             if (firstParam == null) {

@@ -407,7 +407,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         context: TypeEvalContext,
         typed: Boolean,
     ): List<PyCallableParameter>? {
-        return baseSetting.findInitOrNew(true, context)?.parameterList?.parameters
+        return (baseSetting.findInitOrNew(true, context) as? PyCallable)?.parameterList?.parameters
             ?.filterIsInstance<PyNamedParameter>()
             ?.filter { it.name?.matches(Regex("^_[^_].*")) == true }
             ?.mapNotNull { argumentToParameter(it, context, typed) }
