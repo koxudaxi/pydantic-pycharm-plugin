@@ -116,7 +116,7 @@ typevar_model = Model[int, IntT]
 typevar_model(a=1, b=1)
 
 
-typevar_model(<warning descr="Expected type 'int', got 'str' instead">a='a'</warning>, <warning descr="Expected type 'IntT', got 'str' instead">b='a'</warning>)
+typevar_model(<warning descr="Expected type 'int', got 'str' instead">a='a'</warning>, <warning descr="Expected type 'IntT ≤: int', got 'str' instead">b='a'</warning>)
 
 concrete_model = typevar_model[int]
 concrete_model(a=1, b=1)

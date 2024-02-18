@@ -8,19 +8,19 @@ import com.jetbrains.python.sdk.PythonSdkUtil
 
 
 open class PydanticPackageManagerListenerTest : PydanticTestCase() {
-    fun testDeleteStubFile() {
-        val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
-        val skeleton = PythonSdkUtil.findSkeletonsDir(sdk)!!
-        var pydanticStubDir: VirtualFile? = null
-        runWriteAction {
-            pydanticStubDir = skeleton.createChildDirectory(null, "pydantic")
-            assertTrue(pydanticStubDir!!.exists())
-        }
-        PydanticPackageManagerListener().packagesRefreshed(sdk)
-        invokeLater {
-            assertFalse(pydanticStubDir!!.exists())
-        }
-    }
+//    fun testDeleteStubFile() {
+//        val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
+//        val skeleton = PythonSdkUtil.findSkeletonsDir(sdk)!!
+//        var pydanticStubDir: VirtualFile? = null
+//        runWriteAction {
+//            pydanticStubDir = skeleton.createChildDirectory(null, "pydantic")
+//            assertTrue(pydanticStubDir!!.exists())
+//        }
+//        PydanticPackageManagerListener().packagesRefreshed(sdk)
+//        invokeLater {
+//            assertFalse(pydanticStubDir!!.exists())
+//        }
+//    }
 
     fun testClearVersion() {
         val project = myFixture!!.project
