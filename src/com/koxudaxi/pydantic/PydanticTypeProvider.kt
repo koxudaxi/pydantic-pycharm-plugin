@@ -217,11 +217,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         if (!isGenericModel && (rootOperandType as? PyCustomType)?.classQName != GENERIC_Q_NAME) return@flatMap emptyList()
 
                         when (val indexExpression = pySubscriptionExpression.indexExpression) {
-                            is PyTupleExpression -> (indexExpression as? PySequenceExpression)?.elements
-                                ?.filterIsInstance<PyReferenceExpression>()?.map { it.reference.resolve() }
-                                ?.filterIsInstance<PyTargetExpression>()?.map { scopedGenericType(it, pyClass, context) }
-                                ?.toList()
-
+                            is PyTupleExpression ->{
+                                val elements = (indexExpression as? PySequenceExpression)?.elements ?: return@flatMap emptyList()
+                                elements.filterIsInstance<PyReferenceExpression>().map { it.reference.resolve() }
+                                        .filterIsInstance<PyTargetExpression>().map { scopedGenericType(it, pyClass, context) }
+                                        .toList()
+}
                             is PyTargetExpression -> listOf(scopedGenericType(indexExpression, pyClass, context))
                             else -> null
                         } ?: emptyList()
