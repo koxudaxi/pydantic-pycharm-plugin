@@ -1,7 +1,11 @@
 # Changelog
 
 ## [Unreleased]
-- Improve annotated default detection for v2 [[#857](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/857]
+- Support 241 EAP [[#879](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/879)]
+
+## [0.4.11] - 2024-01-12
+
+- Improve annotated default detection for v2 [[#857](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/857)]
 - Improve annotated default detection [[#856](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/856)]
 - Fix named argument as positional in popup [[#855](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/855)]
 - (🎁) Add icon [[#849](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/849)]
@@ -531,7 +535,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.10...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.11...HEAD
+[0.4.11]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.10...v0.4.11
 [0.4.10]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.9...v0.4.10
 [0.4.9]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.8...v0.4.9
 [0.4.8]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.7...v0.4.8

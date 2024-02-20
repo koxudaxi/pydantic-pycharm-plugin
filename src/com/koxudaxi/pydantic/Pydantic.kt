@@ -289,7 +289,7 @@ internal val PyKeywordArgument.value: PyExpression?
             else -> value
         }
 
-internal fun PyFunction.hasModelValidatorModeAfter(): Boolean = decoratorList?.decorators
+internal fun PyFunction.hasModelValidatorModeAfter(): Boolean = (this as? PyDecoratable)?.decoratorList?.decorators
     ?.filter { it.include(MODEL_VALIDATOR_QUALIFIED_NAMES) }
     ?.any { modelValidator ->
         modelValidator.argumentList?.getKeywordArgument("mode")
