@@ -37,4 +37,7 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     fun testAnnotated() {
         doTest()
     }
+    fun testModelAttribute() {
+        doTest()
+    }
 }

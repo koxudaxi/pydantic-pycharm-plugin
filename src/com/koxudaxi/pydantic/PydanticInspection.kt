@@ -3,6 +3,7 @@ package com.koxudaxi.pydantic
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.diff.comparison.trimEnd
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
@@ -44,15 +45,15 @@ class PydanticInspection : PyInspection() {
             val firstParam = params.firstOrNull()
             if (firstParam == null) {
                 registerProblem(
-                    paramList, "Method must have a first parameter, usually called 'cls'",
-                    ProblemHighlightType.GENERIC_ERROR
+                        paramList, "Method must have a first parameter, usually called 'cls'",
+                        ProblemHighlightType.GENERIC_ERROR
                 )
             } else if (firstParam.asNamed?.let { it.isSelf && it.name != PyNames.CANONICAL_CLS } == true) {
                 registerProblem(
-                    PyUtil.sure(firstParam),
-                    "Usually first parameter of such methods is named 'cls'",
-                    ProblemHighlightType.WEAK_WARNING, null,
-                    RenameParameterQuickFix(PyNames.CANONICAL_CLS)
+                        PyUtil.sure(firstParam),
+                        "Usually first parameter of such methods is named 'cls'",
+                        ProblemHighlightType.WEAK_WARNING, null,
+                        RenameParameterQuickFix(PyNames.CANONICAL_CLS)
                 )
             }
 
@@ -101,16 +102,17 @@ class PydanticInspection : PyInspection() {
             val pyArgumentList = pyStringLiteralExpression.parent as? PyArgumentList ?: return
             pyArgumentList.getKeywordArgument("check_fields")?.let {
                 // ignore unresolved value
-                if (PyEvaluator.evaluateAsBoolean(it.value)!= true) return
+                if (PyEvaluator.evaluateAsBoolean(it.value) != true) return
             }
             val stringValue = pyStringLiteralExpression.stringValue
             if (stringValue == "*") return
             registerProblem(
-                pyStringLiteralExpression,
-                "Cannot find field '${stringValue}'",
-                ProblemHighlightType.GENERIC_ERROR
+                    pyStringLiteralExpression,
+                    "Cannot find field '${stringValue}'",
+                    ProblemHighlightType.GENERIC_ERROR
             )
         }
+
         override fun visitPyStringLiteralExpression(node: PyStringLiteralExpression) {
             super.visitPyStringLiteralExpression(node)
 
@@ -120,43 +122,46 @@ class PydanticInspection : PyInspection() {
         }
 
         override fun visitPyReferenceExpression(node: PyReferenceExpression) {
-            if(!pydanticCacheService.isV2) return
+            super.visitPyReferenceExpression(node)
+            inspectModelAttribute(node)
+            if (!pydanticCacheService.isV2) return
             val pyFunction = node.reference.resolve() as? PyFunction ?: return
 
             val qualifiedName = (pyFunction as? PyQualifiedNameOwner)?.qualifiedName ?: return
             if (!qualifiedName.startsWith("pydantic.")) return
             if (!isPydanticDeprecatedSince20(pyFunction)) return
             registerProblem(
-                node.nameElement?.psi ?: node,
-                 "<html><body>" +
-                         "Pydantic V2 Migration Guide: " +
-                         "<a href=\"https://docs.pydantic.dev/dev-v2/migration/\">" +
-                         "https://docs.pydantic.dev/dev-v2/migration/" +
-                         "</a>" +
-                         "</body></html>",
-                ProblemHighlightType.LIKE_DEPRECATED
+                    node.nameElement?.psi ?: node,
+                    "<html><body>" +
+                            "Pydantic V2 Migration Guide: " +
+                            "<a href=\"https://docs.pydantic.dev/dev-v2/migration/\">" +
+                            "https://docs.pydantic.dev/dev-v2/migration/" +
+                            "</a>" +
+                            "</body></html>",
+                    ProblemHighlightType.LIKE_DEPRECATED
             )
 
         }
+
         private fun isPydanticDeprecatedSince20(pyFunction: PyFunction): Boolean =
-            pyFunction.statementList.statements.filterIsInstance<PyExpressionStatement>()
-                .mapNotNull { (it.expression as? PyCallExpression)?.getArgument(1, PyReferenceExpression::class.java) }
-                .any { (it.reference.resolve() as? PyTargetExpression)?.findAssignedValue()?.name == "PydanticDeprecatedSince20" }
+                pyFunction.statementList.statements.filterIsInstance<PyExpressionStatement>()
+                        .mapNotNull { (it.expression as? PyCallExpression)?.getArgument(1, PyReferenceExpression::class.java) }
+                        .any { (it.reference.resolve() as? PyTargetExpression)?.findAssignedValue()?.name == "PydanticDeprecatedSince20" }
 
         private fun inspectDefaultFactory(pyClass: PyClass) {
             if (!isPydanticModel(pyClass, true, myTypeEvalContext)) return
             val defaultFactories = (pyClass.classAttributes + getAncestorPydanticModels(
-                pyClass,
-                true,
-                myTypeEvalContext
+                    pyClass,
+                    true,
+                    myTypeEvalContext
             ).flatMap { it.classAttributes }).mapNotNull {
                 val name = it.name ?: return@mapNotNull null
                 val assignedValue = it.findAssignedValue() as? PyCallExpression ?: return@mapNotNull null
                 return@mapNotNull when (val defaultFactory = assignedValue.getKeywordArgument("default_factory")) {
                     is PyCallable -> defaultFactory as PyExpression to defaultFactory
                     is PyReferenceExpression -> getResolvedPsiElements(
-                        defaultFactory,
-                        myTypeEvalContext
+                            defaultFactory,
+                            myTypeEvalContext
                     ).filterIsInstance<PyCallable>().firstOrNull()?.let { resolved -> defaultFactory to resolved }
 
                     else -> null
@@ -169,15 +174,16 @@ class PydanticInspection : PyInspection() {
                 when {
                     pyClass.isPydanticDataclass ->
                         pyDataclassTypeProvider.getReferenceType(
+                                pyClass,
+                                myTypeEvalContext,
+                                callSite
+                        )?.get() as? PyCallableType
+
+                    else -> pydanticTypeProvider.getPydanticTypeForClass(
                             pyClass,
                             myTypeEvalContext,
+                            true,
                             callSite
-                        )?.get() as? PyCallableType
-                    else -> pydanticTypeProvider.getPydanticTypeForClass(
-                        pyClass,
-                        myTypeEvalContext,
-                        true,
-                        callSite
                     )
                 }
             }?.getParameters(myTypeEvalContext)?.forEach {
@@ -186,13 +192,13 @@ class PydanticInspection : PyInspection() {
                 val actualType = myTypeEvalContext.getReturnType(defaultFactory.second) ?: return@forEach
                 if (PyTypeChecker.match(expectedType, actualType, myTypeEvalContext)) return@forEach
                 registerProblem(
-                    defaultFactory.first.parent,
-                    String.format(
-                        "Expected type '%s', '%s' is set as return value of default_factory",
-                        expectedType.name,
-                        actualType.name
-                    ),
-                    ProblemHighlightType.WARNING
+                        defaultFactory.first.parent,
+                        String.format(
+                                "Expected type '%s', '%s' is set as return value of default_factory",
+                                expectedType.name,
+                                actualType.name
+                        ),
+                        ProblemHighlightType.WARNING
                 )
 
             }
@@ -203,13 +209,13 @@ class PydanticInspection : PyInspection() {
             val pyClass = getPydanticPyClass(pyCallExpression, myTypeEvalContext) ?: return
             if (getPydanticModelInit(pyClass, myTypeEvalContext) != null) return
             pyCallExpression.arguments
-                .filterNot { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
-                .forEach {
-                    registerProblem(
-                        it,
-                        "class '${pyClass.name}' accepts only keyword arguments"
-                    )
-                }
+                    .filterNot { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
+                    .forEach {
+                        registerProblem(
+                                it,
+                                "class '${pyClass.name}' accepts only keyword arguments"
+                        )
+                    }
         }
 
         private fun inspectExtraForbid(pyCallExpression: PyCallExpression) {
@@ -219,22 +225,22 @@ class PydanticInspection : PyInspection() {
             if (config["extra"] != EXTRA.FORBID) return
             pyClass.getAncestorClasses(myTypeEvalContext)
             val parameters = (getAncestorPydanticModels(pyClass, false, myTypeEvalContext) + pyClass)
-                .flatMap { pydanticModel ->
-                    getClassVariables(pydanticModel, myTypeEvalContext)
-                        .filter { it.name != null }
-                        .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2) }
-                        .map { it.name }
-                }.toSet()
+                    .flatMap { pydanticModel ->
+                        getClassVariables(pydanticModel, myTypeEvalContext)
+                                .filter { it.name != null }
+                                .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2) }
+                                .map { it.name }
+                    }.toSet()
             pyCallExpression.arguments
-                .filterIsInstance<PyKeywordArgument>()
-                .filterNot { it.name in parameters }
-                .forEach {
-                    registerProblem(
-                        it,
-                        "'${it.name}' extra fields not permitted",
-                        ProblemHighlightType.GENERIC_ERROR
-                    )
-                }
+                    .filterIsInstance<PyKeywordArgument>()
+                    .filterNot { it.name in parameters }
+                    .forEach {
+                        registerProblem(
+                                it,
+                                "'${it.name}' extra fields not permitted",
+                                ProblemHighlightType.GENERIC_ERROR
+                        )
+                    }
         }
 
         private fun inspectFromOrm(pyCallExpression: PyCallExpression) {
@@ -242,16 +248,17 @@ class PydanticInspection : PyInspection() {
             val resolveContext = PyResolveContext.defaultContext(myTypeEvalContext)
             val pyCallable = pyCallExpression.multiResolveCalleeFunction(resolveContext).firstOrNull() ?: return
             if (pyCallable.asMethod()?.qualifiedName != "pydantic.main.BaseModel.from_orm") return
-            val pyReferenceExpression = pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyReferenceExpression ?: return
+            val pyReferenceExpression = pyCallExpression.node?.firstChildNode?.firstChildNode?.psi as? PyReferenceExpression
+                    ?: return
             val pyClass = pyReferenceExpression.reference.resolve() as? PyClass ?: return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
 
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["orm_mode"] != true) {
                 registerProblem(
-                    pyCallExpression,
-                    "You must have the config attribute orm_mode=True to use from_orm",
-                    ProblemHighlightType.GENERIC_ERROR
+                        pyCallExpression,
+                        "You must have the config attribute orm_mode=True to use from_orm",
+                        ProblemHighlightType.GENERIC_ERROR
                 )
             }
         }
@@ -262,16 +269,16 @@ class PydanticInspection : PyInspection() {
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             validateConfig(pyClass, myTypeEvalContext)?.forEach {
                 registerProblem(
-                    it,
-                    "Specifying config in two places is ambiguous, use either Config attribute or class kwargs",
-                    ProblemHighlightType.GENERIC_ERROR
+                        it,
+                        "Specifying config in two places is ambiguous, use either Config attribute or class kwargs",
+                        ProblemHighlightType.GENERIC_ERROR
                 )
             }
         }
 
         private fun inspectReadOnlyProperty(node: PyAssignmentStatement) {
             val pyTypedElement =
-                node.leftHandSideExpression?.firstChild as? PyTypedElement ?: return
+                    node.leftHandSideExpression?.firstChild as? PyTypedElement ?: return
             val pyClassType = getPydanticPyClassType(pyTypedElement, myTypeEvalContext, false) ?: return
             if (pyClassType.isDefinition) return
             val pyClass = pyClassType.pyClass
@@ -280,9 +287,9 @@ class PydanticInspection : PyInspection() {
             val version = PydanticCacheService.getVersion(pyClass.project)
             if (config["allow_mutation"] == false || (version?.isAtLeast(1, 8) == true && config["frozen"] == true)) {
                 registerProblem(
-                    node,
-                    "Property \"${attributeName}\" defined in \"${pyClass.name}\" is read-only",
-                    ProblemHighlightType.GENERIC_ERROR
+                        node,
+                        "Property \"${attributeName}\" defined in \"${pyClass.name}\" is read-only",
+                        ProblemHighlightType.GENERIC_ERROR
                 )
             }
         }
@@ -292,8 +299,8 @@ class PydanticInspection : PyInspection() {
             if (node.annotation != null) return
             if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.isValidFieldName(pydanticCacheService.isV2) != true) return
             registerProblem(
-                node,
-                "Untyped fields disallowed", ProblemHighlightType.WARNING
+                    node,
+                    "Untyped fields disallowed", ProblemHighlightType.WARNING
             )
 
         }
@@ -302,10 +309,12 @@ class PydanticInspection : PyInspection() {
             val field = node.leftHandSideExpression as? PyTargetExpression ?: return
             inspectCustomRootField(field)
         }
+
         private fun inspectCustomRootField(node: PyTypeDeclarationStatement) {
             val field = node.target as? PyTargetExpression ?: return
             inspectCustomRootField(field)
         }
+
         private fun inspectCustomRootField(field: PyTargetExpression) {
             val pyClass = getPydanticModelByAttribute(field.parent, false, myTypeEvalContext) ?: return
 
@@ -314,8 +323,8 @@ class PydanticInspection : PyInspection() {
             val isV2 = pydanticCacheService.isV2
             if (isV2 && fieldName == "__root__") {
                 registerProblem(
-                    pyClass.nameNode?.psi,
-                    "__root__ models are no longer supported in v2; a migration guide will be added in the near future", ProblemHighlightType.GENERIC_ERROR
+                        pyClass.nameNode?.psi,
+                        "__root__ models are no longer supported in v2; a migration guide will be added in the near future", ProblemHighlightType.GENERIC_ERROR
                 )
                 registerProblem(field, "To define root models, use `pydantic.RootModel` rather than a field called '__root__'", ProblemHighlightType.WARNING)
                 return
@@ -328,6 +337,7 @@ class PydanticInspection : PyInspection() {
                     if (pyClass.findClassAttribute("root", true, myTypeEvalContext) == null) return
                     "Unexpected field with name ${fieldName}; only 'root' is allowed as a field of a `RootModel`"
                 }
+
                 else -> {
                     if (pyClass.findClassAttribute("__root__", true, myTypeEvalContext) == null) return
                     "__root__ cannot be mixed with other fields"
@@ -339,9 +349,9 @@ class PydanticInspection : PyInspection() {
         private fun validateDefaultAndDefaultFactory(default: PyExpression?, defaultFactory: PyExpression?): Boolean {
             if (default == null || defaultFactory == null) return true
             registerProblem(
-                defaultFactory.parent,
-                "cannot specify both default and default_factory",
-                ProblemHighlightType.WARNING
+                    defaultFactory.parent,
+                    "cannot specify both default and default_factory",
+                    ProblemHighlightType.WARNING
             )
             return false
         }
@@ -357,7 +367,7 @@ class PydanticInspection : PyInspection() {
 
             val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
             val default = getDefaultFromField(annotatedField, myTypeEvalContext) ?: return
-            if(!pydanticCacheService.isV2) {
+            if (!pydanticCacheService.isV2) {
                 registerProblem(
                         default.parent,
                         "`Field` default cannot be set in `Annotated` for '$fieldName'",
@@ -382,7 +392,7 @@ class PydanticInspection : PyInspection() {
 
 
             val assignedValueField =
-                assignedValue?.let { getFieldFromPyExpression(assignedValue, myTypeEvalContext, null) }
+                    assignedValue?.let { getFieldFromPyExpression(assignedValue, myTypeEvalContext, null) }
             if (assignedValueField != null) {
                 val default: PyExpression? = getDefaultFromField(assignedValueField, myTypeEvalContext)
                 val defaultFactory: PyExpression? = getDefaultFactoryFromField(assignedValueField)
@@ -394,9 +404,9 @@ class PydanticInspection : PyInspection() {
             if (qualifiedName != ANNOTATED_Q_NAME) return
             if (assignedValueField != null) {
                 registerProblem(
-                    assignedValueField,
-                    "cannot specify `Annotated` and value `Field`s together for '$fieldName'",
-                    ProblemHighlightType.WARNING
+                        assignedValueField,
+                        "cannot specify `Annotated` and value `Field`s together for '$fieldName'",
+                        ProblemHighlightType.WARNING
                 )
                 return
             }
@@ -406,13 +416,31 @@ class PydanticInspection : PyInspection() {
             if (!validateDefaultAndDefaultFactory(assignedValue, defaultFactory)) return
             if (default != null) {
                 registerProblem(
-                    assignedValue,
-                    "`Field` default cannot be set in `Annotated` for '$fieldName'",
-                    ProblemHighlightType.WARNING
+                        assignedValue,
+                        "`Field` default cannot be set in `Annotated` for '$fieldName'",
+                        ProblemHighlightType.WARNING
                 )
             }
         }
 
+        private fun inspectModelAttribute(node: PyQualifiedExpression) {
+            val qualifier = node.qualifier ?: return
+            val name = node.name ?: return
+            val pyClass = (myTypeEvalContext.getType(qualifier) as? PyClassType)?.pyClass ?: return
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            if (pyClass.findProperty(name, true, myTypeEvalContext) != null) return
+            if (pyClass.findMethodByName(name, true, myTypeEvalContext) != null) return
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
+            val config = getConfig(pyClass, myTypeEvalContext, true)
+            getAncestorPydanticModels(pyClass, true, myTypeEvalContext).forEach {
+                if (hasAttribute(it, config, pydanticVersion.isV2, name)) return
+            }
+            if (hasAttribute(pyClass, config, pydanticVersion.isV2, name)) return
+            registerProblem(node.node.lastChildNode.psi, "Unresolved attribute reference '${name}' for class '${pyClass.name}' ")
+        }
+        private fun hasAttribute(pyClass: PyClass, config: HashMap<String, Any?>, isV2: Boolean, name: String): Boolean =
+             getPydanticField(pyClass, myTypeEvalContext, config, isV2, false, name)
+                    .any()
     }
 
 //    override fun createOptionsPanel(): JComponent? {

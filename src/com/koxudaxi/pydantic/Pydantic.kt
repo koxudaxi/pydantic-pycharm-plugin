@@ -829,3 +829,10 @@ internal fun isInInit(field: PyTargetExpression): Boolean {
     val initValue = assignedValue.getKeywordArgument("init") ?: return true
     return PyEvaluator.evaluateAsBoolean(initValue, true)
 }
+
+internal fun getPydanticField(pyClass: PyClass, typeEvalContext: TypeEvalContext, config: HashMap<String, Any?>, isV2: Boolean, isDataClass: Boolean, name: String? = null): Sequence<PyTargetExpression> =
+        getClassVariables(pyClass, typeEvalContext)
+                .filter { if (name is String) it.name == name else it.name != null }
+                .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
+                .filter { isValidField(it, typeEvalContext, isV2) }
+                .filter { !isDataClass || isInInit(it) }
