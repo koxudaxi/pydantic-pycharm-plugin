@@ -143,11 +143,6 @@ class PydanticInspection : PyInspection() {
 
         }
 
-        override fun visitPyTargetExpression(node: PyTargetExpression) {
-            super.visitPyTargetExpression(node)
-            inspectModelAttribute(node)
-        }
-
         private fun isPydanticDeprecatedSince20(pyFunction: PyFunction): Boolean =
                 pyFunction.statementList.statements.filterIsInstance<PyExpressionStatement>()
                         .mapNotNull { (it.expression as? PyCallExpression)?.getArgument(1, PyReferenceExpression::class.java) }
@@ -437,11 +432,15 @@ class PydanticInspection : PyInspection() {
             if (pyClass.findMethodByName(name, true, myTypeEvalContext) != null) return
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
             val config = getConfig(pyClass, myTypeEvalContext, true)
-            val hasAttribute = getPydanticField(pyClass, myTypeEvalContext, config, pydanticVersion.isV2, false, name)
-                    .any()
-            if (hasAttribute) return
-            registerProblem(node, "Unresolved attribute reference '${name}' for class '${pyClass.name}' ")
+            getAncestorPydanticModels(pyClass, true, myTypeEvalContext).forEach {
+                if (hasAttribute(it, config, pydanticVersion.isV2, name)) return
+            }
+            if (hasAttribute(pyClass, config, pydanticVersion.isV2, name)) return
+            registerProblem(node.node.lastChildNode.psi, "Unresolved attribute reference '${name}' for class '${pyClass.name}' ")
         }
+        private fun hasAttribute(pyClass: PyClass, config: HashMap<String, Any?>, isV2: Boolean, name: String): Boolean =
+             getPydanticField(pyClass, myTypeEvalContext, config, isV2, false, name)
+                    .any()
     }
 
 //    override fun createOptionsPanel(): JComponent? {
