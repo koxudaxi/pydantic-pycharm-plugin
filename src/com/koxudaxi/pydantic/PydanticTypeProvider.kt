@@ -1,5 +1,6 @@
 package com.koxudaxi.pydantic
 
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -285,6 +286,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     ): PydanticDynamicModelClassType? {
         val arguments = pyCallExpression.arguments.toList()
         if (arguments.isEmpty()) return null
+        // If the project is dumb, we can't resolve the function
+        if (DumbService.isDumb(pyCallExpression.project)) return null
         val pyFunction = pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context))
             .asSequence()
             .filterIsInstance<PyFunction>()
