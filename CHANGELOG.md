@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Fix `@model_validator(mode="before")` causes "Problematic nesting of decorators" inspection false positive [[#882](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/882)]
 - Support 241 EAP [[#879](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/879)]
 - Inspect undefined field [[#858](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/858)]
 

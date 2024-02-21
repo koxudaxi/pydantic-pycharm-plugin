@@ -28,6 +28,9 @@
         <multiHostInjector implementation="com.koxudaxi.pydantic.PydanticRegexInjector"/>
         <psi.referenceContributor implementation="com.koxudaxi.pydantic.PydanticReferenceContributor"/>
         <lang.inspectionSuppressor language="Python"
+                                   implementationClass="com.koxudaxi.pydantic.PydanticPyNestedDecoratorsInspectionSuppressor"/>
+
+        <lang.inspectionSuppressor language="Python"
                                    implementationClass="com.koxudaxi.pydantic.PydanticTypeIgnoreInspectionSuppressor"/>
     </extensions>
     <projectListeners>
