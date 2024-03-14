@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.12] - 2024-03-14
+
 - Skip multi resolve item when is in dumb mode [[#885](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/885)]
 - Fix `@model_validator(mode="before")` causes "Problematic nesting of decorators" inspection false positive [[#882](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/882)]
 - Support 241 EAP [[#879](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/879)]
@@ -538,7 +541,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.11...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.12...HEAD
+[0.4.12]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.11...v0.4.12
 [0.4.11]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.10...v0.4.11
 [0.4.10]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.9...v0.4.10
 [0.4.9]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.8...v0.4.9
