@@ -123,7 +123,7 @@ jobs:
 
       # Run Qodana inspections
       - name: Qodana - Code Inspection
-        uses: JetBrains/qodana-action@v2023.3.1
+        uses: JetBrains/qodana-action@v2023.3.2
         with:
           args: --source-directory,src,testSrc
 
