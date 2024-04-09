@@ -83,7 +83,7 @@ jobs:
 
           ./gradlew listProductsReleases # prepare list of IDEs for Plugin Verifier
 
-       Run tests
+      # Run tests
       - name: Run Tests
         run: ./gradlew check
 
@@ -95,7 +95,7 @@ jobs:
           name: tests-result
           path: ${{ github.workspace }}/build/reports/tests
 
-       Upload Kover report to CodeCov
+      # Upload Kover report to CodeCov
       - name: Upload Code Coverage Report
         uses: codecov/codecov-action@v3
         with:
