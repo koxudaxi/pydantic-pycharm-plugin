@@ -97,10 +97,12 @@ jobs:
 
       # Upload Kover report to CodeCov
       - name: Upload Code Coverage Report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: ${{ github.workspace }}/build/reports/kover/report.xml
           fail_ci_if_error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       # Cache Plugin Verifier IDEs
       - name: Setup Plugin Verifier IDEs Cache
