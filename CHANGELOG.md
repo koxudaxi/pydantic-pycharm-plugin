@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Fix unresolved ClassVar attribute error [[#919](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/919)]
 
 ## [0.4.12] - 2024-03-14
 
