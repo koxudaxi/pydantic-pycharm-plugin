@@ -226,9 +226,9 @@ class PydanticInspection : PyInspection() {
             pyClass.getAncestorClasses(myTypeEvalContext)
             val parameters = (getAncestorPydanticModels(pyClass, false, myTypeEvalContext) + pyClass)
                     .flatMap { pydanticModel ->
-                        getClassVariables(pydanticModel, myTypeEvalContext)
+                        getClassVariables(pydanticModel, myTypeEvalContext, false)
                                 .filter { it.name != null }
-                                .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2) }
+                                .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2, false) }
                                 .map { it.name }
                     }.toSet()
             pyCallExpression.arguments

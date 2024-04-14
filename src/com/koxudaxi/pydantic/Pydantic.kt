@@ -65,7 +65,6 @@ const val ANY_Q_NAME = "typing.Any"
 const val OPTIONAL_Q_NAME = "typing.Optional"
 const val UNION_Q_NAME = "typing.Union"
 const val ANNOTATED_Q_NAME = "typing.Annotated"
-const val CLASSVAR_Q_NAME = "typing.ClassVar"
 const val GENERIC_Q_NAME = "typing.Generic"
 const val TYPE_Q_NAME = "typing.Type"
 const val TUPLE_Q_NAME = "typing.Tuple"
@@ -319,11 +318,11 @@ internal fun isValidatorField(stringLiteralExpression: StringLiteralExpression, 
     return isPydanticModel(pyClass, true, typeEvalContext)
 }
 
-internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext): Sequence<PyTargetExpression> {
+internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext, includeClassVar: Boolean): Sequence<PyTargetExpression> {
     return pyClass.classAttributes
-        .asReversed()
-        .asSequence()
-        .filterNot { PyTypingTypeProvider.isClassVar(it, context) }
+            .asReversed()
+            .asSequence()
+            .filter { includeClassVar || !PyTypingTypeProvider.isClassVar(it, context) }
 }
 
 private fun getAliasedFieldName(
@@ -335,14 +334,14 @@ private fun getAliasedFieldName(
     val assignedField = field.findAssignedValue()?.let {
         getFieldFromPyExpression(it, context, pydanticVersion)
     } ?: (field.annotation?.value as? PySubscriptionExpression)
-        ?.takeIf { getQualifiedName(it, context) == ANNOTATED_Q_NAME }
-        ?.let { getFieldFromAnnotated(it, context) }
+            ?.takeIf { getQualifiedName(it, context) == ANNOTATED_Q_NAME }
+            ?.let { getFieldFromAnnotated(it, context) }
     ?: return fieldName
 
     return when (val alias = assignedField.getKeywordArgument("alias")) {
         is StringLiteralExpression -> alias.stringValue
         is PyReferenceExpression -> ((alias.reference.resolve() as? PyTargetExpressionImpl)
-            ?.findAssignedValue() as? StringLiteralExpression)?.stringValue
+                ?.findAssignedValue() as? StringLiteralExpression)?.stringValue
         //TODO Support dynamic assigned Value. eg:  Schema(..., alias=get_alias_name(field_name))
         else -> fieldName
     } ?: fieldName
@@ -358,7 +357,7 @@ fun getResolvedPsiElements(referenceExpression: PyReferenceExpression, context: 
     ) {
         val resolveContext = PyResolveContext.defaultContext(context)
         PyUtil.filterTopPriorityResults(
-            referenceExpression.getReference(resolveContext).multiResolve(false)
+                referenceExpression.getReference(resolveContext).multiResolve(false)
         )
     } ?: emptyList()
 }
@@ -386,7 +385,7 @@ val PyType.isNullable: Boolean
 
 fun isPydanticSchemaByPsiElement(psiElement: PsiElement, context: TypeEvalContext): Boolean {
     return (psiElement as? PyClass ?: PsiTreeUtil.getContextOfType(psiElement, PyClass::class.java))
-        ?.let { isPydanticSchema(it, context) } ?: false
+            ?.let { isPydanticSchema(it, context) } ?: false
 
 }
 
@@ -434,12 +433,12 @@ fun getPsiElementByQualifiedName(
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
 }
 
-fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Boolean): Boolean {
+fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Boolean, includeClassVar: Boolean): Boolean {
     if (field.name?.isValidFieldName(isV2) != true) return false
 
-    val annotationValue = field.annotation?.value ?: return true
-    // TODO Support a variable.
-    return getQualifiedName(annotationValue, context) != CLASSVAR_Q_NAME
+//     TODO Support a variable.
+    if (includeClassVar) return true
+    return !PyTypingTypeProvider.isClassVar(field, context)
 }
 
 fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this.startsWith(MODEL_FIELD_PREFIX))
@@ -457,6 +456,7 @@ fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
                 is Boolean -> value
                 else -> null
             }
+
         ConfigType.LIST_PYTYPE -> {
             if (value is PyElement) {
                 when (val tupleValue = PsiTreeUtil.findChildOfType(value, PyTupleExpression::class.java)) {
@@ -465,6 +465,7 @@ fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
                 }
             } else null
         }
+
         ConfigType.EXTRA -> {
             when ((value as? PyStringLiteralExpression)?.stringValue) {
                 "allow" -> EXTRA.ALLOW
@@ -481,8 +482,8 @@ fun validateConfig(pyClass: PyClass, context: TypeEvalContext): List<PsiElement>
     val configClass = pyClass.nestedClasses.firstOrNull { it.isConfigClass } ?: return null
     val allowedConfigKwargs = PydanticCacheService.getAllowedConfigKwargs(pyClass.project, context) ?: return null
     val configKwargs = pyClass.superClassExpressions.filterIsInstance<PyKeywordArgument>()
-        .filter { allowedConfigKwargs.contains(it.name) }
-        .takeIf { it.isNotEmpty() } ?: return null
+            .filter { allowedConfigKwargs.contains(it.name) }
+            .takeIf { it.isNotEmpty() } ?: return null
 
     val results: MutableList<PsiElement> = configKwargs.toMutableList()
     configClass.nameNode?.psi?.let { results.add(it) }
@@ -581,6 +582,7 @@ fun getFieldName(
             config["allow_population_by_alias"] == true -> field.name
             else -> getAliasedFieldName(field, context, pydanticVersion)
         }
+
         2 -> when {
             config["populate_by_name"] == true -> field.name
             else -> getAliasedFieldName(field, context, pydanticVersion)
@@ -598,7 +600,8 @@ fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? 
 }
 
 fun getPydanticConfigDictDefaults(project: Project, context: TypeEvalContext): PyCallExpression? {
-    val targetExpression = getPyTargetExpressionFromQualifiedName(CONFIG_DICT_DEFAULTS_QUALIFIED_NAME, project, context) ?: return null
+    val targetExpression = getPyTargetExpressionFromQualifiedName(CONFIG_DICT_DEFAULTS_QUALIFIED_NAME, project, context)
+            ?: return null
     return targetExpression.findAssignedValue() as? PyCallExpression
 }
 
@@ -620,6 +623,7 @@ fun getPyClassFromQualifiedName(qualifiedName: QualifiedName, project: Project, 
 fun getPyTargetExpressionFromQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PyTargetExpression? {
     return getPsiElementFromQualifiedName(qualifiedName, project, context) as? PyTargetExpression
 }
+
 fun getPyClassByAttribute(pyPsiElement: PsiElement?): PyClass? {
     return pyPsiElement?.parent?.parent as? PyClass
 }
@@ -723,9 +727,9 @@ internal fun isUntouchedClass(
 }
 
 internal fun getFieldFromPyExpression(
-    psiElement: PsiElement,
-    context: TypeEvalContext,
-    pydanticVersion: KotlinVersion?,
+        psiElement: PsiElement,
+        context: TypeEvalContext,
+        pydanticVersion: KotlinVersion?,
 ): PyCallExpression? {
     if (psiElement !is PyCallExpression) return null
     val versionZero = pydanticVersion?.major == 0
@@ -768,7 +772,7 @@ internal fun getDefaultFromField(field: PyCallExpression, context: TypeEvalConte
         }
 
 internal fun getDefaultFactoryFromField(field: PyCallExpression): PyExpression? =
-    field.getKeywordArgument("default_factory")
+        field.getKeywordArgument("default_factory")
 
 internal fun getQualifiedName(pyExpression: PyExpression, context: TypeEvalContext): String? {
     return when (pyExpression) {
@@ -822,7 +826,7 @@ val KotlinVersion?.isV2: Boolean
 
 val Sdk.pydanticVersion: String?
     get() = PyPackageManagers.getInstance()
-        .forSdk(this).packages?.find { it.name == "pydantic" }?.version
+            .forSdk(this).packages?.find { it.name == "pydantic" }?.version
 
 internal fun isInInit(field: PyTargetExpression): Boolean {
     val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true
@@ -830,9 +834,10 @@ internal fun isInInit(field: PyTargetExpression): Boolean {
     return PyEvaluator.evaluateAsBoolean(initValue, true)
 }
 
-internal fun getPydanticField(pyClass: PyClass, typeEvalContext: TypeEvalContext, config: HashMap<String, Any?>, isV2: Boolean, isDataClass: Boolean, name: String? = null): Sequence<PyTargetExpression> =
-        getClassVariables(pyClass, typeEvalContext)
-                .filter { if (name is String) it.name == name else it.name != null }
-                .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext, isV2) }
-                .filter { !isDataClass || isInInit(it) }
+internal fun getPydanticField(pyClass: PyClass, typeEvalContext: TypeEvalContext, config: HashMap<String, Any?>, isV2: Boolean, isDataClass: Boolean, name: String? = null): Sequence<PyTargetExpression> {
+    return getClassVariables(pyClass, typeEvalContext, true)
+            .filter { if (name is String) it.name == name else it.name != null }
+            .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
+            .filter { isValidField(it, typeEvalContext, isV2, true) }
+            .filter { !isDataClass || isInInit(it) }
+}
