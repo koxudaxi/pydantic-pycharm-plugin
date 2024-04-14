@@ -3,7 +3,6 @@ package com.koxudaxi.pydantic
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.diff.comparison.trimEnd
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
@@ -16,7 +15,10 @@ import com.jetbrains.python.psi.impl.PyCallExpressionImpl
 import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
-import com.jetbrains.python.psi.types.*
+import com.jetbrains.python.psi.types.PyCallableType
+import com.jetbrains.python.psi.types.PyClassType
+import com.jetbrains.python.psi.types.PyTypeChecker
+import com.jetbrains.python.psi.types.TypeEvalContext
 
 
 class PydanticInspection : PyInspection() {
@@ -426,21 +428,33 @@ class PydanticInspection : PyInspection() {
         private fun inspectModelAttribute(node: PyQualifiedExpression) {
             val qualifier = node.qualifier ?: return
             val name = node.name ?: return
-            val pyClass = (myTypeEvalContext.getType(qualifier) as? PyClassType)?.pyClass ?: return
+            val pyClassType = myTypeEvalContext.getType(qualifier) as? PyClassType ?: return
+            val pyClass = pyClassType.pyClass
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+            if (pyClass.findNestedClass(name, true) is PyClass) return
             if (pyClass.findProperty(name, true, myTypeEvalContext) != null) return
             if (pyClass.findMethodByName(name, true, myTypeEvalContext) != null) return
+            val field = pyClass.findClassAttribute(name, true, myTypeEvalContext)
+            if (field is PyAnnotationOwner && PyTypingTypeProvider.isClassVar(field, myTypeEvalContext)) return
+
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
+
+            // Check private field or model fields
+            if (name.startsWith("_") || pydanticVersion.isV2 && name.startsWith(MODEL_FIELD_PREFIX)) return
+
             val config = getConfig(pyClass, myTypeEvalContext, true)
-            getAncestorPydanticModels(pyClass, true, myTypeEvalContext).forEach {
-                if (hasAttribute(it, config, pydanticVersion.isV2, name)) return
+            if (pyClassType.isDefinition) {
+                if(field == null && node.reference?.resolve() is PyTargetExpression) return
+            } else {
+                getAncestorPydanticModels(pyClass, true, myTypeEvalContext).forEach {
+                    if (hasAttribute(it, config, pydanticVersion.isV2, name)) return
+                }
+                if (hasAttribute(pyClass, config, pydanticVersion.isV2, name)) return
             }
-            if (hasAttribute(pyClass, config, pydanticVersion.isV2, name)) return
             registerProblem(node.node.lastChildNode.psi, "Unresolved attribute reference '${name}' for class '${pyClass.name}' ")
         }
         private fun hasAttribute(pyClass: PyClass, config: HashMap<String, Any?>, isV2: Boolean, name: String): Boolean =
-            getPydanticField(pyClass, myTypeEvalContext, config, isV2, false, name)
-                    .any() || pyClass.findNestedClass(name, true) is PyClass
+            getPydanticField(pyClass, myTypeEvalContext, config, isV2, false, name).any()
 
     }
 

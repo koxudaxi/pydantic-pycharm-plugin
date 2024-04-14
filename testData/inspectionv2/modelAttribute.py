@@ -8,13 +8,14 @@ class B(BaseModel):
     class Inner(BaseModel):
         user: str
     a: int = 1
-#     _url: str = "https://someurl"
+    _url: str = "https://someurl"
     TEST: ClassVar[str] = "Hello World"
     def f(self):
+        self._url
         self.Inner
         self.<warning descr="Unresolved attribute reference 'fake' for class 'B'">fake</warning>
         self.a
-#         self._url
+B.<warning descr="Unresolved attribute reference 'a' for class 'B'">a</warning>
 b = B(a=1)
 b.<warning descr="Unresolved attribute reference 'fake' for class 'B'">fake</warning>
 B.Inner
