@@ -25,9 +25,11 @@ class C(B):
         self.<warning descr="Unresolved attribute reference 'fake' for class 'C'">fake</warning>
         self.a
         self.c
-#         self._url
+        self._url
 c = C(a=1, c=1)
 c.a
+C._url
+c._url
 c.<warning descr="Unresolved attribute reference 'b' for class 'C'">b</warning>
 print(B.TEST)
 print(C.TEST)
