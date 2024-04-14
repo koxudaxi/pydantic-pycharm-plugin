@@ -34,3 +34,5 @@ c.<warning descr="Unresolved attribute reference 'b' for class 'C'">b</warning>
 print(B.TEST)
 print(C.TEST)
 C.Inner
+C.model_fields
+c.model_fields
