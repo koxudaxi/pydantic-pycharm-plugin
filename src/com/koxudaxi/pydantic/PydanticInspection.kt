@@ -442,10 +442,10 @@ class PydanticInspection : PyInspection() {
             // Check private field or model fields
             if (name.startsWith("_") || pydanticVersion.isV2 && name.startsWith(MODEL_FIELD_PREFIX)) return
 
-            val config = getConfig(pyClass, myTypeEvalContext, true)
             if (pyClassType.isDefinition) {
                 if(field == null && node.reference?.resolve() is PyTargetExpression) return
             } else {
+                val config = getConfig(pyClass, myTypeEvalContext, true)
                 getAncestorPydanticModels(pyClass, true, myTypeEvalContext).forEach {
                     if (hasAttribute(it, config, pydanticVersion.isV2, name)) return
                 }
