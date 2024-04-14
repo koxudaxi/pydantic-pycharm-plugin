@@ -439,8 +439,9 @@ class PydanticInspection : PyInspection() {
             registerProblem(node.node.lastChildNode.psi, "Unresolved attribute reference '${name}' for class '${pyClass.name}' ")
         }
         private fun hasAttribute(pyClass: PyClass, config: HashMap<String, Any?>, isV2: Boolean, name: String): Boolean =
-             getPydanticField(pyClass, myTypeEvalContext, config, isV2, false, name)
-                    .any()
+            getPydanticField(pyClass, myTypeEvalContext, config, isV2, false, name)
+                    .any() || pyClass.findNestedClass(name, true) is PyClass
+
     }
 
 //    override fun createOptionsPanel(): JComponent? {
