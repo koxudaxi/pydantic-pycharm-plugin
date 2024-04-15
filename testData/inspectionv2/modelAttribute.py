@@ -19,6 +19,8 @@ B.<warning descr="Unresolved attribute reference 'a' for class 'B'">a</warning>
 b = B(a=1)
 b.<warning descr="Unresolved attribute reference 'fake' for class 'B'">fake</warning>
 B.Inner
+B.__name__
+b.__name__
 class C(B):
    c: int = 1
    def ff(self):
