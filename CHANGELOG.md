@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.13] - 2024-04-15
+
 - Fix unresolved ClassVar attribute error [[#919](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/919)]
 
 ## [0.4.12] - 2024-03-14
@@ -542,7 +545,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.12...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.13...HEAD
+[0.4.13]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.12...v0.4.13
 [0.4.12]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.11...v0.4.12
 [0.4.11]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.10...v0.4.11
 [0.4.10]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.9...v0.4.10
