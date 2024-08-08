@@ -40,8 +40,9 @@ F.abc = '456'
 class G(BaseModel):
     model_config = ConfigDict(frozen=False)
 G.abc =<EOLError descr="Expression expected"></EOLError>
-G.<warning descr="Unresolved attribute reference 'abc' for class 'G'">abc</warning>.lower()
-<error descr="Cannot assign to function call">G.<warning descr="Unresolved attribute reference 'abc' for class 'G'">abc</warning>.lower()</error> = 'efg'
+G.abc = "test"
+G.abc.lower()
+<error descr="Cannot assign to function call">G.abc.lower()</error> = 'efg'
 
 
 class H:

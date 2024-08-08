@@ -359,7 +359,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                                 baseClassCollected.putAll(current.attributes)
                                 continue
                             }
-                            baseClassCollected.putAll(getClassVariables(current, context)
+                            baseClassCollected.putAll(getClassVariables(current, context, false)
                                 .map { it to dynamicModelFieldToParameter(it, context, typed) }
                                 .mapNotNull { (field, parameter) ->
                                     parameter.name?.let { name -> Triple(field, parameter, name) }
@@ -508,7 +508,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             val current = currentType.pyClass
             if (!isPydanticModel(current, false, context)) continue
 
-            getClassVariables(current, context)
+            getClassVariables(current, context, false)
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, context) }
                 .mapNotNull {
                     dynamicModelFieldToParameter(
@@ -549,7 +549,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         typed: Boolean = true,
         isDataclass: Boolean = false,
     ): PyCallableParameter? {
-        if (!isValidField(field, context, pydanticVersion.isV2)) return null
+        if (!isValidField(field, context, pydanticVersion.isV2, false)) return null
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
 
         val defaultValueFromField =

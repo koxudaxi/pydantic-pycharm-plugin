@@ -212,7 +212,7 @@ class PydanticCompletionContributor : CompletionContributor() {
                                 typeEvalContext)
                         }
                         .filter { attribute ->
-                            isValidField(attribute, typeEvalContext, isV2)
+                            isValidField(attribute, typeEvalContext, isV2, true)
                         }
                         .mapNotNull { attribute -> attribute?.name })
                 }
@@ -221,7 +221,7 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             fieldElements.addAll(pyClass.classAttributes
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext, isV2) }
+                .filter { isValidField(it, typeEvalContext, isV2, true) }
                 .mapNotNull { attribute -> attribute?.name })
 
             result.runRemainingContributors(parameters)
@@ -437,10 +437,10 @@ class PydanticCompletionContributor : CompletionContributor() {
         private fun addFieldCompletions(
             pyClass: PyClass, typeEvalContext: TypeEvalContext, config: HashMap<String, Any?>, isV2: Boolean, isDataclass: Boolean, excludes: HashSet<String>, newElements: LinkedHashMap<String, LookupElement>) {
 
-            getClassVariables(pyClass, typeEvalContext)
+            getClassVariables(pyClass, typeEvalContext, true)
                 .filter { it.name != null }
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, typeEvalContext) }
-                .filter { isValidField(it, typeEvalContext, isV2) }
+                .filter { isValidField(it, typeEvalContext, isV2, true) }
                 .filter { !isDataclass || isInInit(it) }
                 .forEach {
                     val elementName = it.name!!
