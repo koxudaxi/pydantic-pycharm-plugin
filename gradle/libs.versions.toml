@@ -6,7 +6,7 @@ junit = "5.8.1"
 # plugins
 kotlin = "1.9.23"
 changelog = "2.2.0"
-gradleIntelliJPlugin = "2.0.0-rc1"
+gradleIntelliJPlugin = "2.0.1"
 qodana = "0.1.13"
 kover = "0.7.5"
 
