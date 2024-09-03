@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Resolve plugin crash in PyCharm Community Edition after 2024.2 update [[#981](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/981)]
 
 ## [0.4.14] - 2024-07-24
 
