@@ -9,9 +9,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.QualifiedName
-import com.jetbrains.extensions.ModuleBasedContextAnchor
-import com.jetbrains.extensions.QNameResolveContext
-import com.jetbrains.extensions.resolveToElement
+import com.jetbrains.python.extensions.ModuleBasedContextAnchor
+import com.jetbrains.python.extensions.QNameResolveContext
+import com.jetbrains.python.extensions.resolveToElement
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.packaging.PyPackageManagers
