@@ -27,6 +27,7 @@ import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
+const val V1_BASE_MODEL_Q_NAME = "pydantic.v1.main.BaseModel"
 const val ROOT_MODEL_Q_NAME = "pydantic.root_model.RootModel"
 const val GENERIC_MODEL_Q_NAME = "pydantic.generics.GenericModel"
 const val DATA_CLASS_Q_NAME = "pydantic.dataclasses.dataclass"
@@ -212,18 +213,25 @@ fun getPydanticModelByPyKeywordArgument(
 }
 
 fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEvalContext): Boolean {
-    return ((isSubClassOfPydanticBaseModel(pyClass,
-        context) && !pyClass.isPydanticCustomBaseModel) || isSubClassOfPydanticGenericModel(pyClass,
-        context) || (includeDataclass && pyClass.isPydanticDataclass) || isSubClassOfCustomBaseModel(pyClass,
-        context)) && !pyClass.isPydanticBaseModel
-            && !pyClass.isPydanticGenericModel && !pyClass.isBaseSettings && !pyClass.isPydanticCustomBaseModel
+    return ((isSubClassOfPydanticBaseModel(pyClass, context) && !pyClass.isPydanticCustomBaseModel)
+            || isSubClassOfPydanticGenericModel(pyClass, context)
+            || (includeDataclass && pyClass.isPydanticDataclass)
+            || isSubClassOfCustomBaseModel(pyClass, context)
+            || isSubClassOfPydanticV1BaseModel(pyClass, context))
+            && !pyClass.isPydanticBaseModel
+            && !pyClass.isPydanticGenericModel
+            && !pyClass.isBaseSettings
+            && !pyClass.isPydanticCustomBaseModel
+            && !pyClass.isPydanticV1BaseModel
 }
 
-val PyClass.isPydanticBaseModel: Boolean get() = qualifiedName == BASE_MODEL_Q_NAME
+val PyClass.isPydanticBaseModel: Boolean get() = qualifiedName == BASE_MODEL_Q_NAME || qualifiedName == V1_BASE_MODEL_Q_NAME
 
-val PyClass.isPydanticCustomBaseModel: Boolean get() = qualifiedName in CUSTOM_BASE_MODEL_Q_NAMES
+val PyClass.isPydanticV1BaseModel: Boolean get() = qualifiedName == V1_BASE_MODEL_Q_NAME
 
-val PyClass.isPydanticGenericModel: Boolean get() = qualifiedName == GENERIC_MODEL_Q_NAME
+val PyClass.isPydanticCustomBaseModel: Boolean get() = qualifiedName in CUSTOM_BASE_MODEL_Q_NAMES || qualifiedName == V1_BASE_MODEL_Q_NAME
+
+val PyClass.isPydanticGenericModel: Boolean get() = qualifiedName == GENERIC_MODEL_Q_NAME || qualifiedName == V1_BASE_MODEL_Q_NAME
 
 
 internal fun isSubClassOfPydanticGenericModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
@@ -231,7 +239,7 @@ internal fun isSubClassOfPydanticGenericModel(pyClass: PyClass, context: TypeEva
 }
 
 internal fun isSubClassOfPydanticBaseModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
-    return pyClass.isSubclass(BASE_MODEL_Q_NAME, context)
+    return pyClass.isSubclass(BASE_MODEL_Q_NAME, context) || pyClass.isSubclass(V1_BASE_MODEL_Q_NAME, context)
 }
 
 internal fun isSubClassOfPydanticRootModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
@@ -246,7 +254,7 @@ internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalCont
     return CUSTOM_BASE_MODEL_Q_NAMES.any { pyClass.isSubclass(it, context) }
 }
 
-internal val PyClass.isBaseSettings: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME
+internal val PyClass.isBaseSettings: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME || qualifiedName == V1_BASE_MODEL_Q_NAME
 
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean =
