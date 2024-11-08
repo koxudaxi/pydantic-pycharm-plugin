@@ -1,31 +1,30 @@
 package com.koxudaxi.pydantic
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.util.Disposer
-import com.jetbrains.python.packaging.PyPackageManager
+import com.jetbrains.python.packaging.common.PythonPackageManagementListener
 import com.jetbrains.python.sdk.PythonSdkUtil
+import com.jetbrains.python.sdk.PythonSdkUtil.isDisposed
 import com.jetbrains.python.statistics.sdks
 
-class PydanticPackageManagerListener : PyPackageManager.Listener {
+class PydanticPythonPackageManagementListener : PythonPackageManagementListener {
     private fun updateVersion(sdk: Sdk) {
-        val version = sdk.pydanticVersion
         ProjectManager.getInstance().openProjects
             .filter { it.sdks.contains(sdk) }
             .forEach {
                 PydanticCacheService.clear(it)
+                val version = getPydanticVersion(it, sdk)
                 if (version is String) {
                     PydanticCacheService.getOrPutVersionFromVersionCache(it, version)
                 }
             }
     }
 
-    override fun packagesRefreshed(sdk: Sdk) {
+    override fun packagesChanged(sdk: Sdk) {
         ApplicationManager.getApplication().invokeLater {
-            if (sdk is Disposable && Disposer.isDisposed(sdk)) {
+            if (isDisposed(sdk)) {
                 return@invokeLater
             }
 
@@ -35,7 +34,7 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
                 updateVersion(sdk)
             } else {
                 runWriteAction {
-                    if (sdk is Disposable && Disposer.isDisposed(sdk)) {
+                    if (isDisposed(sdk)) {
                         return@runWriteAction
                     }
                     try {
@@ -50,4 +49,5 @@ class PydanticPackageManagerListener : PyPackageManager.Listener {
             }
         }
     }
+
 }

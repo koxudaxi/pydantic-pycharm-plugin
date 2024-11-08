@@ -29,7 +29,7 @@ class PydanticCacheService(val project: Project) {
     }
     private fun getVersion(): KotlinVersion? {
         val sdk = project.pythonSdk ?: return null
-        val versionString = sdk.pydanticVersion ?: return null
+        val versionString = getPydanticVersion(project, sdk) ?: return null
         return getOrPutVersionFromVersionCache(versionString)
     }
 
