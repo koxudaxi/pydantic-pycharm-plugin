@@ -4,8 +4,8 @@ from pydantic import BaseModel, Schema
 
 
 class A(BaseModel):
-    a: int = Schema(int(123))
-    b = Schema(int(123))
-    c = Schema(default=int(123))
+    a: str = Schema('123')
+    b = Schema('123')
+    c = Schema(default='123')
 
-A(<warning descr="Expected type 'int', got 'str' instead">a=str('123')</warning>, <warning descr="Expected type 'int', got 'str' instead">b=str('123')</warning>, <warning descr="Expected type 'int', got 'str' instead">c=str('123')</warning>)
+A(<warning descr="Expected type 'str', got 'int' instead">a=int('123')</warning>, <warning descr="Expected type 'str', got 'int' instead">b=int('123')</warning>, <warning descr="Expected type 'str', got 'int' instead">c=int('123')</warning>)
