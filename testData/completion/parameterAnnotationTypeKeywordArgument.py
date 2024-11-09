@@ -5,8 +5,8 @@ from typing import Type
 
 class A(BaseModel):
     abc: str
-    cde: str = str('abc')
-    efg: str = str('abc')
+    cde: str = 'abc'
+    efg: str = 'abc'
 
 
 def get_a(a: Type[A]):

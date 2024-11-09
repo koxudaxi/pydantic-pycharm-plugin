@@ -7,18 +7,18 @@ class Descriptor:
         return owner
 
 class A(BaseModel):
-    _abc: str = str('abc')
-    __cde: str = str('abc')
-    efg: ClassVar[str] = str('abc')
+    _abc: str = 'abc'
+    __cde: str = 'abc'
+    efg: ClassVar[str] = 'abc'
     class Config:
         keep_untouched = (Descriptor,)
 
     descriptor1 = Descriptor()
 
 class B(A):
-    _efg: str = str('abc')
-    __hij: str = str('abc')
-    klm: ClassVar[str] = str('abc')
+    _efg: str = 'abc'
+    __hij: str = 'abc'
+    klm: ClassVar[str] = 'abc'
     class Config:
         keep_untouched = (Descriptor,)
 

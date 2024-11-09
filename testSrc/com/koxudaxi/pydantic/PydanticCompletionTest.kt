@@ -125,8 +125,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             )
         )
@@ -208,8 +208,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             )
         )
@@ -220,8 +220,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
             listOf(
                 Pair("abc=", "str A"),
                 Pair("a", "null"),
-                Pair("cde=", "str=str('abc') A"),
-                Pair("efg=", "str=str('abc') A")
+                Pair("cde=", "str='abc' A"),
+                Pair("efg=", "str='abc' A")
             )
         )
     }
@@ -230,8 +230,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             ),
             listOf("instance")
@@ -242,8 +242,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             )
         )
@@ -261,8 +261,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc=", "str A"),
-                Pair("cde=", "str=str('abc') A"),
-                Pair("efg=", "str=str('abc') A")
+                Pair("cde=", "str='abc' A"),
+                Pair("efg=", "str='abc' A")
             )
         )
     }
@@ -271,8 +271,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             )
         )
@@ -312,8 +312,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             ),
             listOf("instance")
@@ -324,8 +324,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             ),
             listOf("assignedInstance")
@@ -336,8 +336,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             )
         )
@@ -458,7 +458,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "str A"),
-                Pair("cde", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
                 Pair("efg", "str A"),
                 Pair("hij", "Any A"),
                 Pair("___slots__", "BaseModel")
@@ -489,8 +489,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc", "Optional[str]=None A"),
-                Pair("cde", "str=str('abc') A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
             )
         )
@@ -514,10 +514,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 Pair("abc", "str A"),
                 Pair("b_id", "str A"),
                 Pair("c_id", "str A"),
-                Pair("cde", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
                 Pair("d_id", "str A"),
                 Pair("e_id", "str A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("efg", "str='abc' A"),
                 Pair("f_id", "str A"),
                 Pair("g_id", "str=get_alias() A"),
                 Pair("hij", "Any A"),
@@ -533,10 +533,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 Pair("abc", "str A"),
                 Pair("b_id", "str A"),
                 Pair("c_id", "str A"),
-                Pair("cde", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
                 Pair("d_id", "str A"),
                 Pair("e_id", "str A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("efg", "str='abc' A"),
                 Pair("f_id", "str A"),
                 Pair("g_id", "str=get_alias() A"),
                 Pair("hij", "Any A"),
@@ -552,10 +552,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 Pair("abc", "str A"),
                 Pair("b_id", "str A"),
                 Pair("c_id", "str A"),
-                Pair("cde", "str=str('abc') A"),
+                Pair("cde", "str='abc' A"),
                 Pair("d_id", "str A"),
                 Pair("e_id", "str A"),
-                Pair("efg", "str=str('abc') A"),
+                Pair("efg", "str='abc' A"),
                 Pair("f_id", "str A"),
                 Pair("g_id", "str=get_alias() A"),
                 Pair("hij", "Any A"),
@@ -627,10 +627,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 Pair("alias_a_id=", "str A"),
                 Pair("alias_b_id=", "str A"),
                 Pair("c_id=", "str A"),
-                Pair("cde=", "str=str('abc') A"),
+                Pair("cde=", "str='abc' A"),
                 Pair("d_id=", "str A"),
                 Pair("e_id=", "str A"),
-                Pair("efg=", "str=str('abc') A"),
+                Pair("efg=", "str='abc' A"),
                 Pair("f_id=", "str A"),
                 Pair("g_id=", "str=get_alias() A"),
                 Pair("hij=", "Any A"),
@@ -646,10 +646,10 @@ open class PydanticCompletionTest : PydanticTestCase() {
                 Pair("alias_a_id=", "str A"),
                 Pair("alias_b_id=", "str A"),
                 Pair("c_id=", "str A"),
-                Pair("cde=", "str=str('abc') A"),
+                Pair("cde=", "str='abc' A"),
                 Pair("d_id=", "str A"),
                 Pair("e_id=", "str A"),
-                Pair("efg=", "str=str('abc') A"),
+                Pair("efg=", "str='abc' A"),
                 Pair("f_id=", "str A"),
                 Pair("g_id=", "str=get_alias() A"),
                 Pair("hij=", "Any A"),
@@ -662,8 +662,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
         doFieldTest(
             listOf(
                 Pair("abc=", "str A"),
-                Pair("cde=", "str=str('abc') A"),
-                Pair("efg=", "str=str('abc') A")
+                Pair("cde=", "str='abc' A"),
+                Pair("efg=", "str='abc' A")
             )
         )
     }

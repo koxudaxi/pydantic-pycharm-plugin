@@ -6,8 +6,8 @@ def get_alias():
 b_id = 'alias_b_id'
 class A(BaseModel):
     abc: str = Schema(...)
-    cde = Schema(str('abc'))
-    efg = Schema(default=str('abc'))
+    cde = Schema('abc')
+    efg = Schema(default='abc')
     hij = Schema(default=...)
     a_id: str = Schema(..., alias='alias_a_id')
     b_id: str = Schema(..., alias=b_id)

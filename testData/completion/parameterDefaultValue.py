@@ -4,8 +4,8 @@ from pydantic import BaseModel
 
 class A(BaseModel):
     abc: str
-    cde: str = str('abc')
-    efg: str = str('abc')
+    cde: str = 'abc'
+    efg: str = 'abc'
 
 
 def get_a(a = A()):
