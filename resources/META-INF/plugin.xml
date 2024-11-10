@@ -32,10 +32,11 @@
 
         <lang.inspectionSuppressor language="Python"
                                    implementationClass="com.koxudaxi.pydantic.PydanticTypeIgnoreInspectionSuppressor"/>
+
     </extensions>
     <projectListeners>
-        <listener class="com.koxudaxi.pydantic.PydanticPackageManagerListener"
-                  topic="com.jetbrains.python.packaging.PyPackageManager$Listener"/>
+        <listener class="com.koxudaxi.pydantic.PydanticPythonPackageManagementListener"
+                  topic="com.jetbrains.python.packaging.common.PythonPackageManagementListener"/>
     </projectListeners>
     <extensions defaultExtensionNs="Pythonid">
         <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>

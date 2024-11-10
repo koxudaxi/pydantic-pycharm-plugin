@@ -4,8 +4,8 @@ from typing import List, Type
 
 class A(BaseModel):
     abc: str
-    cde = str('abc')
-    efg: str = str('abc')
+    cde = 'abc'
+    efg: str = 'abc'
 
 class B(A):
     hij: str

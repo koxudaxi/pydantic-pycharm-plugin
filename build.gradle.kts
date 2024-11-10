@@ -129,6 +129,7 @@ dependencies {
     compileOnly(group = "org.ini4j", name = "ini4j", version = "0.5.4")
     testImplementation(kotlin("test"))
     testImplementation(libs.junit)
+    testImplementation(libs.opentest4j)
     intellijPlatform {
         val type = properties("platformType")
         val version = properties("platformVersion")

@@ -14,7 +14,7 @@ import com.jetbrains.python.extensions.QNameResolveContext
 import com.jetbrains.python.extensions.resolveToElement
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
-import com.jetbrains.python.packaging.PyPackageManagers
+import com.jetbrains.python.packaging.management.PythonPackageManager.Companion.forSdk
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
@@ -824,9 +824,8 @@ fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEval
 val KotlinVersion?.isV2: Boolean
     get() = this?.isAtLeast(2, 0) == true
 
-val Sdk.pydanticVersion: String?
-    get() = PyPackageManagers.getInstance()
-            .forSdk(this).packages?.find { it.name == "pydantic" }?.version
+fun getPydanticVersion(project: Project, sdk: Sdk): String? =
+     forSdk(project, sdk).installedPackages.find { it.name == "pydantic" }?.version
 
 internal fun isInInit(field: PyTargetExpression): Boolean {
     val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true

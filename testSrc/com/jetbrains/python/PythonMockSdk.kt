@@ -13,13 +13,15 @@ import com.intellij.util.containers.ContainerUtil
 import com.jetbrains.python.codeInsight.typing.PyTypeShed.findRootsForLanguageLevel
 import com.jetbrains.python.codeInsight.userSkeletons.PyUserSkeletonsUtil
 import com.jetbrains.python.psi.LanguageLevel
+import com.jetbrains.python.sdk.PythonSdkAdditionalData
+import com.jetbrains.python.sdk.PythonSdkType.MOCK_PY_MARKER_KEY
 import com.jetbrains.python.sdk.PythonSdkUtil
+import com.jetbrains.python.sdk.flavors.CPythonSdkFlavor
+import com.jetbrains.python.sdk.flavors.PythonSdkFlavor
 import org.jdom.Element
 import org.jetbrains.annotations.NonNls
 import java.io.File
 import java.util.function.Consumer
-
-import com.jetbrains.python.sdk.PythonSdkType.MOCK_PY_MARKER_KEY
 
 /**
  * @author yole
@@ -59,7 +61,7 @@ object PythonMockSdk {
         val sdkModificator = sdk.sdkModificator
         sdkModificator.homePath = "$mockSdkPath/bin/python"
         sdkModificator.versionString = toVersionString(level)
-
+        sdkModificator.sdkAdditionalData = PythonSdkAdditionalData()
         createRoots(mockSdkPath, level).forEach(Consumer { vFile: VirtualFile? ->
             sdkModificator.addRoot(vFile!!, OrderRootType.CLASSES)
         })
