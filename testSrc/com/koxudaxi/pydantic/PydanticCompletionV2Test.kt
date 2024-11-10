@@ -68,7 +68,9 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "ConfigDict",
             "async",
             "False",
-            "True"
+            "True",
+            "ABC=",
+            "CDE="
         )
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression || it.psiElement == null
