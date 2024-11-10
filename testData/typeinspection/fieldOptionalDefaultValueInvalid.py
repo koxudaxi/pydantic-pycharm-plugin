@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class A(BaseModel):
-    a = '123'
+    a = int(123)
 
 
-A(<warning descr="Expected type 'str', got 'int' instead">a=int(123)</warning>)
+A(<warning descr="Expected type 'int', got 'str' instead">a=str('123')</warning>)

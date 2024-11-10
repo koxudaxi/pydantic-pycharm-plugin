@@ -1,8 +1,12 @@
+
+from typing import Union
+
 from pydantic import BaseModel
 
 
 class A(BaseModel):
-    a: str | bytes
+    a: float | int
 
 
-A(<warning descr="Expected type 'str | bytes', got 'int' instead">a=int(123)</warning>)
+A(<warning descr="Expected type 'float | int', got 'bytes' instead">a=bytes(123)</warning>)
+A(<warning descr="Expected type 'float | int', got 'str' instead">a=str('123')</warning>)

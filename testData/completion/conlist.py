@@ -1,4 +1,4 @@
-
+from typing import List
 from pydantic import BaseModel
 from pydantic.types import conlist
 

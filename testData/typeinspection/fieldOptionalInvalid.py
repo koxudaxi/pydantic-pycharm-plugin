@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class A(BaseModel):
-    a: Optional[str]
+    a: Optional[int]
 
 
-A(<warning descr="Expected type 'Optional[str]', got 'int' instead">a=int(123)</warning>)
+A(<warning descr="Expected type 'Optional[int]', got 'str' instead">a=str('123')</warning>)
