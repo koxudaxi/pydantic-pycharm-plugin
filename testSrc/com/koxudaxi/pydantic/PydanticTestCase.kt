@@ -59,13 +59,17 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
     override fun setUp() {
         super.setUp()
         val factory = IdeaTestFixtureFactory.getFixtureFactory()
-        val fixtureBuilder = factory.createLightFixtureBuilder(getProjectDescriptor(),  getTestName(false))
+        val fixtureBuilder = factory.createLightFixtureBuilder(getProjectDescriptor(), getTestName(false))
         val fixture = fixtureBuilder.fixture
-        myFixture = IdeaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(fixture,
-            LightTempDirTestFixtureImpl(true))
+        myFixture = IdeaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(
+            fixture,
+            LightTempDirTestFixtureImpl(true)
+        )
         myFixture!!.testDataPath = testDataPath
 
         myFixture!!.setUp()
+        myFixture!!.tempDirFixture.getFile("package")?.let { it.delete(this)}
+
         myFixture!!.copyDirectoryToProject(pythonStubPath, "package")
         myFixture!!.copyDirectoryToProject(pydanticMockPath, "package/pydantic")
 
@@ -90,19 +94,26 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
         }
         PydanticCacheService.setVersion(myFixture!!.project, parsedVersion)
         setLanguageLevel(defaultPythonLanguageLevel)
-        InspectionProfileImpl.INIT_INSPECTIONS = true;
+        InspectionProfileImpl.INIT_INSPECTIONS = true
     }
+
 
 
     @Throws(Exception::class)
     override fun tearDown() {
         try {
-            PyNamespacePackagesService.getInstance(myFixture!!.module).resetAllNamespacePackages();
-            PyModuleNameCompletionContributor.ENABLED = true;
-            setLanguageLevel(null)
-            removeSourceRoot(myFixture!!.module, packageDir!!)
-            myFixture!!.tearDown()
-            myFixture = null
+            myFixture?.let { fixture ->
+                fixture.module?.let { module ->
+                    PyNamespacePackagesService.getInstance(module).resetAllNamespacePackages()
+                    packageDir?.let { dir ->
+                        removeSourceRoot(module, dir)
+                    }
+                }
+                PyModuleNameCompletionContributor.ENABLED = true
+                setLanguageLevel(null)
+                fixture.tearDown()
+                myFixture = null
+            }
             FilePropertyPusher.EP_NAME.findExtensionOrFail(PythonLanguageLevelPusher::class.java)
                 .flushLanguageLevelCache()
         } catch (e: Throwable) {
@@ -111,7 +122,6 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
             super.tearDown()
             clearFields(this)
         }
-
     }
 
     protected fun setLanguageLevel(languageLevel: LanguageLevel?) {

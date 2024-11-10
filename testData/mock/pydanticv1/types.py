@@ -1,5 +1,7 @@
+from typing import Type, List, TypeVar
+T = TypeVar('T')
 
-def conlist(item_type, *, min_items = None, max_items = None) Type[List[T]]:
+def conlist(item_type: Type[T], *, min_items = None, max_items = None) -> Type[List[T]]:
     pass
 
 def constr(

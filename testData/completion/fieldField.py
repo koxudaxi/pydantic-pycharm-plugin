@@ -6,8 +6,8 @@ def get_alias():
 b_id = 'alias_b_id'
 class A(BaseModel):
     abc: str = Field(...)
-    cde = Field(str('abc'))
-    efg = Field(default=str('abc'))
+    cde = Field('abc')
+    efg = Field(default='abc')
     hij = Field(default=...)
     a_id: str = Field(..., alias='alias_a_id')
     b_id: str = Field(..., alias=b_id)

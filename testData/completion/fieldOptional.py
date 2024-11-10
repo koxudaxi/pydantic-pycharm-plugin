@@ -6,8 +6,8 @@ from pydantic import BaseModel
 
 class A(BaseModel):
     abc: Optional[str]
-    cde = str('abc')
-    efg: str = str('abc')
+    cde = 'abc'
+    efg: str = 'abc'
 
 class B(A):
     hij: str
