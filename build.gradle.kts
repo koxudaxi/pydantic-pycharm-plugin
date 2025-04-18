@@ -69,14 +69,7 @@ intellijPlatform {
             }
         }
     }
-    verifyPlugin {
-        ides {
-            recommended()
-        }
-    }
-    // Configure UI tests plugin
-    // Read more: https://github.com/JetBrains/intellij-ui-test-robot
-    verifyPlugin {
+    pluginVerification {
         ides {
             recommended()
         }
@@ -110,10 +103,12 @@ qodana {
 }
 
 // Configure Gradle Kover Plugin - read more: https://github.com/Kotlin/kotlinx-kover#configuration
-koverReport {
-    defaults {
-        xml {
-            onCheck = true
+kover {
+    reports {
+        total {
+            xml {
+                onCheck = true
+            }
         }
     }
 }
@@ -134,9 +129,9 @@ dependencies {
         val type = properties("platformType")
         val version = properties("platformVersion")
         val bundledPlugins = properties("platformBundledPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
+
         create(type, version, useInstaller = false)
         bundledPlugins(bundledPlugins)
-        instrumentationTools()
         testFramework(TestFrameworkType.Bundled)
         pluginVerifier()
         zipSigner()
