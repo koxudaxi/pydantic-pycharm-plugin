@@ -320,7 +320,7 @@ class PydanticInspection : PyInspection() {
         private fun inspectCustomRootField(field: PyTargetExpression) {
             val pyClass = getPydanticModelByAttribute(field.parent, false, myTypeEvalContext) ?: return
 
-            if (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext)) return
+            if (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext) || PyTypingTypeProvider.isFinal(field, myTypeEvalContext)) return
             val fieldName = field.text ?: return
             val isV2 = pydanticCacheService.isV2
             if (isV2 && fieldName == "__root__") {
@@ -435,7 +435,7 @@ class PydanticInspection : PyInspection() {
             if (pyClass.findProperty(name, true, myTypeEvalContext) != null) return
             if (pyClass.findMethodByName(name, true, myTypeEvalContext) != null) return
             val field = pyClass.findClassAttribute(name, true, myTypeEvalContext)
-            if (field is PyAnnotationOwner && PyTypingTypeProvider.isClassVar(field, myTypeEvalContext)) return
+            if (field is PyAnnotationOwner && (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext) || PyTypingTypeProvider.isFinal(field, myTypeEvalContext))) return
 
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
 
