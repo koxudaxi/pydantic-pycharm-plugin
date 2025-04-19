@@ -13,8 +13,12 @@ import com.intellij.util.containers.ContainerUtil
 import com.jetbrains.python.codeInsight.typing.PyTypeShed
 import com.jetbrains.python.codeInsight.userSkeletons.PyUserSkeletonsUtil
 import com.jetbrains.python.psi.LanguageLevel
+import com.jetbrains.python.sdk.PythonSdkAdditionalData
 import com.jetbrains.python.sdk.PythonSdkType.MOCK_PY_MARKER_KEY
 import com.jetbrains.python.sdk.PythonSdkUtil
+import com.jetbrains.python.sdk.flavors.PyFlavorAndData
+import com.jetbrains.python.sdk.flavors.PyFlavorData
+import com.jetbrains.python.sdk.flavors.VirtualEnvSdkFlavor
 import org.jdom.Element
 import org.jetbrains.annotations.NonNls
 import java.io.File
@@ -57,6 +61,14 @@ object PythonMockSdk {
         val sdk = ProjectJdkTable.getInstance().createSdk(name, sdkType)
         val sdkModificator = sdk.sdkModificator
         sdkModificator.homePath = "$mockSdkPath/bin/python"
+        sdkModificator.setSdkAdditionalData(
+            PythonSdkAdditionalData(
+                PyFlavorAndData(
+                    PyFlavorData.Empty,
+                    VirtualEnvSdkFlavor.getInstance()
+                )
+            )
+        )
         sdkModificator.versionString = toVersionString(level)
 
         createRoots(mockSdkPath, level).forEach(Consumer { vFile: VirtualFile? ->
