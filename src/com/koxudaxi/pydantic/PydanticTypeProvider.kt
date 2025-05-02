@@ -1,6 +1,7 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.util.RecursionManager
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -186,16 +187,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyTargetExpression: PyTargetExpression, pyClass: PyClass?, context: TypeEvalContext
     ): PyTypeVarType? {
         val assignedValue = pyTargetExpression.findAssignedValue() as? PyCallExpression ?: return null
-        if (assignedValue.getType(context)?.pyClassTypes?.firstOrNull()?.classQName != "typing.TypeVar") return null
+        val typedElement = assignedValue.getType(context) ?: return null
+        if (typedElement.pyClassTypes.firstOrNull()?.classQName != "typing.TypeVar") return null
         val argumentList = assignedValue.argumentList ?: return null
         val argument = argumentList.arguments
         if (argument.isEmpty()) return null
         val typeVarExpression = argument.firstOrNull() as? PyStringLiteralExpression ?: return null
         val name = typeVarExpression.stringValue
         val bound = argumentList.getKeywordArgument("bound")?.valueExpression?.getType(context)
+        val constraints = argumentList.getKeywordArgument("constraints")?.valueExpression?.getType(context)
 //        val default = argumentList.getKeywordArgument("default")?.valueExpression
 //        // TODO: Support TypeVarTuple, ParamSpec, constraints
-        return PyTypeVarTypeImpl(name, bound).withScopeOwner(pyClass).withTargetExpression(pyTargetExpression)
+        return PyTypeVarTypeImpl(name, emptyList<PyType>(), bound, null)
     }
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyTypeVarType> {
@@ -656,8 +659,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         field: PyTargetExpression,
         context: TypeEvalContext,
     ): PyType? {
-
-        return context.getType(field)
+        return RecursionManager.doPreventingRecursion(field, true) {
+            context.getType(field)
+        }
     }
 
     internal fun getDefaultValueForParameter(
@@ -690,9 +694,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     ?.run { return ellipsis }
 
                 ANNOTATED_Q_NAME -> return getFieldFromAnnotated(pyExpression, context)
-                        ?.let {
-                            getDefaultFactoryFromField(it) ?: if (pydanticVersion.isV2) getDefaultFromField(it, context) else null
-                        }
+                    ?.let {
+                        getDefaultFactoryFromField(it) ?: if (pydanticVersion.isV2) getDefaultFromField(
+                            it,
+                            context
+                        ) else null
+                    }
                     ?: value
                     ?: getTypeExpressionFromAnnotated(pyExpression)?.let {
                         parseAnnotation(it, context)
