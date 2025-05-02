@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.17] - 2025-05-02
+
 - add support Final [#1054](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1054)]
 - feat: support PyCharm/IDEA 2025.1 [[#1055](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1055)]
 
@@ -559,7 +562,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.16...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.17...HEAD
+[0.4.17]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.16...v0.4.17
 [0.4.16]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.15...v0.4.16
 [0.4.15]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.14...v0.4.15
 [0.4.14]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.13...v0.4.14
