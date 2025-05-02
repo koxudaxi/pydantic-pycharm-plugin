@@ -322,7 +322,7 @@ internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext, inclu
     return pyClass.classAttributes
             .asReversed()
             .asSequence()
-            .filter { includeClassVar || !PyTypingTypeProvider.isClassVar(it, context) }
+            .filter { includeClassVar || !(PyTypingTypeProvider.isClassVar(it, context) || PyTypingTypeProvider.isFinal(it, context)) }
 }
 
 private fun getAliasedFieldName(
@@ -438,7 +438,7 @@ fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Bool
 
 //     TODO Support a variable.
     if (includeClassVar) return true
-    return !PyTypingTypeProvider.isClassVar(field, context)
+    return !(PyTypingTypeProvider.isClassVar(field, context) || PyTypingTypeProvider.isFinal(field, context))
 }
 
 fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this.startsWith(MODEL_FIELD_PREFIX))
