@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- feat: support PyCharm/IDEA 2025.1 [[#1055](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1055)]
 
 ## [0.4.16] - 2024-11-10
 
