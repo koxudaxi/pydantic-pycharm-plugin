@@ -31,7 +31,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         return Visitor(holder, PyInspectionVisitor.getContext(session))
     }
 
-    class Visitor(holder: ProblemsHolder?, context: TypeEvalContext) :
+    class Visitor(holder: ProblemsHolder, context: TypeEvalContext) :
         PyTypeCheckerInspection.Visitor(holder, context) {
 
         private val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
