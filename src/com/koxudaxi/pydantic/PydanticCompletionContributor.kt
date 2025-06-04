@@ -81,7 +81,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         private fun getTypeText(
             pyClass: PyClass, typeEvalContext: TypeEvalContext,
             pyTargetExpression: PyTargetExpression,
-            ellipsis: PyNoneLiteralExpression,
+            ellipsis: PyEllipsisLiteralExpression,
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             isDataclass: Boolean,
@@ -114,7 +114,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         private fun addFieldElement(
             pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
             typeEvalContext: TypeEvalContext,
-            ellipsis: PyNoneLiteralExpression,
+            ellipsis: PyEllipsisLiteralExpression,
             config: HashMap<String, Any?>,
             excludes: HashSet<String>?,
             isDataclass: Boolean,
@@ -149,7 +149,7 @@ class PydanticCompletionContributor : CompletionContributor() {
         protected fun addAllFieldElement(
             parameters: CompletionParameters, result: CompletionResultSet,
             pyClass: PyClass, typeEvalContext: TypeEvalContext,
-            ellipsis: PyNoneLiteralExpression,
+            ellipsis: PyEllipsisLiteralExpression,
             config: HashMap<String, Any?>,
             genericTypeMap: Map<PyTypeVarType, PyType>?,
             excludes: HashSet<String>? = null,

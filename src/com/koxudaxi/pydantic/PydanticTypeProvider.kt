@@ -109,7 +109,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         name: String,
         pyClass: PyClass,
         context: TypeEvalContext,
-        ellipsis: PyNoneLiteralExpression,
+        ellipsis: PyEllipsisLiteralExpression,
         pydanticVersion: KotlinVersion?,
     ): PyType? {
         return pyClass.findClassAttribute(name, false, context)
@@ -127,7 +127,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getRefTypeFromField(
-        pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
+        pyTargetExpression: PyTargetExpression, ellipsis: PyEllipsisLiteralExpression,
         context: TypeEvalContext, pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
     ): PyType? {
@@ -178,7 +178,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         }?.let {
                             return when (qualifiedName) {
                                 UNION_Q_NAME -> PyUnionType.union(it)
-                                OPTIONAL_Q_NAME -> PyUnionType.union(it + PyNoneType.INSTANCE)
+                                OPTIONAL_Q_NAME -> PyUnionType.union(it + PyBuiltinCache.getInstance(indexExpression).noneType)
                                 else -> PyTupleType.create(indexExpression as PsiElement, it)
                             }
                         }
@@ -587,7 +587,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     internal fun dynamicModelFieldToParameter(
         field: PyTargetExpression,
-        ellipsis: PyNoneLiteralExpression,
+        ellipsis: PyEllipsisLiteralExpression,
         context: TypeEvalContext,
         pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
@@ -692,7 +692,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     internal fun getDefaultValueForParameter(
         field: PyTargetExpression,
-        ellipsis: PyNoneLiteralExpression,
+        ellipsis: PyEllipsisLiteralExpression,
         context: TypeEvalContext,
         pydanticVersion: KotlinVersion?,
         isDataclass: Boolean,
@@ -707,7 +707,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         fun parseAnnotation(pyExpression: PyExpression, context: TypeEvalContext): PyExpression? {
             val qualifiedName = getQualifiedName(pyExpression, context)
                 ?: takeIf { isBitwiseOrUnionAvailable(pyExpression) }?.let {
-                    pyExpression.children.filterIsInstance<PyNoneLiteralExpression>().run { return ellipsis }
+                    pyExpression.children.filterIsInstance<PyEllipsisLiteralExpression>().run { return ellipsis }
                 }
             when (qualifiedName) {
                 ANY_Q_NAME -> return ellipsis
@@ -715,7 +715,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 UNION_Q_NAME -> pyExpression.children
                     .filterIsInstance<PyTupleExpression>()
                     .flatMap { it.children.toList() }
-                    .filterIsInstance<PyNoneLiteralExpression>()
+                    .filterIsInstance<PyEllipsisLiteralExpression>()
                     .firstOrNull()
                     ?.run { return ellipsis }
 
@@ -742,7 +742,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getDefaultValueByAssignedValue(
         field: PyTargetExpression,
-        ellipsis: PyNoneLiteralExpression,
+        ellipsis: PyEllipsisLiteralExpression,
         context: TypeEvalContext,
         pydanticVersion: KotlinVersion?,
         isDataclass: Boolean,

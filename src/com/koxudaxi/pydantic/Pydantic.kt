@@ -373,11 +373,7 @@ val PyType.pyClassTypes: List<PyClassType>
 val PyType.isNullable: Boolean
     get() = when (this) {
         is PyUnionType -> this.members.any {
-            when (it) {
-                is PyNoneType -> true
-                is PyUnionType -> it.isNullable
-                else -> false
-            }
+            it.isNoneType || it is PyUnionType && it.isNullable
         }
         is PyNoneLiteralExpression -> true
         else -> false
@@ -700,7 +696,7 @@ fun getPydanticUnFilledArguments(
 }
 
 val PyCallableParameter.required: Boolean
-    get() = !hasDefaultValue() || (defaultValue !is PyNoneLiteralExpression && defaultValueText == "...")
+    get() = !hasDefaultValue() || (defaultValue is PyEllipsisLiteralExpression)
 
 
 internal fun hasTargetPyType(
