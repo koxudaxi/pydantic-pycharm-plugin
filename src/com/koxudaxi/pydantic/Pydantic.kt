@@ -820,8 +820,13 @@ fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEval
 val KotlinVersion?.isV2: Boolean
     get() = this?.isAtLeast(2, 0) == true
 
-fun getPydanticVersion(project: Project, sdk: Sdk): String? =
-     forSdk(project, sdk).installedPackages.find { it.name == "pydantic" }?.version
+@Suppress("UnstableApiUsage")
+fun getPydanticVersion(project: Project, sdk: Sdk): String? {
+    val packageManager = forSdk(project, sdk)
+    // In IntelliJ 2025.2, installedPackages is protected, use listInstalledPackagesSnapshot() instead
+    val packages = packageManager.listInstalledPackagesSnapshot()
+    return packages.find { it.name == "pydantic" }?.version
+}
 
 internal fun isInInit(field: PyTargetExpression): Boolean {
     val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true

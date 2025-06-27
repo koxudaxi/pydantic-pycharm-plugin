@@ -14,11 +14,12 @@ import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyCallExpression.PyArgumentsMapping
 import com.jetbrains.python.psi.PyCallSiteExpression
 import com.jetbrains.python.psi.PyClass
-import com.jetbrains.python.psi.impl.PyCallExpressionHelper
+import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.types.*
 import com.jetbrains.python.psi.types.PyLiteralType.Companion.promoteToLiteral
 
 
+@Suppress("UnstableApiUsage")
 class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
     override fun buildVisitor(
         holder: ProblemsHolder,
@@ -47,9 +48,9 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
 
 
         private fun checkCallSiteForPydantic(callSite: PyCallSiteExpression) {
-            PyCallExpressionHelper.mapArguments(callSite, resolveContext)
-                .filter { mapping: PyArgumentsMapping? -> mapping!!.unmappedArguments.isEmpty() && mapping.unmappedParameters.isEmpty() }
-                .forEach { mapping: PyArgumentsMapping -> analyzeCallee(callSite, mapping) }
+            (callSite as? PyCallExpression)?.multiMapArguments(resolveContext)
+                ?.filter { mapping: PyArgumentsMapping? -> mapping!!.unmappedArguments.isEmpty() && mapping.unmappedParameters.isEmpty() }
+                ?.forEach { mapping: PyArgumentsMapping -> analyzeCallee(callSite, mapping) }
         }
 
         private fun getParsableTypeFromTypeMap(typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
@@ -107,10 +108,14 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             val mappedParameters = mapping.mappedParameters
             val cachedParsableTypeMap = mutableMapOf<PyType, PyType?>()
             val cachedAcceptableTypeMap = mutableMapOf<PyType, PyType?>()
-            for ((argument, parameter) in PyCallExpressionHelper.getRegularMappedParameters(mappedParameters)) {
-                val expected = parameter.getArgumentType(myTypeEvalContext)
-                val promotedToLiteral = promoteToLiteral(argument, expected, myTypeEvalContext, substitutions)
-                val actual = promotedToLiteral ?: myTypeEvalContext.getType(argument)
+            for (entry in mappedParameters.entries) {
+                val parameter = entry.key
+                val argument = entry.value
+                val expected = parameter.getType(myTypeEvalContext)
+                // In IntelliJ 2025.2, mappedParameters maps PyCallableParameter -> PyExpression
+                val argumentExpression = argument as? PyExpression ?: continue
+                val promotedToLiteral = promoteToLiteral(argumentExpression, expected, myTypeEvalContext, substitutions)
+                val actual = promotedToLiteral ?: myTypeEvalContext.getType(argumentExpression)
                 val strictMatched = matchParameterAndArgument(expected, actual, substitutions)
                 val strictResult = AnalyzeArgumentResult(expected, actual, strictMatched)
                 if (!strictResult.isMatched) {
@@ -123,8 +128,8 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                             val parsableMatched =
                                 matchParameterAndArgument(parsableType, actual, substitutions)
                             if (AnalyzeArgumentResult(parsableType, actual, parsableMatched).isMatched) {
-                                registerProblem(
-                                    argument,
+                                holder.registerProblem(
+                                    argumentExpression,
                                     String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
                                         expectedType,
                                         actualType,
@@ -139,19 +144,18 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                             val acceptableMatched =
                                 matchParameterAndArgument(acceptableType, actual, substitutions)
                             if (AnalyzeArgumentResult(acceptableType, actual, acceptableMatched).isMatched) {
-                                registerProblem(
-                                    argument,
+                                holder.registerProblem(
+                                    argumentExpression,
                                     String.format("Field is of type '%s', '%s' is set as an acceptable type in pyproject.toml",
                                         expectedType,
-                                        actualType,
-                                        expectedType),
+                                        actualType),
                                     pydanticConfigService.acceptableTypeHighlightType
                                 )
                                 continue
                             }
                         }
                     }
-                    registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
+                    holder.registerProblem(argumentExpression, String.format("Expected type '%s', got '%s' instead",
                         expectedType,
                         actualType)
                     )

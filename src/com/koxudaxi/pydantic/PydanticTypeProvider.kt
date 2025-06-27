@@ -221,11 +221,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val constraints = argumentList.getKeywordArgument("constraints")?.valueExpression?.getType(context)
 //        val default = argumentList.getKeywordArgument("default")?.valueExpression
 //        // TODO: Support TypeVarTuple, ParamSpec, constraints
-        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null)
+        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null, PyTypeVarType.Variance.INVARIANT)
     }
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyTypeVarType> {
-        val pyCollectionType = pyTypingTypeProvider.getGenericType(pyClass, context) as? PyCollectionType
+        @Suppress("UnstableApiUsage") val pyCollectionType = pyTypingTypeProvider.getGenericType(pyClass, context) as? PyCollectionType
         val genericTypes = pyCollectionType?.elementTypes?.filterIsInstance<PyTypeVarType>() ?: emptyList()
         return (genericTypes +
                 pyClass.superClassExpressions
