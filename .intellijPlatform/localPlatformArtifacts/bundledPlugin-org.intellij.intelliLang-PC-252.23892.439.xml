@@ -1,0 +1,11 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="org.intellij.intelliLang" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="platform-langInjection" ext="jar" conf="default" url="plugins/platform-langInjection/lib"/>
+    <artifact name="java-langInjection-jps" ext="jar" conf="default" url="plugins/platform-langInjection/lib"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

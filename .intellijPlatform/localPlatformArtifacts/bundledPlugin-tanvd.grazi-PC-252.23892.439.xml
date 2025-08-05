@@ -1,0 +1,39 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="tanvd.grazi" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="grpc-stub" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="org.jetbrains.intellij.deps.languagetool-language-en" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="tech.uom.lib-uom-lib-common" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="com.hankcs-aho-corasick-double-array-trie" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="org.json-json" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="grpc-core" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="org.carrot2-morfologik-fsa-builders" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="org.carrot2-morfologik-stemming" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="grazie" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="tech.units-indriya" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="org.jetbrains.intellij.deps.languagetool-languagetool-core" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="grpc-protobuf" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="org.carrot2-morfologik-fsa" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="com.vdurmont-emoji-java" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="javax.measure-unit-api" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="com.carrotsearch-hppc" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="commons-text" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="org.carrot2-morfologik-speller" ext="jar" conf="default" url="plugins/grazie/lib"/>
+    <artifact name="net.loomchild-segment" ext="jar" conf="default" url="plugins/grazie/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.libraries.lucene.common" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.libraries.ai.grazie.spell.gec.engine.local" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.spellchecker" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.vcs.impl" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.json.backend" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="org.intellij.plugins.markdown" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.properties.backend" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.properties.backend.psi" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="com.intellij.properties" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.yaml.backend" rev="PC-252.23892.439"/>
+  </dependencies>
+</ivy-module>

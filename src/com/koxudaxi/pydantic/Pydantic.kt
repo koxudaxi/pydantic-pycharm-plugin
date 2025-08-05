@@ -14,7 +14,7 @@ import com.jetbrains.python.extensions.QNameResolveContext
 import com.jetbrains.python.extensions.resolveToElement
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
-import com.jetbrains.python.packaging.management.PythonPackageManager.Companion.forSdk
+import com.jetbrains.python.packaging.management.PythonPackageManager
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyEvaluator
 import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
@@ -824,8 +824,48 @@ fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEval
 val KotlinVersion?.isV2: Boolean
     get() = this?.isAtLeast(2, 0) == true
 
-fun getPydanticVersion(project: Project, sdk: Sdk): String? =
-     forSdk(project, sdk).installedPackages.find { it.name == "pydantic" }?.version
+fun getPydanticVersion(project: Project, sdk: Sdk): String? {
+    return try {
+        val packageManager = PythonPackageManager.forSdk(project, sdk)
+        
+        // Try to access packages in different ways for API compatibility
+        val packages = try {
+            // Try the new API first (might be available in 2025.2+)
+            val packagesMethod = packageManager.javaClass.getMethod("getPackages")
+            @Suppress("UNCHECKED_CAST")
+            packagesMethod.invoke(packageManager) as? List<*>
+        } catch (e: Exception) {
+            try {
+                // Fall back to getInstalledPackages (works in older versions)
+                val installedMethod = packageManager.javaClass.getDeclaredMethod("getInstalledPackages")
+                installedMethod.isAccessible = true
+                @Suppress("UNCHECKED_CAST")
+                installedMethod.invoke(packageManager) as? List<*>
+            } catch (e2: Exception) {
+                null
+            }
+        }
+        
+        packages?.find { 
+            val packageObj = it ?: return@find false
+            try {
+                val nameMethod = packageObj.javaClass.getMethod("getName")
+                nameMethod.invoke(packageObj) == "pydantic"
+            } catch (e: Exception) {
+                false
+            }
+        }?.let { packageObj ->
+            try {
+                val versionMethod = packageObj.javaClass.getMethod("getVersion")
+                versionMethod.invoke(packageObj) as? String
+            } catch (e: Exception) {
+                null
+            }
+        }
+    } catch (e: Exception) {
+        null
+    }
+}
 
 internal fun isInInit(field: PyTargetExpression): Boolean {
     val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true

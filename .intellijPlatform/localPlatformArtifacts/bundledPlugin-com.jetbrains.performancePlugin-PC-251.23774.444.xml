@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.jetbrains.performancePlugin" revision="PC-251.23774.444"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="performanceTesting" ext="jar" conf="default" url="plugins/performanceTesting/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.vcs.impl" rev="PC-251.23774.444"/>
+    <dependency org="bundledModule" name="intellij.platform.vcs.log.impl" rev="PC-251.23774.444"/>
+  </dependencies>
+</ivy-module>

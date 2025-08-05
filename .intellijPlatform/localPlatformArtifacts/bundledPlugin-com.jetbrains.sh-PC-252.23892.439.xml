@@ -1,0 +1,15 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.jetbrains.sh" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="sh" ext="jar" conf="default" url="plugins/sh/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.spellchecker" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="org.jetbrains.plugins.terminal" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="com.intellij.copyright" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="org.intellij.plugins.markdown" rev="PC-252.23892.439"/>
+  </dependencies>
+</ivy-module>

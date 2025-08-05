@@ -1,0 +1,14 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.vcs.impl.backend" revision="PC-251.23774.444"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.vcs.impl.backend" ext="jar" conf="default" url="lib/modules"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.kernel.backend" rev="PC-251.23774.444"/>
+    <dependency org="bundledModule" name="intellij.platform.vcs.impl" rev="PC-251.23774.444"/>
+    <dependency org="bundledModule" name="intellij.platform.vcs.impl.shared" rev="PC-251.23774.444"/>
+  </dependencies>
+</ivy-module>
