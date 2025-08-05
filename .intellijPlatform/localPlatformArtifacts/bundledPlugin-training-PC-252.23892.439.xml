@@ -1,0 +1,17 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="training" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="assertj-swing" ext="jar" conf="default" url="plugins/featuresTrainer/lib"/>
+    <artifact name="featuresTrainer" ext="jar" conf="default" url="plugins/featuresTrainer/lib"/>
+    <artifact name="git-learning-project" ext="jar" conf="default" url="plugins/featuresTrainer/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.tips" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.lvcs.impl" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="Git4Idea" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.ide.newUiOnboarding" rev="PC-252.23892.439"/>
+  </dependencies>
+</ivy-module>

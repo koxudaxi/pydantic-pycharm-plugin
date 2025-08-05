@@ -1,0 +1,10 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.tips" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.tips" ext="jar" conf="default" url="lib/modules"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

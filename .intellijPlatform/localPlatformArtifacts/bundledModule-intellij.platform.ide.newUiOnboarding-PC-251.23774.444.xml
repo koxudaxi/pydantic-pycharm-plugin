@@ -1,0 +1,10 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.ide.newUiOnboarding" revision="PC-251.23774.444"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.ide.newUiOnboarding" ext="jar" conf="default" url="lib/modules"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

@@ -1,0 +1,10 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.libraries.ktor.client" revision="PC-251.23774.444"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.libraries.ktor.client" ext="jar" conf="default" url="lib/modules"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

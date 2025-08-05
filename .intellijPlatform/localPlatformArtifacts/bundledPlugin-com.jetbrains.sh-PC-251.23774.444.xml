@@ -1,0 +1,14 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.jetbrains.sh" revision="PC-251.23774.444"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="sh" ext="jar" conf="default" url="plugins/sh/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="org.jetbrains.plugins.terminal" rev="PC-251.23774.444"/>
+    <dependency org="bundledPlugin" name="com.intellij.copyright" rev="PC-251.23774.444"/>
+    <dependency org="bundledPlugin" name="org.intellij.plugins.markdown" rev="PC-251.23774.444"/>
+  </dependencies>
+</ivy-module>

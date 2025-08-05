@@ -1,0 +1,19 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="org.jetbrains.plugins.terminal" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="terminal" ext="jar" conf="default" url="plugins/terminal/lib"/>
+    <artifact name="completion-ranking-sh" ext="jar" conf="default" url="plugins/terminal/lib"/>
+    <artifact name="terminal-completion-db-with-extensions" ext="jar" conf="default" url="plugins/terminal/lib"/>
+    <artifact name="terminal-completion-spec" ext="jar" conf="default" url="plugins/terminal/lib"/>
+    <artifact name="intellij.terminal.frontend.split" ext="jar" conf="default" url="plugins/terminal/lib/modules"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.backend" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.kernel.backend" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.frontend" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.sh" rev="PC-252.23892.439"/>
+  </dependencies>
+</ivy-module>

@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.jewel.markdown.core" revision="PC-251.23774.444"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.jewel.markdown.core" ext="jar" conf="default" url="lib/modules"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.jewel.ui" rev="PC-251.23774.444"/>
+    <dependency org="bundledModule" name="intellij.platform.jewel.foundation" rev="PC-251.23774.444"/>
+  </dependencies>
+</ivy-module>

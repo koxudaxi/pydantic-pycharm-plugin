@@ -1,0 +1,43 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="PythonCore" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="tuweni-toml" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="io.github.z4kn4fein.semver.jvm" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="python-ce-frontend" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="python-ce" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="xmlrpc" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="completion-ranking-python-with-full-line" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="jsr305" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="ml-completion-prev-exprs-models" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="jetbrains.ml.models.python.imports.ranking.model" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="kaml" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="jackson-dataformat-yaml" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+    <artifact name="libthrift" ext="jar" conf="default" url="plugins/python-ce/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.json.backend" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.libraries.kotlinx.io" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="org.toml.lang" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.spellchecker" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.execService" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.impl.venv" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.plugin.impl" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="com.intellij.copyright" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="training" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="tanvd.grazi" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="org.intellij.intelliLang" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="org.intellij.plugins.markdown" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.ml.impl" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="org.jetbrains.plugins.terminal" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.spellchecker" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.execService" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.execService" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.execService" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.execService" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.execService" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.python.community.impl.venv" rev="PC-252.23892.439"/>
+  </dependencies>
+</ivy-module>

@@ -1,0 +1,22 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="org.intellij.plugins.markdown" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="markdown" ext="jar" conf="default" url="plugins/markdown/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="org.intellij.intelliLang" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.json.backend" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.yaml.backend" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="org.toml.lang" rev="PC-252.23892.439"/>
+    <dependency org="bundledPlugin" name="com.intellij.platform.images" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.spellchecker" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.compose" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.jewel.markdown.ideLafBridgeStyling" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.frontend" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.backend" rev="PC-252.23892.439"/>
+    <dependency org="bundledModule" name="intellij.platform.kernel.backend" rev="PC-252.23892.439"/>
+  </dependencies>
+</ivy-module>

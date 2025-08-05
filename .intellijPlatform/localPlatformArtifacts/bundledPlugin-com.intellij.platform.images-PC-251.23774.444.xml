@@ -1,0 +1,10 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.intellij.platform.images" revision="PC-251.23774.444"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="platform-images" ext="jar" conf="default" url="plugins/platform-images/lib"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

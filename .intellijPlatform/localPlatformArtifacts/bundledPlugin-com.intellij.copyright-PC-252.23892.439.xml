@@ -1,0 +1,12 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.intellij.copyright" revision="PC-252.23892.439"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="copyright" ext="jar" conf="default" url="plugins/copyright/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.vcs.impl" rev="PC-252.23892.439"/>
+  </dependencies>
+</ivy-module>

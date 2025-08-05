@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.intellij.properties" revision="PC-251.23774.444"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="properties" ext="jar" conf="default" url="plugins/properties/lib"/>
+    <artifact name="properties-frontend" ext="jar" conf="default" url="plugins/properties/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="com.intellij.copyright" rev="PC-251.23774.444"/>
+  </dependencies>
+</ivy-module>

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.4.19] - 2025-08-05
+
+- Remove max version constraint to support all future PyCharm versions
+- Add PyCharm 2025.2 compatibility
+- Fix API changes for PyCharm 2025.2:
+  - Update parameter type access methods
+  - Fix PyNoneType.INSTANCE reference
+  - Update PyTypeVarTypeImpl constructor
+  - Use reflection for PythonPackageManager.getInstalledPackages() access
+  - Fix ellipsis type handling
+
 ## [0.4.18] - 2025-05-03
 
 - Fix minimum IDE version requirement [[#1060](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1060)]

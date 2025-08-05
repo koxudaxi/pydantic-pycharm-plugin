@@ -190,7 +190,7 @@ class PydanticInspection : PyInspection() {
                 }
             }?.getParameters(myTypeEvalContext)?.forEach {
                 val defaultFactory = defaultFactories[it.name] ?: return@forEach
-                val expectedType = it.getArgumentType(myTypeEvalContext) ?: return@forEach
+                val expectedType = it.getType(myTypeEvalContext) ?: return@forEach
                 val actualType = myTypeEvalContext.getReturnType(defaultFactory.second) ?: return@forEach
                 if (PyTypeChecker.match(expectedType, actualType, myTypeEvalContext)) return@forEach
                 registerProblem(
