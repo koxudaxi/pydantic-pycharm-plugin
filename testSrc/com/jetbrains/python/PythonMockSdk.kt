@@ -32,7 +32,7 @@ object PythonMockSdk {
     }
 
     fun create(level: LanguageLevel, vararg additionalRoots: VirtualFile): Sdk {
-        return create("MockSdk", level, *additionalRoots)
+        return create("MockSdk_" + System.nanoTime(), level, *additionalRoots)
     }
 
     private fun create(name: String, level: LanguageLevel, vararg additionalRoots: VirtualFile): Sdk {
@@ -45,7 +45,7 @@ object PythonMockSdk {
             level: LanguageLevel,
             vararg additionalRoots: VirtualFile
     ): Sdk {
-        val sdkName = "Mock " + PyNames.PYTHON_SDK_ID_NAME + " " + level.toPythonVersion()
+        val sdkName = "Mock " + PyNames.PYTHON_SDK_ID_NAME + " " + level.toPythonVersion() + " " + System.nanoTime()
         return create(sdkName, pathSuffix, sdkType, level, *additionalRoots)
     }
 
@@ -57,7 +57,8 @@ object PythonMockSdk {
             vararg additionalRoots: VirtualFile
     ): Sdk {
         val mockSdkPath = PythonTestUtil.testDataPath + "/" + pathSuffix
-        val sdk = ProjectJdkTable.getInstance().createSdk(name, sdkType)
+        val jdkTable = ProjectJdkTable.getInstance()
+        val sdk = jdkTable.createSdk(name, sdkType)
         val sdkModificator = sdk.sdkModificator
         sdkModificator.homePath = "$mockSdkPath/bin/python"
         sdkModificator.setSdkAdditionalData(
@@ -79,7 +80,11 @@ object PythonMockSdk {
         }
 
         val application = ApplicationManager.getApplication()
-        val runnable = Runnable { sdkModificator.commitChanges() }
+        val runnable = Runnable { 
+            sdkModificator.commitChanges()
+            // Register the SDK in ProjectJdkTable
+            jdkTable.addJdk(sdk)
+        }
         if (application.isDispatchThread) {
             application.runWriteAction(runnable)
         } else {

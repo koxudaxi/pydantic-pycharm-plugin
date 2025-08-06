@@ -26,14 +26,14 @@ repositories {
     }
 }
 
-// Set the JVM language level used to build the project. Java 17 for 2022.2+.
+// Set the JVM language level used to build the project. Java 21 for 2025.2+.
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
         @Suppress("UnstableApiUsage")
         vendor = JvmVendorSpec.JETBRAINS
     }
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
@@ -136,7 +136,7 @@ dependencies {
         pluginVerifier()
         zipSigner()
     }
-    implementation(kotlin("stdlib-jdk8"))
+    // implementation(kotlin("stdlib-jdk8")) // Removed to avoid conflicts with IntelliJ's bundled Kotlin
 }
 
 sourceSets {
