@@ -38,19 +38,17 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         private val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
 
         override fun visitPyCallExpression(node: PyCallExpression) {
-            val pyClass = getPydanticPyClass(node, myTypeEvalContext, true)
-            if (pyClass is PyClass) {
-                checkCallSiteForPydantic(node)
-                return
-            }
             super.visitPyCallExpression(node)
-        }
-
-
-        private fun checkCallSiteForPydantic(callSite: PyCallSiteExpression) {
-            (callSite as? PyCallExpression)?.multiMapArguments(resolveContext)
-                ?.filter { mapping: PyArgumentsMapping? -> mapping!!.unmappedArguments.isEmpty() && mapping.unmappedParameters.isEmpty() }
-                ?.forEach { mapping: PyArgumentsMapping -> analyzeCallee(callSite, mapping) }
+            
+            val pyClass = getPydanticPyClass(node, myTypeEvalContext, true)
+            if (pyClass != null) {
+                val mappings = node.multiMapArguments(resolveContext)
+                for (mapping in mappings) {
+                    if (mapping.unmappedArguments.isEmpty() && mapping.unmappedParameters.isEmpty()) {
+                        analyzeCalleeForPydantic(node, mapping)
+                    }
+                }
+            }
         }
 
         private fun getParsableTypeFromTypeMap(typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
@@ -101,7 +99,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             return newType
         }
 
-        private fun analyzeCallee(callSite: PyCallSiteExpression, mapping: PyArgumentsMapping) {
+        private fun analyzeCalleeForPydantic(callSite: PyCallSiteExpression, mapping: PyArgumentsMapping) {
             val callableType = mapping.callableType ?: return
             val receiver = callSite.getReceiver(callableType.callable)
             val substitutions = PyTypeChecker.unifyReceiver(receiver, myTypeEvalContext)
@@ -109,11 +107,10 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             val cachedParsableTypeMap = mutableMapOf<PyType, PyType?>()
             val cachedAcceptableTypeMap = mutableMapOf<PyType, PyType?>()
             for (entry in mappedParameters.entries) {
-                val parameter = entry.key
-                val argument = entry.value
+                // In IntelliJ 2025.2, mappedParameters maps PyExpression -> PyCallableParameter
+                val argumentExpression = entry.key ?: continue
+                val parameter = entry.value
                 val expected = parameter.getType(myTypeEvalContext)
-                // In IntelliJ 2025.2, mappedParameters maps PyCallableParameter -> PyExpression
-                val argumentExpression = argument as? PyExpression ?: continue
                 val promotedToLiteral = promoteToLiteral(argumentExpression, expected, myTypeEvalContext, substitutions)
                 val actual = promotedToLiteral ?: myTypeEvalContext.getType(argumentExpression)
                 val strictMatched = matchParameterAndArgument(expected, actual, substitutions)
