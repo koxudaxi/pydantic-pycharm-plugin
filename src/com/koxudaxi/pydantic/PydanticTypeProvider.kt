@@ -637,7 +637,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val typeForParameter = when {
             !typed -> null
-            else -> parameter.getArgumentType(context)
+            else -> parameter.getType(context)
         }
 
         return PyCallableParameterImpl.nonPsi(
