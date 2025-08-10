@@ -489,7 +489,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldOptional() {
         doFieldTest(
             listOf(
-                Pair("abc", "Union[str, NoneType]=... A"),
+                Pair("abc", "Union[str, NoneType]=None A"),
                 Pair("cde", "str='abc' A"),
                 Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")

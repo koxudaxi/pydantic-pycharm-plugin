@@ -100,8 +100,9 @@ class PydanticCompletionContributor : CompletionContributor() {
             if (!PyNames.isIdentifier(parameterName)) return null
             val defaultValue = parameter.defaultValue?.let {
                 when {
-                    parameter.defaultValue is PyNoneLiteralExpression && !isSubClassOfBaseSetting(pyClass,
-                        typeEvalContext) -> "=None"
+                    (parameter.defaultValue is PyEllipsisLiteralExpression
+                            || parameter.defaultValue is PyNoneLiteralExpression
+                    ) && !isSubClassOfBaseSetting(pyClass, typeEvalContext) -> "=None"
                     else -> parameter.defaultValueText?.let { "=$it" } ?: ""
                 }
             } ?: ""
