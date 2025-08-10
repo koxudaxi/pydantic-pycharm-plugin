@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- changes to accomodate 2025.2 [[#1066](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1066)]
 
 ## [0.4.18] - 2025-05-03
 
