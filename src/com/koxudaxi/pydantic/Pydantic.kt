@@ -373,11 +373,7 @@ val PyType.pyClassTypes: List<PyClassType>
 val PyType.isNullable: Boolean
     get() = when (this) {
         is PyUnionType -> this.members.any {
-            when (it) {
-                is PyNoneType -> true
-                is PyUnionType -> it.isNullable
-                else -> false
-            }
+            it.isNoneType || it is PyUnionType && it.isNullable
         }
         is PyNoneLiteralExpression -> true
         else -> false
@@ -641,10 +637,27 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
 
-fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? =
-        pyCallExpression.callee?.reference?.resolve()
-        ?.let { it as? PyClass }
-        ?.takeIf { isPydanticModel(it, includeDataclass, context)}
+fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? {
+    val directClass = pyCallExpression.callee?.reference?.resolve() as? PyClass
+    if (directClass != null && isPydanticModel(directClass, includeDataclass, context)) {
+        return directClass
+    }
+    
+    val calleeType = pyCallExpression.callee?.let { context.getType(it) }
+    when (calleeType) {
+        is PydanticDynamicModelClassType -> {
+            return calleeType.pyClass
+        }
+        is PyClassType -> {
+            val pyClass = calleeType.pyClass
+            if (isPydanticModel(pyClass, includeDataclass, context)) {
+                return pyClass
+            }
+        }
+    }
+    
+    return null
+}
 
 fun getPydanticPyClassType(pyTypedElement: PyTypedElement, context: TypeEvalContext, includeDataclass: Boolean = false): PyClassType? =
     context.getType(pyTypedElement)?.pyClassTypes?.firstOrNull {
@@ -700,7 +713,7 @@ fun getPydanticUnFilledArguments(
 }
 
 val PyCallableParameter.required: Boolean
-    get() = !hasDefaultValue() || (defaultValue !is PyNoneLiteralExpression && defaultValueText == "...")
+    get() = !hasDefaultValue() || (defaultValue is PyEllipsisLiteralExpression)
 
 
 internal fun hasTargetPyType(
@@ -824,8 +837,13 @@ fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEval
 val KotlinVersion?.isV2: Boolean
     get() = this?.isAtLeast(2, 0) == true
 
-fun getPydanticVersion(project: Project, sdk: Sdk): String? =
-     forSdk(project, sdk).installedPackages.find { it.name == "pydantic" }?.version
+@Suppress("UnstableApiUsage")
+fun getPydanticVersion(project: Project, sdk: Sdk): String? {
+    val packageManager = forSdk(project, sdk)
+    // In IntelliJ 2025.2, installedPackages is protected, use listInstalledPackagesSnapshot() instead
+    val packages = packageManager.listInstalledPackagesSnapshot()
+    return packages.find { it.name == "pydantic" }?.version
+}
 
 internal fun isInInit(field: PyTargetExpression): Boolean {
     val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true

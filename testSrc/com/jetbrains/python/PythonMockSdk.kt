@@ -11,7 +11,6 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil
 import com.jetbrains.python.codeInsight.typing.PyTypeShed
-import com.jetbrains.python.codeInsight.userSkeletons.PyUserSkeletonsUtil
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.sdk.PythonSdkAdditionalData
 import com.jetbrains.python.sdk.PythonSdkType.MOCK_PY_MARKER_KEY
@@ -33,7 +32,7 @@ object PythonMockSdk {
     }
 
     fun create(level: LanguageLevel, vararg additionalRoots: VirtualFile): Sdk {
-        return create("MockSdk", level, *additionalRoots)
+        return create("MockSdk_" + System.nanoTime(), level, *additionalRoots)
     }
 
     private fun create(name: String, level: LanguageLevel, vararg additionalRoots: VirtualFile): Sdk {
@@ -46,7 +45,7 @@ object PythonMockSdk {
             level: LanguageLevel,
             vararg additionalRoots: VirtualFile
     ): Sdk {
-        val sdkName = "Mock " + PyNames.PYTHON_SDK_ID_NAME + " " + level.toPythonVersion()
+        val sdkName = "Mock " + PyNames.PYTHON_SDK_ID_NAME + " " + level.toPythonVersion() + " " + System.nanoTime()
         return create(sdkName, pathSuffix, sdkType, level, *additionalRoots)
     }
 
@@ -58,7 +57,8 @@ object PythonMockSdk {
             vararg additionalRoots: VirtualFile
     ): Sdk {
         val mockSdkPath = PythonTestUtil.testDataPath + "/" + pathSuffix
-        val sdk = ProjectJdkTable.getInstance().createSdk(name, sdkType)
+        val jdkTable = ProjectJdkTable.getInstance()
+        val sdk = jdkTable.createSdk(name, sdkType)
         val sdkModificator = sdk.sdkModificator
         sdkModificator.homePath = "$mockSdkPath/bin/python"
         sdkModificator.setSdkAdditionalData(
@@ -80,7 +80,11 @@ object PythonMockSdk {
         }
 
         val application = ApplicationManager.getApplication()
-        val runnable = Runnable { sdkModificator.commitChanges() }
+        val runnable = Runnable { 
+            sdkModificator.commitChanges()
+            // Register the SDK in ProjectJdkTable
+            jdkTable.addJdk(sdk)
+        }
         if (application.isDispatchThread) {
             application.runWriteAction(runnable)
         } else {
@@ -98,8 +102,13 @@ object PythonMockSdk {
                 result,
                 localFS.refreshAndFindFileByIoFile(File(mockSdkPath, PythonSdkUtil.SKELETON_DIR_NAME))
         )
-        ContainerUtil.addIfNotNull(result, PyUserSkeletonsUtil.getUserSkeletonsDirectory())
-        result.addAll(PyTypeShed.findAllRootsForLanguageLevel(level))
+        // PyUserSkeletonsUtil is removed in IntelliJ 2025.2
+        // ContainerUtil.addIfNotNull(result, PyUserSkeletonsUtil.getUserSkeletonsDirectory())
+        
+        // Skip TypeShed loading in tests to prevent hanging
+        if (System.getProperty("idea.test.execution.policy") != "LEGACY") {
+            result.addAll(PyTypeShed.findAllRootsForLanguageLevel(level))
+        }
 
         return result
     }

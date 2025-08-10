@@ -14,11 +14,12 @@ import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyCallExpression.PyArgumentsMapping
 import com.jetbrains.python.psi.PyCallSiteExpression
 import com.jetbrains.python.psi.PyClass
-import com.jetbrains.python.psi.impl.PyCallExpressionHelper
+import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.types.*
 import com.jetbrains.python.psi.types.PyLiteralType.Companion.promoteToLiteral
 
 
+@Suppress("UnstableApiUsage")
 class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
     override fun buildVisitor(
         holder: ProblemsHolder,
@@ -37,19 +38,17 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         private val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
 
         override fun visitPyCallExpression(node: PyCallExpression) {
-            val pyClass = getPydanticPyClass(node, myTypeEvalContext, true)
-            if (pyClass is PyClass) {
-                checkCallSiteForPydantic(node)
-                return
-            }
             super.visitPyCallExpression(node)
-        }
-
-
-        private fun checkCallSiteForPydantic(callSite: PyCallSiteExpression) {
-            PyCallExpressionHelper.mapArguments(callSite, resolveContext)
-                .filter { mapping: PyArgumentsMapping? -> mapping!!.unmappedArguments.isEmpty() && mapping.unmappedParameters.isEmpty() }
-                .forEach { mapping: PyArgumentsMapping -> analyzeCallee(callSite, mapping) }
+            
+            val pyClass = getPydanticPyClass(node, myTypeEvalContext, true)
+            if (pyClass != null) {
+                val mappings = node.multiMapArguments(resolveContext)
+                for (mapping in mappings) {
+                    if (mapping.unmappedArguments.isEmpty() && mapping.unmappedParameters.isEmpty()) {
+                        analyzeCalleeForPydantic(node, mapping)
+                    }
+                }
+            }
         }
 
         private fun getParsableTypeFromTypeMap(typeForParameter: PyType, cache: MutableMap<PyType, PyType?>): PyType? {
@@ -100,17 +99,20 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
             return newType
         }
 
-        private fun analyzeCallee(callSite: PyCallSiteExpression, mapping: PyArgumentsMapping) {
+        private fun analyzeCalleeForPydantic(callSite: PyCallSiteExpression, mapping: PyArgumentsMapping) {
             val callableType = mapping.callableType ?: return
             val receiver = callSite.getReceiver(callableType.callable)
             val substitutions = PyTypeChecker.unifyReceiver(receiver, myTypeEvalContext)
             val mappedParameters = mapping.mappedParameters
             val cachedParsableTypeMap = mutableMapOf<PyType, PyType?>()
             val cachedAcceptableTypeMap = mutableMapOf<PyType, PyType?>()
-            for ((argument, parameter) in PyCallExpressionHelper.getRegularMappedParameters(mappedParameters)) {
-                val expected = parameter.getArgumentType(myTypeEvalContext)
-                val promotedToLiteral = promoteToLiteral(argument, expected, myTypeEvalContext, substitutions)
-                val actual = promotedToLiteral ?: myTypeEvalContext.getType(argument)
+            for (entry in mappedParameters.entries) {
+                // In IntelliJ 2025.2, mappedParameters maps PyExpression -> PyCallableParameter
+                val argumentExpression = entry.key ?: continue
+                val parameter = entry.value
+                val expected = parameter.getType(myTypeEvalContext)
+                val promotedToLiteral = promoteToLiteral(argumentExpression, expected, myTypeEvalContext, substitutions)
+                val actual = promotedToLiteral ?: myTypeEvalContext.getType(argumentExpression)
                 val strictMatched = matchParameterAndArgument(expected, actual, substitutions)
                 val strictResult = AnalyzeArgumentResult(expected, actual, strictMatched)
                 if (!strictResult.isMatched) {
@@ -123,8 +125,8 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                             val parsableMatched =
                                 matchParameterAndArgument(parsableType, actual, substitutions)
                             if (AnalyzeArgumentResult(parsableType, actual, parsableMatched).isMatched) {
-                                registerProblem(
-                                    argument,
+                                holder.registerProblem(
+                                    argumentExpression,
                                     String.format("Field is of type '%s', '%s' may not be parsable to '%s'",
                                         expectedType,
                                         actualType,
@@ -139,19 +141,18 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                             val acceptableMatched =
                                 matchParameterAndArgument(acceptableType, actual, substitutions)
                             if (AnalyzeArgumentResult(acceptableType, actual, acceptableMatched).isMatched) {
-                                registerProblem(
-                                    argument,
+                                holder.registerProblem(
+                                    argumentExpression,
                                     String.format("Field is of type '%s', '%s' is set as an acceptable type in pyproject.toml",
                                         expectedType,
-                                        actualType,
-                                        expectedType),
+                                        actualType),
                                     pydanticConfigService.acceptableTypeHighlightType
                                 )
                                 continue
                             }
                         }
                     }
-                    registerProblem(argument, String.format("Expected type '%s', got '%s' instead",
+                    holder.registerProblem(argumentExpression, String.format("Expected type '%s', got '%s' instead",
                         expectedType,
                         actualType)
                     )

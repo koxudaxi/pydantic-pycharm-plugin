@@ -109,7 +109,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         name: String,
         pyClass: PyClass,
         context: TypeEvalContext,
-        ellipsis: PyNoneLiteralExpression,
+        ellipsis: PyEllipsisLiteralExpression,
         pydanticVersion: KotlinVersion?,
     ): PyType? {
         return pyClass.findClassAttribute(name, false, context)
@@ -127,7 +127,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     private fun getRefTypeFromField(
-        pyTargetExpression: PyTargetExpression, ellipsis: PyNoneLiteralExpression,
+        pyTargetExpression: PyTargetExpression, ellipsis: PyEllipsisLiteralExpression,
         context: TypeEvalContext, pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
     ): PyType? {
@@ -178,7 +178,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         }?.let {
                             return when (qualifiedName) {
                                 UNION_Q_NAME -> PyUnionType.union(it)
-                                OPTIONAL_Q_NAME -> PyUnionType.union(it + PyNoneType.INSTANCE)
+                                OPTIONAL_Q_NAME -> PyUnionType.union(it + PyBuiltinCache.getInstance(indexExpression).noneType)
                                 else -> PyTupleType.create(indexExpression as PsiElement, it)
                             }
                         }
@@ -221,11 +221,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val constraints = argumentList.getKeywordArgument("constraints")?.valueExpression?.getType(context)
 //        val default = argumentList.getKeywordArgument("default")?.valueExpression
 //        // TODO: Support TypeVarTuple, ParamSpec, constraints
-        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null)
+        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null, PyTypeVarType.Variance.INVARIANT)
     }
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyTypeVarType> {
-        val pyCollectionType = pyTypingTypeProvider.getGenericType(pyClass, context) as? PyCollectionType
+        @Suppress("UnstableApiUsage") val pyCollectionType = pyTypingTypeProvider.getGenericType(pyClass, context) as? PyCollectionType
         val genericTypes = pyCollectionType?.elementTypes?.filterIsInstance<PyTypeVarType>() ?: emptyList()
         return (genericTypes +
                 pyClass.superClassExpressions
@@ -587,7 +587,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     internal fun dynamicModelFieldToParameter(
         field: PyTargetExpression,
-        ellipsis: PyNoneLiteralExpression,
+        ellipsis: PyEllipsisLiteralExpression,
         context: TypeEvalContext,
         pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
@@ -637,7 +637,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val typeForParameter = when {
             !typed -> null
-            else -> parameter.getArgumentType(context)
+            else -> parameter.getType(context)
         }
 
         return PyCallableParameterImpl.nonPsi(
@@ -692,7 +692,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     internal fun getDefaultValueForParameter(
         field: PyTargetExpression,
-        ellipsis: PyNoneLiteralExpression,
+        ellipsis: PyEllipsisLiteralExpression,
         context: TypeEvalContext,
         pydanticVersion: KotlinVersion?,
         isDataclass: Boolean,
@@ -707,7 +707,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         fun parseAnnotation(pyExpression: PyExpression, context: TypeEvalContext): PyExpression? {
             val qualifiedName = getQualifiedName(pyExpression, context)
                 ?: takeIf { isBitwiseOrUnionAvailable(pyExpression) }?.let {
-                    pyExpression.children.filterIsInstance<PyNoneLiteralExpression>().run { return ellipsis }
+                    pyExpression.children.filterIsInstance<PyEllipsisLiteralExpression>().run { return ellipsis }
                 }
             when (qualifiedName) {
                 ANY_Q_NAME -> return ellipsis
@@ -715,7 +715,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 UNION_Q_NAME -> pyExpression.children
                     .filterIsInstance<PyTupleExpression>()
                     .flatMap { it.children.toList() }
-                    .filterIsInstance<PyNoneLiteralExpression>()
+                    .filterIsInstance<PyEllipsisLiteralExpression>()
                     .firstOrNull()
                     ?.run { return ellipsis }
 
@@ -742,7 +742,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun getDefaultValueByAssignedValue(
         field: PyTargetExpression,
-        ellipsis: PyNoneLiteralExpression,
+        ellipsis: PyEllipsisLiteralExpression,
         context: TypeEvalContext,
         pydanticVersion: KotlinVersion?,
         isDataclass: Boolean,
