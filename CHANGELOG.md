@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Fix plugin compatibility issues for 2025.2 with Python dependencies [[#1073](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1073)]
 
 ## [0.4.19] - 2025-08-10
 
