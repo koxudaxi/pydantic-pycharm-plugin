@@ -5,8 +5,9 @@
 
     <depends>com.intellij.modules.lang</depends>
     <depends>org.toml.lang</depends>
-    <depends optional="true">PythonCore</depends>
-    <depends optional="true">Pythonid</depends>
+    <depends>com.intellij.modules.python</depends>
+    <depends optional="true" config-file="py-core.xml">PythonCore</depends>
+    <depends optional="true" config-file="py-pro.xml">Pythonid</depends>
     <extensions defaultExtensionNs="com.intellij">
         <localInspection language="Python" shortName="PydanticInspection" suppressId="Pydantic"
                          displayName="Pydantic definition and usages"
@@ -34,18 +35,5 @@
         <lang.inspectionSuppressor language="Python"
                                    implementationClass="com.koxudaxi.pydantic.PydanticTypeIgnoreInspectionSuppressor"/>
 
-    </extensions>
-    <projectListeners>
-        <listener class="com.koxudaxi.pydantic.PydanticPythonPackageManagementListener"
-                  topic="com.jetbrains.python.packaging.common.PythonPackageManagementListener"/>
-    </projectListeners>
-    <extensions defaultExtensionNs="Pythonid">
-        <typeProvider implementation="com.koxudaxi.pydantic.PydanticTypeProvider"/>
-        <typeProvider implementation="com.koxudaxi.pydantic.PydanticDataclassTypeProvider"/>
-        <inspectionExtension implementation="com.koxudaxi.pydantic.PydanticIgnoreInspection"/>
-        <pyDataclassParametersProvider implementation="com.koxudaxi.pydantic.PydanticParametersProvider"/>
-        <pyAnnotator implementation="com.koxudaxi.pydantic.PydanticAnnotator"/>
-        <pyClassMembersProvider implementation="com.koxudaxi.pydantic.PydanticDynamicModelMemberProvider"/>
-        <documentationLinkProvider implementation="com.koxudaxi.pydantic.PydanticDocumentationLinkProvider"/>
     </extensions>
 </idea-plugin>

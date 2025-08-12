@@ -2,6 +2,7 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
+import org.gradle.language.jvm.tasks.ProcessResources
 
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
@@ -118,6 +119,17 @@ tasks {
     wrapper {
         gradleVersion = properties("gradleVersion").get()
     }
+    named<ProcessResources>("processResources") {
+        exclude("META-INF/python-common.xml")
+        from("resources/META-INF/python-common.xml") {
+            rename { "py-core.xml" }
+            into("META-INF")
+        }
+        from("resources/META-INF/python-common.xml") {
+            rename { "py-pro.xml" }
+            into("META-INF")
+        }
+    }
 }
 dependencies {
     compileOnly("org.apache.tuweni:tuweni-toml:2.3.1")
@@ -129,9 +141,14 @@ dependencies {
         val type = properties("platformType")
         val version = properties("platformVersion")
         val bundledPlugins = properties("platformBundledPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
-
+        val bundledPyCharmPlugin = when (type.get()) {
+            "PY" -> "Pythonid"
+            else -> "PythonCore"
+        }
         create(type, version, useInstaller = false)
-        bundledPlugins(bundledPlugins)
+        bundledPlugins(
+            bundledPlugins.get().map { it.trim() } + listOf(bundledPyCharmPlugin)
+        )
         testFramework(TestFrameworkType.Bundled)
         pluginVerifier()
         zipSigner()
