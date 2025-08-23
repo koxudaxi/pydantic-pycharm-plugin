@@ -98,7 +98,7 @@ class PydanticFieldSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
 
             PsiTreeUtil.getParentOfType(psiReference.element, PyNamedParameter::class.java)
                 ?.let { param ->
-                    param.getArgumentType(
+                    param.getType(
                         TypeEvalContext.userInitiated(
                             psiReference.element.project,
                             psiReference.element.containingFile
