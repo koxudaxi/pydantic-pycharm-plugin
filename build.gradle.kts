@@ -2,6 +2,7 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
+import org.gradle.language.jvm.tasks.ProcessResources
 
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
@@ -26,14 +27,14 @@ repositories {
     }
 }
 
-// Set the JVM language level used to build the project. Java 17 for 2022.2+.
+// Set the JVM language level used to build the project. Java 21 for 2025.2+.
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
         @Suppress("UnstableApiUsage")
         vendor = JvmVendorSpec.JETBRAINS
     }
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
@@ -69,14 +70,7 @@ intellijPlatform {
             }
         }
     }
-    verifyPlugin {
-        ides {
-            recommended()
-        }
-    }
-    // Configure UI tests plugin
-    // Read more: https://github.com/JetBrains/intellij-ui-test-robot
-    verifyPlugin {
+    pluginVerification {
         ides {
             recommended()
         }
@@ -110,10 +104,12 @@ qodana {
 }
 
 // Configure Gradle Kover Plugin - read more: https://github.com/Kotlin/kotlinx-kover#configuration
-koverReport {
-    defaults {
-        xml {
-            onCheck = true
+kover {
+    reports {
+        total {
+            xml {
+                onCheck = true
+            }
         }
     }
 }
@@ -122,6 +118,17 @@ koverReport {
 tasks {
     wrapper {
         gradleVersion = properties("gradleVersion").get()
+    }
+    named<ProcessResources>("processResources") {
+        exclude("META-INF/python-common.xml")
+        from("resources/META-INF/python-common.xml") {
+            rename { "py-core.xml" }
+            into("META-INF")
+        }
+        from("resources/META-INF/python-common.xml") {
+            rename { "py-pro.xml" }
+            into("META-INF")
+        }
     }
 }
 dependencies {
@@ -134,14 +141,19 @@ dependencies {
         val type = properties("platformType")
         val version = properties("platformVersion")
         val bundledPlugins = properties("platformBundledPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
+        val bundledPyCharmPlugin = when (type.get()) {
+            "PY" -> "Pythonid"
+            else -> "PythonCore"
+        }
         create(type, version, useInstaller = false)
-        bundledPlugins(bundledPlugins)
-        instrumentationTools()
+        bundledPlugins(
+            bundledPlugins.get().map { it.trim() } + listOf(bundledPyCharmPlugin)
+        )
         testFramework(TestFrameworkType.Bundled)
         pluginVerifier()
         zipSigner()
     }
-    implementation(kotlin("stdlib-jdk8"))
+    // implementation(kotlin("stdlib-jdk8")) // Removed to avoid conflicts with IntelliJ's bundled Kotlin
 }
 
 sourceSets {
