@@ -13,8 +13,8 @@ import com.jetbrains.python.codeInsight.completion.getTypeEvalContext
 import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHint
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.types.PyClassType
-import com.jetbrains.python.psi.types.PyGenericType
 import com.jetbrains.python.psi.types.PyType
+import com.jetbrains.python.psi.types.PyTypeVarType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
 
@@ -81,11 +81,11 @@ class PydanticCompletionContributor : CompletionContributor() {
         private fun getTypeText(
             pyClass: PyClass, typeEvalContext: TypeEvalContext,
             pyTargetExpression: PyTargetExpression,
-            ellipsis: PyNoneLiteralExpression,
+            ellipsis: PyEllipsisLiteralExpression,
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             isDataclass: Boolean,
-            genericTypeMap: Map<PyGenericType, PyType>?,
+            genericTypeMap: Map<PyTypeVarType, PyType>?,
         ): String? {
 
             val parameter = typeProvider.dynamicModelFieldToParameter(pyTargetExpression,
@@ -100,8 +100,9 @@ class PydanticCompletionContributor : CompletionContributor() {
             if (!PyNames.isIdentifier(parameterName)) return null
             val defaultValue = parameter.defaultValue?.let {
                 when {
-                    parameter.defaultValue is PyNoneLiteralExpression && !isSubClassOfBaseSetting(pyClass,
-                        typeEvalContext) -> "=None"
+                    (parameter.defaultValue is PyEllipsisLiteralExpression
+                            || parameter.defaultValue is PyNoneLiteralExpression
+                    ) && !isSubClassOfBaseSetting(pyClass, typeEvalContext) -> "=None"
                     else -> parameter.defaultValueText?.let { "=$it" } ?: ""
                 }
             } ?: ""
@@ -114,11 +115,11 @@ class PydanticCompletionContributor : CompletionContributor() {
         private fun addFieldElement(
             pyClass: PyClass, results: LinkedHashMap<String, LookupElement>,
             typeEvalContext: TypeEvalContext,
-            ellipsis: PyNoneLiteralExpression,
+            ellipsis: PyEllipsisLiteralExpression,
             config: HashMap<String, Any?>,
             excludes: HashSet<String>?,
             isDataclass: Boolean,
-            genericTypeMap: Map<PyGenericType, PyType>?,
+            genericTypeMap: Map<PyTypeVarType, PyType>?,
             withEqual: Boolean
         ) {
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
@@ -149,9 +150,9 @@ class PydanticCompletionContributor : CompletionContributor() {
         protected fun addAllFieldElement(
             parameters: CompletionParameters, result: CompletionResultSet,
             pyClass: PyClass, typeEvalContext: TypeEvalContext,
-            ellipsis: PyNoneLiteralExpression,
+            ellipsis: PyEllipsisLiteralExpression,
             config: HashMap<String, Any?>,
-            genericTypeMap: Map<PyGenericType, PyType>?,
+            genericTypeMap: Map<PyTypeVarType, PyType>?,
             excludes: HashSet<String>? = null,
             isDataclass: Boolean,
             trimEqual: Boolean

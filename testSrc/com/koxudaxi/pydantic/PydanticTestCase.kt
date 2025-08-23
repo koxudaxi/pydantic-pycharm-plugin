@@ -2,9 +2,11 @@ package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.FilePropertyPusher
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.PsiTestUtil.addSourceRoot
 import com.intellij.testFramework.PsiTestUtil.removeSourceRoot
@@ -95,6 +97,10 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
         PydanticCacheService.setVersion(myFixture!!.project, parsedVersion)
         setLanguageLevel(defaultPythonLanguageLevel)
         InspectionProfileImpl.INIT_INSPECTIONS = true
+        
+        // Wait for indexing to complete after setting up the project
+        IndexingTestUtil.waitUntilIndexesAreReady(myFixture!!.project)
+        DumbService.getInstance(myFixture!!.project).waitForSmartMode()
     }
 
 

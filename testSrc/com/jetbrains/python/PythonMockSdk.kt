@@ -10,14 +10,14 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil
-import com.jetbrains.python.codeInsight.typing.PyTypeShed.findRootsForLanguageLevel
-import com.jetbrains.python.codeInsight.userSkeletons.PyUserSkeletonsUtil
+import com.jetbrains.python.codeInsight.typing.PyTypeShed
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.sdk.PythonSdkAdditionalData
 import com.jetbrains.python.sdk.PythonSdkType.MOCK_PY_MARKER_KEY
 import com.jetbrains.python.sdk.PythonSdkUtil
-import com.jetbrains.python.sdk.flavors.CPythonSdkFlavor
-import com.jetbrains.python.sdk.flavors.PythonSdkFlavor
+import com.jetbrains.python.sdk.flavors.PyFlavorAndData
+import com.jetbrains.python.sdk.flavors.PyFlavorData
+import com.jetbrains.python.sdk.flavors.VirtualEnvSdkFlavor
 import org.jdom.Element
 import org.jetbrains.annotations.NonNls
 import java.io.File
@@ -32,7 +32,7 @@ object PythonMockSdk {
     }
 
     fun create(level: LanguageLevel, vararg additionalRoots: VirtualFile): Sdk {
-        return create("MockSdk", level, *additionalRoots)
+        return create("MockSdk_" + System.nanoTime(), level, *additionalRoots)
     }
 
     private fun create(name: String, level: LanguageLevel, vararg additionalRoots: VirtualFile): Sdk {
@@ -40,28 +40,37 @@ object PythonMockSdk {
     }
 
     fun create(
-        pathSuffix: String,
-        sdkType: SdkTypeId,
-        level: LanguageLevel,
-        vararg additionalRoots: VirtualFile
+            pathSuffix: String,
+            sdkType: SdkTypeId,
+            level: LanguageLevel,
+            vararg additionalRoots: VirtualFile
     ): Sdk {
-        val sdkName = "Mock " + PyNames.PYTHON_SDK_ID_NAME + " " + level.toPythonVersion()
+        val sdkName = "Mock " + PyNames.PYTHON_SDK_ID_NAME + " " + level.toPythonVersion() + " " + System.nanoTime()
         return create(sdkName, pathSuffix, sdkType, level, *additionalRoots)
     }
 
     fun create(
-        name: String,
-        pathSuffix: String,
-        sdkType: SdkTypeId,
-        level: LanguageLevel,
-        vararg additionalRoots: VirtualFile
+            name: String,
+            pathSuffix: String,
+            sdkType: SdkTypeId,
+            level: LanguageLevel,
+            vararg additionalRoots: VirtualFile
     ): Sdk {
         val mockSdkPath = PythonTestUtil.testDataPath + "/" + pathSuffix
-        val sdk = ProjectJdkTable.getInstance().createSdk(name, sdkType)
+        val jdkTable = ProjectJdkTable.getInstance()
+        val sdk = jdkTable.createSdk(name, sdkType)
         val sdkModificator = sdk.sdkModificator
         sdkModificator.homePath = "$mockSdkPath/bin/python"
+        sdkModificator.setSdkAdditionalData(
+            PythonSdkAdditionalData(
+                PyFlavorAndData(
+                    PyFlavorData.Empty,
+                    VirtualEnvSdkFlavor.getInstance()
+                )
+            )
+        )
         sdkModificator.versionString = toVersionString(level)
-        sdkModificator.sdkAdditionalData = PythonSdkAdditionalData()
+
         createRoots(mockSdkPath, level).forEach(Consumer { vFile: VirtualFile? ->
             sdkModificator.addRoot(vFile!!, OrderRootType.CLASSES)
         })
@@ -71,7 +80,11 @@ object PythonMockSdk {
         }
 
         val application = ApplicationManager.getApplication()
-        val runnable = Runnable { sdkModificator.commitChanges() }
+        val runnable = Runnable { 
+            sdkModificator.commitChanges()
+            // Register the SDK in ProjectJdkTable
+            jdkTable.addJdk(sdk)
+        }
         if (application.isDispatchThread) {
             application.runWriteAction(runnable)
         } else {
@@ -86,11 +99,17 @@ object PythonMockSdk {
         val localFS = LocalFileSystem.getInstance()
         ContainerUtil.addIfNotNull(result, localFS.refreshAndFindFileByIoFile(File(mockSdkPath, "Lib")))
         ContainerUtil.addIfNotNull(
-            result,
-            localFS.refreshAndFindFileByIoFile(File(mockSdkPath, PythonSdkUtil.SKELETON_DIR_NAME))
+                result,
+                localFS.refreshAndFindFileByIoFile(File(mockSdkPath, PythonSdkUtil.SKELETON_DIR_NAME))
         )
-        ContainerUtil.addIfNotNull(result, PyUserSkeletonsUtil.getUserSkeletonsDirectory())
-        result.addAll(findRootsForLanguageLevel(level))
+        // PyUserSkeletonsUtil is removed in IntelliJ 2025.2
+        // ContainerUtil.addIfNotNull(result, PyUserSkeletonsUtil.getUserSkeletonsDirectory())
+        
+        // Skip TypeShed loading in tests to prevent hanging
+        if (System.getProperty("idea.test.execution.policy") != "LEGACY") {
+            result.addAll(PyTypeShed.findAllRootsForLanguageLevel(level))
+        }
+
         return result
     }
 
