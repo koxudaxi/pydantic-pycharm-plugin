@@ -7,7 +7,7 @@ import com.intellij.psi.search.searches.ReferencesSearch
 open class PydanticSearchTest : PydanticTestCase() {
 
 
-    private fun searchByCaret(): MutableCollection<PsiReference> {
+    private fun searchByCaret(): Collection<PsiReference> {
         configureByFile()
         val element = myFixture!!.elementAtCaret
         val query = ReferencesSearch.search(element)
