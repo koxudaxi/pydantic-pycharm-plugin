@@ -40,4 +40,8 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     fun testModelAttribute() {
         doTest()
     }
+
+    fun testPrivateFieldDataclassTransform() {
+        doTest()
+    }
 }

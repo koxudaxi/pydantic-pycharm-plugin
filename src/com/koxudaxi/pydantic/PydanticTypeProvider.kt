@@ -19,6 +19,33 @@ import one.util.streamex.StreamEx
 class PydanticTypeProvider : PyTypeProviderBase() {
     private val pyTypingTypeProvider = PyTypingTypeProvider()
 
+    override fun getReferenceExpressionType(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
+        val callExpression = PsiTreeUtil.getParentOfType(referenceExpression, PyCallExpression::class.java) ?: return null
+        val callee = callExpression.callee ?: return null
+
+        val (pyClass, subscriptionExpression) = when {
+            callee is PyReferenceExpression && callee == referenceExpression -> {
+                val resolved = referenceExpression.reference?.resolve() as? PyClass ?: return null
+                resolved to null
+            }
+
+            callee is PySubscriptionExpression && PsiTreeUtil.isAncestor(callee, referenceExpression, false) -> {
+                val resolved = referenceExpression.reference?.resolve() as? PyClass ?: return null
+                resolved to callee
+            }
+
+            else -> return null
+        }
+
+        return getPydanticTypeForClass(
+            pyClass,
+            context,
+            getInstance(referenceExpression.project).currentInitTyped,
+            callExpression,
+            subscriptionExpression,
+        )
+    }
+
     override fun getCallType(
         pyFunction: PyFunction,
         callSite: PyCallSiteExpression,
