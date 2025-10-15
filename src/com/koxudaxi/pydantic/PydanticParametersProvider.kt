@@ -6,10 +6,14 @@ import com.jetbrains.python.codeInsight.PyDataclassParameters
 import com.jetbrains.python.codeInsight.PyDataclassParametersProvider
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyElementGenerator
+import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyReferenceExpression
+import com.jetbrains.python.psi.PySubscriptionExpression
+import com.jetbrains.python.psi.types.PyClassLikeType
 import com.jetbrains.python.psi.types.PyCallableParameter
 import com.jetbrains.python.psi.types.PyCallableParameterImpl
 import com.jetbrains.python.psi.types.TypeEvalContext
+import java.util.LinkedHashSet
 
 class PydanticParametersProvider : PyDataclassParametersProvider {
 
@@ -40,22 +44,60 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
         }
 
         if (isPydanticModel(cls, includeDataclass = false, context = context)) return true
-
-        if (isSubClassOfPydanticBaseModel(cls, context)) return true
-        if (isSubClassOfPydanticGenericModel(cls, context)) return true
         if (isSubClassOfPydanticRootModel(cls, context)) return true
-        if (isSubClassOfCustomBaseModel(cls, context)) return true
         if (isSubClassOfBaseSetting(cls, context)) return true
 
-        val result = cls.superClassExpressions
-            .mapNotNull { expression ->
-                when (expression) {
-                    is PyReferenceExpression -> expression.referencedName ?: expression.name
-                    else -> expression.text
+        val resolvedSuperClassMatch = cls.superClassExpressions
+            .asSequence()
+            .flatMap { expression -> resolveSuperClassExpressions(expression, context) }
+            .any { resolvedClass ->
+                resolvedClass.qualifiedName?.let { qualifiedName ->
+                    if (qualifiedName in PYDANTIC_BASE_QUALIFIED_NAMES) return@any true
+                }
+
+                if (resolvedClass.isPydanticBaseModel || resolvedClass.isPydanticGenericModel || resolvedClass.isBaseSettings || resolvedClass.isPydanticCustomBaseModel) {
+                    return@any true
+                }
+
+                if (isPydanticModel(resolvedClass, includeDataclass = false, context = context)) return@any true
+                if (isSubClassOfPydanticRootModel(resolvedClass, context)) return@any true
+                if (isSubClassOfBaseSetting(resolvedClass, context)) return@any true
+
+                false
+            }
+        if (resolvedSuperClassMatch) return true
+
+        return false
+    }
+
+    private fun resolveSuperClassExpressions(
+        expression: PyExpression,
+        context: TypeEvalContext,
+    ): Sequence<PyClass> {
+        val resolvedClasses = LinkedHashSet<PyClass>()
+        when (expression) {
+            is PyReferenceExpression -> {
+                expression.reference
+                    .multiResolve(false)
+                    .asSequence()
+                    .mapNotNull { it.element as? PyClass }
+                    .forEach { resolvedClasses.add(it) }
+
+                val type = context.getType(expression) as? PyClassLikeType
+                type?.pyClassTypes
+                    ?.asSequence()
+                    ?.map { it.pyClass }
+                    ?.forEach { resolvedClasses.add(it) }
+            }
+
+            is PySubscriptionExpression -> {
+                val rootOperand = expression.rootOperand as? PyReferenceExpression
+                if (rootOperand != null) {
+                    resolveSuperClassExpressions(rootOperand, context).forEach { resolvedClasses.add(it) }
                 }
             }
-            .any { it in PYDANTIC_BASE_SHORT_NAMES || it in PYDANTIC_BASE_QUALIFIED_NAMES }
-        return result
+        }
+        return resolvedClasses.asSequence()
     }
 
     private object PydanticType : PyDataclassParameters.Type {
@@ -75,14 +117,6 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
         private val PYDANTIC_BASE_QUALIFIED_NAMES =
             (CUSTOM_BASE_MODEL_Q_NAMES + listOf(BASE_MODEL_Q_NAME, GENERIC_MODEL_Q_NAME, ROOT_MODEL_Q_NAME, BASE_SETTINGS_Q_NAME))
                 .toSet()
-
-        private val PYDANTIC_BASE_SHORT_NAMES =
-            (CUSTOM_BASE_MODEL_Q_NAMES.mapNotNull { it.substringAfterLast('.') } + listOf(
-                "BaseModel",
-                "GenericModel",
-                "RootModel",
-                "BaseSettings",
-            )).toSet()
 
         private val PYDANTIC_DATACLASS_BYPASS_PARAMETERS = PyDataclassParameters(
             init = true,
@@ -106,4 +140,3 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
         )
     }
 }
-
