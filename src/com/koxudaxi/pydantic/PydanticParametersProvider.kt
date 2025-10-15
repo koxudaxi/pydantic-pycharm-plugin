@@ -35,37 +35,29 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
     private fun shouldBypassDataclassTransform(cls: PyClass, context: TypeEvalContext): Boolean {
         if (cls.isPydanticDataclass) return false
 
-        cls.qualifiedName?.let { qualifiedName ->
-            if (qualifiedName in PYDANTIC_BASE_QUALIFIED_NAMES) return true
-        }
-
-        if (cls.isPydanticBaseModel || cls.isPydanticGenericModel || cls.isBaseSettings || cls.isPydanticCustomBaseModel) {
-            return true
-        }
-
-        if (isPydanticModel(cls, includeDataclass = false, context = context)) return true
-        if (isSubClassOfPydanticRootModel(cls, context)) return true
-        if (isSubClassOfBaseSetting(cls, context)) return true
+        if (matchesPydanticBypassClass(cls, context)) return true
 
         val resolvedSuperClassMatch = cls.superClassExpressions
             .asSequence()
             .flatMap { expression -> resolveSuperClassExpressions(expression, context) }
-            .any { resolvedClass ->
-                resolvedClass.qualifiedName?.let { qualifiedName ->
-                    if (qualifiedName in PYDANTIC_BASE_QUALIFIED_NAMES) return@any true
-                }
-
-                if (resolvedClass.isPydanticBaseModel || resolvedClass.isPydanticGenericModel || resolvedClass.isBaseSettings || resolvedClass.isPydanticCustomBaseModel) {
-                    return@any true
-                }
-
-                if (isPydanticModel(resolvedClass, includeDataclass = false, context = context)) return@any true
-                if (isSubClassOfPydanticRootModel(resolvedClass, context)) return@any true
-                if (isSubClassOfBaseSetting(resolvedClass, context)) return@any true
-
-                false
-            }
+            .any { resolvedClass -> matchesPydanticBypassClass(resolvedClass, context) }
         if (resolvedSuperClassMatch) return true
+
+        return false
+    }
+
+    private fun matchesPydanticBypassClass(pyClass: PyClass, context: TypeEvalContext): Boolean {
+        pyClass.qualifiedName?.let { qualifiedName ->
+            if (qualifiedName in PYDANTIC_BASE_QUALIFIED_NAMES) return true
+        }
+
+        if (pyClass.isPydanticBaseModel || pyClass.isPydanticGenericModel || pyClass.isBaseSettings || pyClass.isPydanticCustomBaseModel) {
+            return true
+        }
+
+        if (isPydanticModel(pyClass, includeDataclass = false, context = context)) return true
+        if (isSubClassOfPydanticRootModel(pyClass, context)) return true
+        if (isSubClassOfBaseSetting(pyClass, context)) return true
 
         return false
     }
