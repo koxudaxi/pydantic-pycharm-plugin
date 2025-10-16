@@ -79,10 +79,8 @@ open class PydanticInitializerTest : PydanticTestCase() {
     fun testPyProjectTomlDisable() = runTestRunnable {
         setUpPyProjectToml {
             initializeFileLoader()
-            suspend {
-                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.INFORMATION)
-                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
-            }
+            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.INFORMATION)
+            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
         }
     }
 
