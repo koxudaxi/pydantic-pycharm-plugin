@@ -107,8 +107,6 @@ class PydanticInitializer : ProjectActivity {
         configService.acceptableTypeMap = emptyMap()
         configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
         configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
-        configService.ignoreInitMethodArguments = false
-        configService.ignoreInitMethodKeywordArguments = true
     }
 
     private fun fromIniBoolean(text: String?): Boolean? {
