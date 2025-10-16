@@ -20,6 +20,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     private val pyTypingTypeProvider = PyTypingTypeProvider()
 
     override fun getReferenceExpressionType(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
+        // Skip if project is still indexing to avoid incorrect results
+        if (DumbService.isDumb(referenceExpression.project)) return null
+
         val callExpression = PsiTreeUtil.getParentOfType(referenceExpression, PyCallExpression::class.java) ?: return null
         val callee = callExpression.callee ?: return null
 
