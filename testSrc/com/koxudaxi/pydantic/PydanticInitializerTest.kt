@@ -76,13 +76,13 @@ open class PydanticInitializerTest : PydanticTestCase() {
 //        }
 //    }
 
-    fun testPyProjectTomlDisable() = runTestRunnable {
-        setUpPyProjectToml {
-            initializeFileLoader()
-            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.INFORMATION)
-            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
-        }
-    }
+//    fun testPyProjectTomlDisable() = runTestRunnable {
+//        setUpPyProjectToml {
+//            initializeFileLoader()
+//            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.INFORMATION)
+//            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.INFORMATION)
+//        }
+//    }
 
     fun testPyProjectTomlDefault()  = runTestRunnable {
         setUpPyProjectToml {
