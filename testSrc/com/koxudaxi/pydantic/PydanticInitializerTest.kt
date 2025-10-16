@@ -24,9 +24,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
         try {
             val source = File("${myFixture!!.testDataPath}/${testDataMethodPath.lowercase()}/pyproject.toml")
             pydanticConfigService.pyprojectToml = target.path
-            suspend {
-                target.writeText(source.bufferedReader().readText())
-            }
+            target.writeText(source.bufferedReader().readText())
             runnable()
 
         } finally {
@@ -50,18 +48,16 @@ open class PydanticInitializerTest : PydanticTestCase() {
     fun testPyProjectToml() = runTestRunnable {
         setUpPyProjectToml {
             initializeFileLoader()
-            suspend {
-                assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf(
-                    "pydantic.HttpUrl" to listOf("str"),
-                    "datetime.datetime" to listOf("int")
-                ))
-                assertEquals(this.pydanticConfigService.acceptableTypeMap,
-                    mutableMapOf("str" to listOf("int", "float")))
-                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
-                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)
-                assertEquals(this.pydanticConfigService.ignoreInitMethodArguments, true)
-                assertEquals(this.pydanticConfigService.ignoreInitMethodKeywordArguments, false)
-            }
+            assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf(
+                "pydantic.networks.HttpUrl" to listOf("str"),
+                "datetime.datetime" to listOf("int")
+            ))
+            assertEquals(this.pydanticConfigService.acceptableTypeMap,
+                mutableMapOf("str" to listOf("int", "float")))
+            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WARNING)
+            assertEquals(this.pydanticConfigService.ignoreInitMethodArguments, true)
+            assertEquals(this.pydanticConfigService.ignoreInitMethodKeywordArguments, false)
         }
     }
 
@@ -93,30 +89,16 @@ open class PydanticInitializerTest : PydanticTestCase() {
     fun testPyProjectTomlDefault()  = runTestRunnable {
         setUpPyProjectToml {
             initializeFileLoader()
-            suspend {
-                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
-                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
-                assertEquals(this.pydanticConfigService.ignoreInitMethodArguments, false)
-                assertEquals(this.pydanticConfigService.ignoreInitMethodKeywordArguments, true)
-           }
+            assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
+            assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+            assertEquals(this.pydanticConfigService.ignoreInitMethodArguments, false)
+            assertEquals(this.pydanticConfigService.ignoreInitMethodKeywordArguments, true)
         }
     }
 
     fun testPyProjectTomlEmpty()  = runTestRunnable {
         setUpPyProjectToml {
             initializeFileLoader()
-            suspend {
-                assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
-                assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
-                assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
-                assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
-            }
-        }
-    }
-
-    fun testNothingPyProjectToml() = runTestRunnable {
-        setUpConfig()
-        suspend {
             assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
             assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
             assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
@@ -124,15 +106,21 @@ open class PydanticInitializerTest : PydanticTestCase() {
         }
     }
 
+    fun testNothingPyProjectToml() = runTestRunnable {
+        setUpConfig()
+        assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf<String, List<String>>())
+        assertEquals(this.pydanticConfigService.acceptableTypeMap, mutableMapOf<String, List<String>>())
+        assertEquals(this.pydanticConfigService.parsableTypeHighlightType, ProblemHighlightType.WARNING)
+        assertEquals(this.pydanticConfigService.acceptableTypeHighlightType, ProblemHighlightType.WEAK_WARNING)
+    }
+
     fun testMypyIni() = runTestRunnable {
         setUpMypyIni {
             initializeFileLoader()
-            suspend {
-                assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, true)
-                assertEquals(this.pydanticConfigService.mypyInitTyped, false)
-                assertEquals(this.pydanticConfigService.currentWarnUntypedFields, true)
-                assertEquals(this.pydanticConfigService.currentInitTyped, false)
-            }
+            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, true)
+            assertEquals(this.pydanticConfigService.mypyInitTyped, false)
+            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, true)
+            assertEquals(this.pydanticConfigService.currentInitTyped, false)
         }
     }
 
@@ -151,25 +139,20 @@ open class PydanticInitializerTest : PydanticTestCase() {
     fun testMypyIniEmpty() = runTestRunnable {
         setUpMypyIni {
             initializeFileLoader()
-            suspend {
-                assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
-                assertEquals(this.pydanticConfigService.mypyInitTyped, null)
-                assertEquals(this.pydanticConfigService.currentInitTyped, true)
-                assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
-            }
+            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
+            assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+            assertEquals(this.pydanticConfigService.currentInitTyped, true)
+            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
         }
     }
 
     fun testMypyIniBroken() = runTestRunnable {
         setUpMypyIni {
-
             initializeFileLoader()
-            suspend {
-                assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
-                assertEquals(this.pydanticConfigService.mypyInitTyped, null)
-                assertEquals(this.pydanticConfigService.currentInitTyped, true)
-                assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
-            }
+            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
+            assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+            assertEquals(this.pydanticConfigService.currentInitTyped, true)
+            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
         }
     }
 
@@ -177,11 +160,9 @@ open class PydanticInitializerTest : PydanticTestCase() {
     fun testNothingMypyIni() = runTestRunnable {
         setUpConfig()
         initializeFileLoader()
-        suspend {
-            assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
-            assertEquals(this.pydanticConfigService.mypyInitTyped, null)
-            assertEquals(this.pydanticConfigService.currentInitTyped, true)
-            assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
-        }
+        assertEquals(this.pydanticConfigService.mypyWarnUntypedFields, null)
+        assertEquals(this.pydanticConfigService.mypyInitTyped, null)
+        assertEquals(this.pydanticConfigService.currentInitTyped, true)
+        assertEquals(this.pydanticConfigService.currentWarnUntypedFields, false)
     }
 }

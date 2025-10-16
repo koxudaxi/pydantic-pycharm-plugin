@@ -39,7 +39,7 @@ class PydanticInitializer : ProjectActivity {
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
 
-        invokeAfterPsiEvents {
+        val loadFiles: () -> Unit = {
             LocalFileSystem.getInstance()
                 .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
                 ?.also { loadPyprojectToml(project, it, configService) }
@@ -48,6 +48,13 @@ class PydanticInitializer : ProjectActivity {
                 .findFileByPath(configService.mypyIni ?: defaultMypyIni)
                 ?.also { loadMypyIni(it, configService) }
                 ?: run { clearMypyIniConfig(configService) }
+        }
+
+        // In test mode, execute synchronously to avoid race conditions
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+            loadFiles()
+        } else {
+            invokeAfterPsiEvents(loadFiles)
         }
 
         VirtualFileManager.getInstance().addAsyncFileListener(
@@ -100,6 +107,8 @@ class PydanticInitializer : ProjectActivity {
         configService.acceptableTypeMap = emptyMap()
         configService.parsableTypeHighlightType = ProblemHighlightType.WARNING
         configService.acceptableTypeHighlightType = ProblemHighlightType.WEAK_WARNING
+        configService.ignoreInitMethodArguments = false
+        configService.ignoreInitMethodKeywordArguments = true
     }
 
     private fun fromIniBoolean(text: String?): Boolean? {
