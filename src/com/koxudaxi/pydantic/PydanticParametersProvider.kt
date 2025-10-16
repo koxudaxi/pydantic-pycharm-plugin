@@ -37,6 +37,9 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
 
         if (matchesPydanticBypassClass(cls, context)) return true
 
+        // Early return if no superclasses - avoid expensive sequence operations
+        if (cls.superClassExpressions.isEmpty()) return false
+
         val resolvedSuperClassMatch = cls.superClassExpressions
             .asSequence()
             .flatMap { expression -> resolveSuperClassExpressions(expression, context) }
