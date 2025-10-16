@@ -73,6 +73,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         context: TypeEvalContext,
         anchor: PsiElement?,
     ): Ref<PyType>? {
+        // Skip if project is still indexing to avoid incorrect results
+        if (referenceTarget.project?.let { DumbService.isDumb(it) } == true) return null
+
         return when {
             referenceTarget is PyClass && anchor is PyCallExpression -> getPydanticTypeForClass(
                 referenceTarget,
@@ -116,6 +119,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
     override fun getParameterType(param: PyNamedParameter, func: PyFunction, context: TypeEvalContext): Ref<PyType>? {
+        // Skip if project is still indexing to avoid incorrect results
+        if (DumbService.isDumb(func.project)) return null
+
         return when {
             !param.isPositionalContainer && !param.isKeywordContainer && param.annotationValue == null && func.name == PyNames.INIT -> {
                 val pyClass = func.containingClass ?: return null
