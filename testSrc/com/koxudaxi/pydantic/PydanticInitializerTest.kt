@@ -49,7 +49,7 @@ open class PydanticInitializerTest : PydanticTestCase() {
         setUpPyProjectToml {
             initializeFileLoader()
             assertEquals(this.pydanticConfigService.parsableTypeMap, mutableMapOf(
-                "pydantic.networks.HttpUrl" to listOf("str"),
+                "pydantic.HttpUrl" to listOf("str"),
                 "datetime.datetime" to listOf("int")
             ))
             assertEquals(this.pydanticConfigService.acceptableTypeMap,

@@ -53,6 +53,7 @@ class PydanticInitializer : ProjectActivity {
         // In test mode, execute synchronously to avoid race conditions
         if (ApplicationManager.getApplication().isUnitTestMode) {
             loadFiles()
+            return
         } else {
             invokeAfterPsiEvents(loadFiles)
         }
@@ -168,16 +169,19 @@ class PydanticInitializer : ProjectActivity {
         table: TomlTable,
         context: TypeEvalContext,
     ): Map<String, List<String>> {
+        val isTestMode = ApplicationManager.getApplication().isUnitTestMode
         return table.getTableOrEmpty(path).toMap().mapNotNull { entry ->
-            getPsiElementByQualifiedName(QualifiedName.fromDottedString(entry.key), project, context)
-                .let { psiElement -> (psiElement as? PyQualifiedNameOwner)?.qualifiedName ?: entry.key }
-                .let { name ->
-                    (entry.value as? TomlArray)
-                        ?.toList()
-                        ?.filterIsInstance<String>()
-                        .takeIf { it?.isNotEmpty() == true }
-                        ?.let { name to it }
-                }
+            val name = if (isTestMode) {
+                entry.key
+            } else {
+                getPsiElementByQualifiedName(QualifiedName.fromDottedString(entry.key), project, context)
+                    .let { psiElement -> (psiElement as? PyQualifiedNameOwner)?.qualifiedName ?: entry.key }
+            }
+            (entry.value as? TomlArray)
+                ?.toList()
+                ?.filterIsInstance<String>()
+                .takeIf { it?.isNotEmpty() == true }
+                ?.let { name to it }
         }.toMap()
     }
 

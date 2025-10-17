@@ -1,6 +1,7 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.codeInsight.PyDataclassParameters
 import com.jetbrains.python.codeInsight.PyDataclassParametersProvider
@@ -37,12 +38,13 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
 
         if (matchesPydanticBypassClass(cls, context)) return true
 
-        // Early return if no superclasses - avoid expensive sequence operations
         if (cls.superClassExpressions.isEmpty()) return false
 
         val resolvedSuperClassMatch = cls.superClassExpressions
             .asSequence()
+            .take(MAX_SUPERCLASS_EXPRESSIONS_TO_CHECK)
             .flatMap { expression -> resolveSuperClassExpressions(expression, context) }
+            .take(MAX_SUPERCLASSES_TO_CHECK)
             .any { resolvedClass -> matchesPydanticBypassClass(resolvedClass, context) }
         if (resolvedSuperClassMatch) return true
 
@@ -50,6 +52,12 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
     }
 
     private fun matchesPydanticBypassClass(pyClass: PyClass, context: TypeEvalContext): Boolean {
+        return RecursionManager.doPreventingRecursion(pyClass, true) {
+            matchesPydanticBypassClassImpl(pyClass, context)
+        } ?: false
+    }
+
+    private fun matchesPydanticBypassClassImpl(pyClass: PyClass, context: TypeEvalContext): Boolean {
         pyClass.qualifiedName?.let { qualifiedName ->
             if (qualifiedName in PYDANTIC_BASE_QUALIFIED_NAMES) return true
         }
@@ -112,6 +120,9 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
         private val PYDANTIC_BASE_QUALIFIED_NAMES =
             (CUSTOM_BASE_MODEL_Q_NAMES + listOf(BASE_MODEL_Q_NAME, GENERIC_MODEL_Q_NAME, ROOT_MODEL_Q_NAME, BASE_SETTINGS_Q_NAME))
                 .toSet()
+
+        private const val MAX_SUPERCLASS_EXPRESSIONS_TO_CHECK = 20
+        private const val MAX_SUPERCLASSES_TO_CHECK = 50
 
         private val PYDANTIC_DATACLASS_BYPASS_PARAMETERS = PyDataclassParameters(
             init = true,
