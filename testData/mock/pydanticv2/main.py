@@ -58,6 +58,10 @@ _base_class_defined = False
 
 @typing_extensions.dataclass_transform(kw_only_default=True, field_specifiers=(Field,))
 class ModelMetaclass(ABCMeta):
+    __dataclass_transform__ = {
+        "kw_only_default": True,
+        "field_specifiers": (Field,),
+    }
     def __new__(  # noqa C901
         mcs,
         cls_name: str,
