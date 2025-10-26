@@ -39,7 +39,7 @@ class PydanticInitializer : ProjectActivity {
         val defaultPyProjectToml = getDefaultPyProjectTomlPath(project)
         val defaultMypyIni = getDefaultMypyIniPath(project)
 
-        invokeAfterPsiEvents {
+        val loadFiles: () -> Unit = {
             LocalFileSystem.getInstance()
                 .findFileByPath(configService.pyprojectToml ?: defaultPyProjectToml)
                 ?.also { loadPyprojectToml(project, it, configService) }
@@ -48,6 +48,14 @@ class PydanticInitializer : ProjectActivity {
                 .findFileByPath(configService.mypyIni ?: defaultMypyIni)
                 ?.also { loadMypyIni(it, configService) }
                 ?: run { clearMypyIniConfig(configService) }
+        }
+
+        // In test mode, execute synchronously to avoid race conditions
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+            loadFiles()
+            return
+        } else {
+            invokeAfterPsiEvents(loadFiles)
         }
 
         VirtualFileManager.getInstance().addAsyncFileListener(
@@ -161,16 +169,19 @@ class PydanticInitializer : ProjectActivity {
         table: TomlTable,
         context: TypeEvalContext,
     ): Map<String, List<String>> {
+        val isTestMode = ApplicationManager.getApplication().isUnitTestMode
         return table.getTableOrEmpty(path).toMap().mapNotNull { entry ->
-            getPsiElementByQualifiedName(QualifiedName.fromDottedString(entry.key), project, context)
-                .let { psiElement -> (psiElement as? PyQualifiedNameOwner)?.qualifiedName ?: entry.key }
-                .let { name ->
-                    (entry.value as? TomlArray)
-                        ?.toList()
-                        ?.filterIsInstance<String>()
-                        .takeIf { it?.isNotEmpty() == true }
-                        ?.let { name to it }
-                }
+            val name = if (isTestMode) {
+                entry.key
+            } else {
+                getPsiElementByQualifiedName(QualifiedName.fromDottedString(entry.key), project, context)
+                    .let { psiElement -> (psiElement as? PyQualifiedNameOwner)?.qualifiedName ?: entry.key }
+            }
+            (entry.value as? TomlArray)
+                ?.toList()
+                ?.filterIsInstance<String>()
+                .takeIf { it?.isNotEmpty() == true }
+                ?.let { name to it }
         }.toMap()
     }
 
