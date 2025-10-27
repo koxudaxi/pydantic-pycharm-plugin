@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.20] - 2025-10-27
+
 - Fix dataclass_transform handling for Pydantic BaseModel descendants [[#1105](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1105)]
 - Fix plugin compatibility issues for 2025.2 with Python dependencies [[#1073](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1073)]
 
@@ -572,7 +575,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.19...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.20...HEAD
+[0.4.20]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.19...v0.4.20
 [0.4.19]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.18...v0.4.19
 [0.4.18]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.17...v0.4.18
 [0.4.17]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.16...v0.4.17
