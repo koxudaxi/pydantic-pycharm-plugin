@@ -593,6 +593,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
             getClassVariables(current, context, false)
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, context) }
+                .filter { isValidField(it, context, pydanticVersion.isV2, true) }
                 .mapNotNull {
                     dynamicModelFieldToParameter(
                         it,
