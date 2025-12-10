@@ -106,6 +106,8 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
         )
     }
     fun testKeywordArgumentPopulateByName() {
+        // TODO: Fix v2 ConfigDict populate_by_name config reading
+        // When fixed, expected should be: ABC=, abc=, CDE=, cde= (both alias and field name)
         doFieldTest(
             listOf(
                 Pair("abc=", "str A"),

@@ -225,13 +225,14 @@ class PydanticInspection : PyInspection() {
             if (getPydanticModelInit(pyClass, myTypeEvalContext) != null) return
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["extra"] != EXTRA.FORBID) return
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
             pyClass.getAncestorClasses(myTypeEvalContext)
             val parameters = (getAncestorPydanticModels(pyClass, false, myTypeEvalContext) + pyClass)
                     .flatMap { pydanticModel ->
                         getClassVariables(pydanticModel, myTypeEvalContext, false)
                                 .filter { it.name != null }
                                 .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2, false) }
-                                .map { it.name }
+                                .flatMap { getFieldNames(it, myTypeEvalContext, config, pydanticVersion) }
                     }.toSet()
             pyCallExpression.arguments
                     .filterIsInstance<PyKeywordArgument>()
