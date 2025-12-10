@@ -6,39 +6,13 @@ import com.jetbrains.python.psi.PyTargetExpression
 
 open class PydanticCompletionTest : PydanticTestCase() {
 
-
     private fun doFieldTest(fieldNames: List<Pair<String, String>>, additionalModules: List<String>? = null) {
         configureByFile(additionalModules)
-        val excludes = listOf(
-            "__annotations__",
-            "__base__",
-            "__bases__",
-            "__basicsize__",
-            "__dict__",
-            "__dictoffset__",
-            "__flags__",
-            "__itemsize__",
-            "__mro__",
-            "__name__",
-            "__qualname__",
-            "__slots__",
-            "__text_signature__",
-            "__weakrefoffset__",
-            "__type_params__",
-            "Ellipsis",
-            "EnvironmentError",
-            "IOError",
-            "NotImplemented",
-            "List",
-            "Type",
-            "Annotated",
-            "MISSING",
-            "WindowsError")
         val completions = myFixture!!.completeBasic() ?: emptyArray()
         val actual = completions.filter {
             it!!.psiElement is PyTargetExpression
         }.filterNot {
-            excludes.contains(it!!.lookupString)
+            BASE_COMPLETION_EXCLUDES.contains(it!!.lookupString)
         }.mapNotNull {
             Pair(it!!.lookupString, LookupElementPresentation.renderElement(it).typeText ?: "null")
         }
@@ -502,7 +476,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
             listOf(
                 Pair("abc", "Union[str, int] A"),
                 Pair("cde", "Union[str, int] A"),
-                Pair("efg", "Union[Union[str, int], Any] A"),
+                // PyCharm 2025.3 correctly resolves Union[str, int, None] as Union[str, int, NoneType]
+                Pair("efg", "Union[str, int, NoneType] A"),
                 Pair("___slots__", "BaseModel")
             )
         )

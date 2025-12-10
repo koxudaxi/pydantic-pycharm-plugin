@@ -74,6 +74,8 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
             matchArgsArgument = null,
             kwOnlyArgument = null,
             type = PydanticDataclassBypassType,
+            slots = false,
+            slotsArgument = null,
             others = emptyMap(),
         )
     }
