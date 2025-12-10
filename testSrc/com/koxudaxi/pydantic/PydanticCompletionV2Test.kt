@@ -68,9 +68,7 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "ConfigDict",
             "async",
             "False",
-            "True",
-            "ABC=",
-            "CDE="
+            "True"
         )
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression || it.psiElement == null
@@ -106,11 +104,11 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
         )
     }
     fun testKeywordArgumentPopulateByName() {
-        // TODO: Fix v2 ConfigDict populate_by_name config reading
-        // When fixed, expected should be: ABC=, abc=, CDE=, cde= (both alias and field name)
         doFieldTest(
             listOf(
+                Pair("ABC=", "str A"),
                 Pair("abc=", "str A"),
+                Pair("CDE=", "str A"),
                 Pair("cde=", "str A")
             )
         )
