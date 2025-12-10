@@ -38,8 +38,6 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
         private val pydanticConfigService = PydanticConfigService.getInstance(holder!!.project)
 
         override fun visitPyCallExpression(node: PyCallExpression) {
-            super.visitPyCallExpression(node)
-            
             val pyClass = getPydanticPyClass(node, myTypeEvalContext, true)
             if (pyClass != null) {
                 val mappings = node.multiMapArguments(resolveContext)
@@ -48,6 +46,8 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
                         analyzeCalleeForPydantic(node, mapping)
                     }
                 }
+            } else {
+                super.visitPyCallExpression(node)
             }
         }
 

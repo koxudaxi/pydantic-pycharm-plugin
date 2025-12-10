@@ -110,4 +110,10 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
             doTest()
         }
     }
+
+    fun testNoDuplicateWarning() = runTestRunnable {
+        suspend {
+            doTest()
+        }
+    }
 }
