@@ -521,13 +521,15 @@ fun getConfig(
                         config[name] = getConfigValue(name, element.value, context)
                     }
                 }
-            is PyCallExpression -> configDict.arguments.forEach { argument ->
-                    argument.name?.let {name ->
-                        configDict.getKeywordArgument(name)?.let { value ->
-                            config[name] = getConfigValue(name, value, context)
+            is PyCallExpression -> configDict.arguments
+                    .filterIsInstance<PyKeywordArgument>()
+                    .forEach { argument ->
+                        argument.name?.let { name ->
+                            argument.valueExpression?.let { value ->
+                                config[name] = getConfigValue(name, value, context)
+                            }
                         }
                     }
-                }
         }
     }
     pyClass.nestedClasses.firstOrNull { it.isConfigClass }?.let {
@@ -587,6 +589,35 @@ fun getFieldName(
             config["allow_population_by_field_name"] == true -> field.name
             else -> getAliasedFieldName(field, context, pydanticVersion)
         }
+    }
+}
+
+/**
+ * Returns all valid field names for a Pydantic field.
+ * When populate_by_name (v2) / allow_population_by_field_name (v1) / allow_population_by_alias (v0) is true,
+ * both the field name and alias are valid. Otherwise, only the alias (or field name if no alias) is valid.
+ */
+fun getFieldNames(
+    field: PyTargetExpression,
+    context: TypeEvalContext,
+    config: HashMap<String, Any?>,
+    pydanticVersion: KotlinVersion?,
+): List<String> {
+    val fieldName = field.name ?: return emptyList()
+    val aliasName = getAliasedFieldName(field, context, pydanticVersion)
+
+    val populateByName = when (pydanticVersion?.major) {
+        0 -> config["allow_population_by_alias"] == true
+        2 -> config["populate_by_name"] == true
+        else -> config["allow_population_by_field_name"] == true
+    }
+
+    return if (populateByName) {
+        // Both field name and alias are valid
+        listOfNotNull(fieldName, aliasName).distinct()
+    } else {
+        // Only alias (or field name if no alias) is valid
+        listOfNotNull(aliasName ?: fieldName)
     }
 }
 

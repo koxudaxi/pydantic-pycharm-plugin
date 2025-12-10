@@ -45,11 +45,7 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "not",
             "async",
             "False",
-            "True",
-            // Test-specific excludes
-            "ConfigDict",
-            "ABC=",
-            "CDE=",
+            "True"
         )
     }
 
@@ -92,7 +88,9 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
     fun testKeywordArgumentPopulateByName() {
         doFieldTest(
             listOf(
+                Pair("ABC=", "str A"),
                 Pair("abc=", "str A"),
+                Pair("CDE=", "str A"),
                 Pair("cde=", "str A")
             )
         )

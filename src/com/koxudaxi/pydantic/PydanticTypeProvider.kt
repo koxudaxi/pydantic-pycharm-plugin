@@ -593,8 +593,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
             getClassVariables(current, context, false)
                 .filterNot { isUntouchedClass(it.findAssignedValue(), config, context) }
-                .mapNotNull {
-                    dynamicModelFieldToParameter(
+                .flatMap {
+                    dynamicModelFieldToParameters(
                         it,
                         ellipsis,
                         context,
@@ -621,6 +621,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     }
 
 
+    /**
+     * Returns a single callable parameter for a field (for backward compatibility).
+     * Uses the first name from getFieldNames().
+     */
     internal fun dynamicModelFieldToParameter(
         field: PyTargetExpression,
         ellipsis: PyEllipsisLiteralExpression,
@@ -632,8 +636,28 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         typed: Boolean = true,
         isDataclass: Boolean = false,
     ): PyCallableParameter? {
-        if (!isValidField(field, context, pydanticVersion.isV2, false)) return null
-        if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return null // skip fields that are invalid syntax
+        return dynamicModelFieldToParameters(
+            field, ellipsis, context, pyClass, pydanticVersion, config, genericTypeMap, typed, isDataclass
+        ).firstOrNull()
+    }
+
+    /**
+     * Returns all callable parameters for a field.
+     * When populate_by_name is true and an alias exists, returns parameters for both field name and alias.
+     */
+    internal fun dynamicModelFieldToParameters(
+        field: PyTargetExpression,
+        ellipsis: PyEllipsisLiteralExpression,
+        context: TypeEvalContext,
+        pyClass: PyClass,
+        pydanticVersion: KotlinVersion?,
+        config: HashMap<String, Any?>,
+        genericTypeMap: Map<PyTypeVarType, PyType>?,
+        typed: Boolean = true,
+        isDataclass: Boolean = false,
+    ): List<PyCallableParameter> {
+        if (!isValidField(field, context, pydanticVersion.isV2, false)) return emptyList()
+        if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return emptyList() // skip fields that are invalid syntax
 
         val defaultValueFromField =
             getDefaultValueForParameter(field, ellipsis, context, pydanticVersion, isDataclass)
@@ -657,11 +681,11 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             }
         }
 
-        return PyCallableParameterImpl.nonPsi(
-            getFieldName(field, context, config, pydanticVersion),
-            typeForParameter,
-            if (defaultValue == null && typeForParameter?.isNullable == true) ellipsis else defaultValue
-        )
+        val resolvedDefaultValue = if (defaultValue == null && typeForParameter?.isNullable == true) ellipsis else defaultValue
+
+        return getFieldNames(field, context, config, pydanticVersion).map { name ->
+            PyCallableParameterImpl.nonPsi(name, typeForParameter, resolvedDefaultValue)
+        }
     }
 
     private fun argumentToParameter(

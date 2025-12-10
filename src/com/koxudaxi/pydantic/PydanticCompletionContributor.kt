@@ -66,13 +66,13 @@ class PydanticCompletionContributor : CompletionContributor() {
 
         abstract val icon: Icon
 
-        abstract fun getLookupNameFromFieldName(
+        abstract fun getLookupNamesFromFieldName(
             field: PyTargetExpression,
             context: TypeEvalContext,
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             withEqual: Boolean
-        ): String
+        ): List<String>
 
         val typeProvider: PydanticTypeProvider = PydanticTypeProvider()
 
@@ -124,24 +124,26 @@ class PydanticCompletionContributor : CompletionContributor() {
         ) {
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
             getPydanticField(pyClass, typeEvalContext, config, pydanticVersion.isV2, isDataclass)
-                .forEach {
-                    val elementName = getLookupNameFromFieldName(it, typeEvalContext, pydanticVersion, config, withEqual)
-                    if (excludes == null || !excludes.contains(elementName)) {
-                        val typeText = getTypeText(pyClass,
-                            typeEvalContext,
-                            it,
-                            ellipsis,
-                            pydanticVersion,
-                            config,
-                            isDataclass,
-                            genericTypeMap)
-                        if (typeText is String) {
-                            val element = PrioritizedLookupElement.withGrouping(
-                                LookupElementBuilder
-                                    .createWithSmartPointer(elementName, it)
-                                    .withTypeText(typeText)
-                                    .withIcon(icon), 1)
-                            results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+                .forEach { field ->
+                    val elementNames = getLookupNamesFromFieldName(field, typeEvalContext, pydanticVersion, config, withEqual)
+                    elementNames.forEach { elementName ->
+                        if (excludes == null || !excludes.contains(elementName)) {
+                            val typeText = getTypeText(pyClass,
+                                typeEvalContext,
+                                field,
+                                ellipsis,
+                                pydanticVersion,
+                                config,
+                                isDataclass,
+                                genericTypeMap)
+                            if (typeText is String) {
+                                val element = PrioritizedLookupElement.withGrouping(
+                                    LookupElementBuilder
+                                        .createWithSmartPointer(elementName, field)
+                                        .withTypeText(typeText)
+                                        .withIcon(icon), 1)
+                                results[elementName] = PrioritizedLookupElement.withPriority(element, 100.0)
+                            }
                         }
                     }
                 }
@@ -245,15 +247,15 @@ class PydanticCompletionContributor : CompletionContributor() {
     }
 
     private object KeywordArgumentCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(
+        override fun getLookupNamesFromFieldName(
             field: PyTargetExpression,
             context: TypeEvalContext,
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             withEqual: Boolean
-        ): String {
-            val suffix =  if(withEqual) "=" else ""
-            return "${getFieldName(field, context, config, pydanticVersion)}$suffix"
+        ): List<String> {
+            val suffix = if (withEqual) "=" else ""
+            return getFieldNames(field, context, config, pydanticVersion).map { "$it$suffix" }
         }
 
         override val icon: Icon = AllIcons.Nodes.Parameter
@@ -298,14 +300,14 @@ class PydanticCompletionContributor : CompletionContributor() {
     }
 
     private object FieldCompletionProvider : PydanticCompletionProvider() {
-        override fun getLookupNameFromFieldName(
+        override fun getLookupNamesFromFieldName(
             field: PyTargetExpression,
             context: TypeEvalContext,
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             withEqual: Boolean
-        ): String {
-            return field.name!!
+        ): List<String> {
+            return listOfNotNull(field.name)
         }
 
         override val icon: Icon = AllIcons.Nodes.Field
