@@ -441,7 +441,7 @@ class PydanticInspection : PyInspection() {
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
 
             // Check private field or model fields
-            if (name.startsWith("_") || pydanticVersion.isV2 && name.startsWith(MODEL_FIELD_PREFIX)) return
+            if (name.startsWith("_") || pydanticVersion.isV2 && name in PYDANTIC_V2_MODEL_RESERVED_ATTRIBUTES) return
 
             if (pyClassType.isDefinition) {
                 if(field == null && node.reference?.resolve() is PyTargetExpression) return

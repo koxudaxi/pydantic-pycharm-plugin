@@ -48,4 +48,8 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     fun testPrivateFieldsBaseModelAlias() {
         doTest()
     }
+
+    fun testExtra() {
+        doTest()
+    }
 }

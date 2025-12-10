@@ -195,9 +195,27 @@ val CONFIG_TYPES = mapOf(
 
 const val CUSTOM_ROOT_FIELD = "__root__"
 
-const val MODEL_FIELD_PREFIX = "model_"
-
 const val MODEL_CONFIG_FIELD = "model_config"
+
+// Pydantic v2 BaseModel reserved attribute names
+val PYDANTIC_V2_MODEL_RESERVED_ATTRIBUTES = setOf(
+    "model_config",
+    "model_fields",
+    "model_computed_fields",
+    "model_extra",
+    "model_fields_set",
+    "model_construct",
+    "model_copy",
+    "model_dump",
+    "model_dump_json",
+    "model_json_schema",
+    "model_parametrized_name",
+    "model_post_init",
+    "model_rebuild",
+    "model_validate",
+    "model_validate_json",
+    "model_validate_strings",
+)
 
 fun PyTypedElement.getType(context: TypeEvalContext): PyType? = context.getType(this)
 
@@ -437,7 +455,7 @@ fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Bool
     return !(PyTypingTypeProvider.isClassVar(field, context) || PyTypingTypeProvider.isFinal(field, context))
 }
 
-fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this.startsWith(MODEL_FIELD_PREFIX))
+fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this in PYDANTIC_V2_MODEL_RESERVED_ATTRIBUTES)
 
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
