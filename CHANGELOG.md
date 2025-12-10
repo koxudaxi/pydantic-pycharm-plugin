@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- Fix: Prevent duplicate type checker warnings for Pydantic models [[#1125](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1125)]
+- Fix: Update field name validation for Pydantic v2 reserved attributes [[#1124](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1124)]
+- Fix: Support both field name and alias when populate_by_name is enabled [[#1123](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1123)]
+- Update Pydantic plugin for compatibility with IntelliJ 2025.3 [[#1122](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1122)]
+
 ## [0.4.20] - 2025-10-27
 
 - Fix dataclass_transform handling for Pydantic BaseModel descendants [[#1105](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1105)]
