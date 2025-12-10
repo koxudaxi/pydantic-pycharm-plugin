@@ -130,6 +130,36 @@ tasks {
             into("META-INF")
         }
     }
+    // Workaround for IntelliJ Platform 2025.3 lib/modules issue
+    test {
+        doFirst {
+            // Find the Python plugin helpers directory dynamically
+            val pythonPluginDir = project.configurations
+                .named("intellijPlatformDependency")
+                .get()
+                .resolvedConfiguration
+                .resolvedArtifacts
+                .flatMap { artifact ->
+                    val file = artifact.file
+                    if (file.isDirectory) {
+                        file.walkTopDown()
+                            .filter { it.name == "python-ce" && it.isDirectory }
+                            .toList()
+                    } else {
+                        emptyList()
+                    }
+                }
+                .firstOrNull()
+
+            pythonPluginDir?.let {
+                val helpersPath = it.resolve("helpers")
+                if (helpersPath.exists()) {
+                    systemProperty("idea.python.helpers.path", helpersPath.absolutePath)
+                    logger.lifecycle("Set idea.python.helpers.path to: ${helpersPath.absolutePath}")
+                }
+            }
+        }
+    }
 }
 dependencies {
     compileOnly("org.apache.tuweni:tuweni-toml:2.3.1")
@@ -145,7 +175,8 @@ dependencies {
             "PY" -> "Pythonid"
             else -> "PythonCore"
         }
-        create(type, version, useInstaller = false)
+        // Use pycharm() for PyCharm 2025.3+ (unified distribution)
+        pycharm(version)
         bundledPlugins(
             bundledPlugins.get().map { it.trim() } + listOf(bundledPyCharmPlugin)
         )
