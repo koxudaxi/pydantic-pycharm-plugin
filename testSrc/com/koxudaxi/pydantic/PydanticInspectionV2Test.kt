@@ -52,4 +52,8 @@ open class PydanticInspectionV2Test : PydanticInspectionBase(version = "v2") {
     fun testExtra() {
         doTest()
     }
+
+    fun testFrozenClassArgument() {
+        doTest()
+    }
 }
