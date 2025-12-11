@@ -35,5 +35,8 @@
         <lang.inspectionSuppressor language="Python"
                                    implementationClass="com.koxudaxi.pydantic.PydanticTypeIgnoreInspectionSuppressor"/>
 
+        <lang.inspectionSuppressor language="Python"
+                                   implementationClass="com.koxudaxi.pydantic.PydanticDataclassInspectionSuppressor"/>
+
     </extensions>
 </idea-plugin>
