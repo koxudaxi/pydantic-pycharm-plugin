@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Fix: Suppress dataclass inspection for Pydantic models [[#1128](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1128)]
+
 ## [0.4.21] - 2025-12-10
 
 - Fix: Prevent duplicate type checker warnings for Pydantic models [[#1125](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1125)]
