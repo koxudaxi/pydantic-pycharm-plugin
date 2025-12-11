@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.21] - 2025-12-10
+
 - Fix: Prevent duplicate type checker warnings for Pydantic models [[#1125](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1125)]
 - Fix: Update field name validation for Pydantic v2 reserved attributes [[#1124](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1124)]
 - Fix: Support both field name and alias when populate_by_name is enabled [[#1123](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1123)]
@@ -580,7 +582,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.20...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.21...HEAD
+[0.4.21]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.20...v0.4.21
 [0.4.20]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.19...v0.4.20
 [0.4.19]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.18...v0.4.19
 [0.4.18]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.17...v0.4.18
