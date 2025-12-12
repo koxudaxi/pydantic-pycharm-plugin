@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.22] - 2025-12-12
+
 - Fix: Suppress dataclass inspection for Pydantic models [[#1128](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1128)]
 
 ## [0.4.21] - 2025-12-10
@@ -584,7 +586,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.21...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.22...HEAD
+[0.4.22]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.21...v0.4.22
 [0.4.21]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.20...v0.4.21
 [0.4.20]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.19...v0.4.20
 [0.4.19]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.18...v0.4.19
