@@ -366,11 +366,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         if (arguments.isEmpty()) return null
         // If the project is dumb, we can't resolve the function
         if (DumbService.isDumb(pyCallExpression.project)) return null
-        val pyFunction = pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context))
-            .asSequence()
-            .filterIsInstance<PyFunction>()
-            .map { it.takeIf { pyFunction -> pyFunction.isPydanticCreateModel } }.firstOrNull()
-            ?: return null
+        val pyFunction = try {
+            pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context))
+                .asSequence()
+                .filterIsInstance<PyFunction>()
+                .map { it.takeIf { pyFunction -> pyFunction.isPydanticCreateModel } }.firstOrNull()
+        } catch (_: AssertionError) {
+            null
+        } ?: return null
         return getPydanticDynamicModelTypeForFunction(pyFunction, arguments, context)
     }
 
