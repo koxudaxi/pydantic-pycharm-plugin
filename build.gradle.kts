@@ -119,6 +119,14 @@ tasks {
     wrapper {
         gradleVersion = properties("gradleVersion").get()
     }
+    // buildSearchableOptions launches a headless IDE instance and fails if another PyCharm instance
+    // is running with the same config/system dirs. Plugins don't require searchable options, so
+    // disable by default and allow opt-in via -PbuildSearchableOptionsEnabled=true.
+    val buildSearchableOptionsEnabled =
+        providers.gradleProperty("buildSearchableOptionsEnabled").map(String::toBoolean).orElse(false)
+    named("buildSearchableOptions") {
+        enabled = buildSearchableOptionsEnabled.get()
+    }
     named<ProcessResources>("processResources") {
         exclude("META-INF/python-common.xml")
         from("resources/META-INF/python-common.xml") {

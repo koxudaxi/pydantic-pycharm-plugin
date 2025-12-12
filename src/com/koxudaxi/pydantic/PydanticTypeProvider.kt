@@ -23,30 +23,41 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         // Skip if project is still indexing to avoid incorrect results
         if (DumbService.isDumb(referenceExpression.project)) return null
 
-        val callExpression = PsiTreeUtil.getParentOfType(referenceExpression, PyCallExpression::class.java) ?: return null
-        val callee = callExpression.callee ?: return null
+        return RecursionManager.doPreventingRecursion(referenceExpression, true) {
+            val callExpression = PsiTreeUtil.getParentOfType(referenceExpression, PyCallExpression::class.java)
+                ?: return@doPreventingRecursion null
+            val callee = callExpression.callee ?: return@doPreventingRecursion null
 
-        val (pyClass, subscriptionExpression) = when {
-            callee is PyReferenceExpression && callee == referenceExpression -> {
-                val resolved = referenceExpression.reference?.resolve() as? PyClass ?: return null
-                resolved to null
+            val (pyClass, subscriptionExpression) = when {
+                callee is PyReferenceExpression && callee == referenceExpression -> {
+                    val resolved = getResolvedPsiElements(referenceExpression, context)
+                        .asSequence()
+                        .filterIsInstance<PyClass>()
+                        .firstOrNull()
+                        ?: return@doPreventingRecursion null
+                    resolved to null
+                }
+
+                callee is PySubscriptionExpression && PsiTreeUtil.isAncestor(callee, referenceExpression, false) -> {
+                    val resolved = getResolvedPsiElements(referenceExpression, context)
+                        .asSequence()
+                        .filterIsInstance<PyClass>()
+                        .firstOrNull()
+                        ?: return@doPreventingRecursion null
+                    resolved to callee
+                }
+
+                else -> return@doPreventingRecursion null
             }
 
-            callee is PySubscriptionExpression && PsiTreeUtil.isAncestor(callee, referenceExpression, false) -> {
-                val resolved = referenceExpression.reference?.resolve() as? PyClass ?: return null
-                resolved to callee
-            }
-
-            else -> return null
+            getPydanticTypeForClass(
+                pyClass,
+                context,
+                getInstance(referenceExpression.project).currentInitTyped,
+                callExpression,
+                subscriptionExpression,
+            )
         }
-
-        return getPydanticTypeForClass(
-            pyClass,
-            context,
-            getInstance(referenceExpression.project).currentInitTyped,
-            callExpression,
-            subscriptionExpression,
-        )
     }
 
     override fun getCallType(
@@ -85,7 +96,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             )
 
             referenceTarget is PySubscriptionExpression && anchor is PyCallExpression -> {
-                val pyClass = referenceTarget.firstChild.reference?.resolve() as? PyClass ?: return null
+                val rootOperand = referenceTarget.rootOperand as? PyReferenceExpression ?: return null
+                val pyClass = getResolvedPsiElements(rootOperand, context)
+                    .asSequence()
+                    .filterIsInstance<PyClass>()
+                    .firstOrNull()
+                    ?: return null
                 if (!isSubClassOfPydanticGenericModel(pyClass, context)) return null
                 getPydanticTypeForClass(
                     pyClass,
@@ -362,16 +378,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyCallExpression: PyCallExpression,
         context: TypeEvalContext,
     ): PydanticDynamicModelClassType? {
-        val arguments = pyCallExpression.arguments.toList()
-        if (arguments.isEmpty()) return null
-        // If the project is dumb, we can't resolve the function
-        if (DumbService.isDumb(pyCallExpression.project)) return null
-        val pyFunction = pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context))
-            .asSequence()
-            .filterIsInstance<PyFunction>()
-            .map { it.takeIf { pyFunction -> pyFunction.isPydanticCreateModel } }.firstOrNull()
-            ?: return null
-        return getPydanticDynamicModelTypeForFunction(pyFunction, arguments, context)
+        return RecursionManager.doPreventingRecursion(pyCallExpression, true) {
+            val arguments = pyCallExpression.arguments.toList()
+            if (arguments.isEmpty()) return@doPreventingRecursion null
+            // If the project is dumb, we can't resolve the function
+            if (DumbService.isDumb(pyCallExpression.project)) return@doPreventingRecursion null
+            val pyFunction = pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context))
+                .asSequence()
+                .filterIsInstance<PyFunction>()
+                .map { it.takeIf { pyFunction -> pyFunction.isPydanticCreateModel } }.firstOrNull()
+                ?: return@doPreventingRecursion null
+            getPydanticDynamicModelTypeForFunction(pyFunction, arguments, context)
+        }
     }
 
     private fun getPydanticDynamicModelTypeForFunction(
