@@ -53,7 +53,7 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
         private val DATACLASS_ARGUMENTS = listOf("init", "repr", "eq", "order", "unsafe_hash", "frozen", "config")
 
         private val PYDANTIC_BASE_QUALIFIED_NAMES =
-            (CUSTOM_BASE_MODEL_Q_NAMES + listOf(BASE_MODEL_Q_NAME, GENERIC_MODEL_Q_NAME, ROOT_MODEL_Q_NAME, BASE_SETTINGS_Q_NAME))
+            (CUSTOM_BASE_MODEL_Q_NAMES + listOf(BASE_MODEL_Q_NAME, GENERIC_MODEL_Q_NAME, ROOT_MODEL_Q_NAME) + BASE_SETTINGS_Q_NAMES)
                 .toSet()
 
         private val PYDANTIC_DATACLASS_BYPASS_PARAMETERS = PyDataclassParameters(
