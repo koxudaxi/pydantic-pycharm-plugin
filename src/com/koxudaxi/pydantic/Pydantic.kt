@@ -243,22 +243,20 @@ fun isPydanticModel(pyClass: PyClass, includeDataclass: Boolean, context: TypeEv
     return ((isSubClassOfPydanticBaseModel(pyClass, context) && !pyClass.isPydanticCustomBaseModel)
             || isSubClassOfPydanticGenericModel(pyClass, context)
             || (includeDataclass && pyClass.isPydanticDataclass)
-            || isSubClassOfCustomBaseModel(pyClass, context)
-            || isSubClassOfPydanticV1BaseModel(pyClass, context))
+            || isSubClassOfCustomBaseModel(pyClass, context))
             && !pyClass.isPydanticBaseModel
             && !pyClass.isPydanticGenericModel
             && !pyClass.isBaseSettings
             && !pyClass.isPydanticCustomBaseModel
-            && !pyClass.isPydanticV1BaseModel
 }
 
 val PyClass.isPydanticBaseModel: Boolean get() = qualifiedName == BASE_MODEL_Q_NAME || qualifiedName == V1_BASE_MODEL_Q_NAME
 
 val PyClass.isPydanticV1BaseModel: Boolean get() = qualifiedName == V1_BASE_MODEL_Q_NAME
 
-val PyClass.isPydanticCustomBaseModel: Boolean get() = qualifiedName in CUSTOM_BASE_MODEL_Q_NAMES || qualifiedName == V1_BASE_MODEL_Q_NAME
+val PyClass.isPydanticCustomBaseModel: Boolean get() = qualifiedName in CUSTOM_BASE_MODEL_Q_NAMES
 
-val PyClass.isPydanticGenericModel: Boolean get() = qualifiedName == GENERIC_MODEL_Q_NAME || qualifiedName == V1_BASE_MODEL_Q_NAME
+val PyClass.isPydanticGenericModel: Boolean get() = qualifiedName == GENERIC_MODEL_Q_NAME
 
 
 internal fun isSubClassOfPydanticGenericModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
@@ -281,7 +279,7 @@ internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalCont
     return CUSTOM_BASE_MODEL_Q_NAMES.any { pyClass.isSubclass(it, context) }
 }
 
-internal val PyClass.isBaseSettings: Boolean get() = qualifiedName in BASE_SETTINGS_Q_NAMES || qualifiedName == V1_BASE_MODEL_Q_NAME
+internal val PyClass.isBaseSettings: Boolean get() = qualifiedName in BASE_SETTINGS_Q_NAMES
 
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean =
