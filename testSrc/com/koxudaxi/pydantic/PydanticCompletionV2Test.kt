@@ -114,4 +114,12 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
                 )
         )
     }
+
+    fun testBaseSettingPydanticSettings() {
+        doFieldTest(
+            listOf(
+                Pair("b", "str=... A")
+            )
+        )
+    }
 }
