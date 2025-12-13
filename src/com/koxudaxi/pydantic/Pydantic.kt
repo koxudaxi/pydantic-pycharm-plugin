@@ -47,7 +47,10 @@ const val FIELD_Q_NAME = "pydantic.fields.Field"
 const val DATACLASS_FIELD_Q_NAME = "dataclasses.field"
 const val SQL_MODEL_FIELD_Q_NAME = "sqlmodel.main.Field"
 const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
-const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
+const val BASE_SETTINGS_V1_Q_NAME = "pydantic.env_settings.BaseSettings"
+const val BASE_SETTINGS_V2_Q_NAME = "pydantic_settings.main.BaseSettings"
+// Some stubs/packages expose BaseSettings directly from the package.
+const val BASE_SETTINGS_V2_SHORT_Q_NAME = "pydantic_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 const val BASE_CONFIG_Q_NAME = "pydantic.main.BaseConfig"
 const val CONFIG_DICT_Q_NAME = "pydantic.config.ConfigDict"
@@ -78,6 +81,12 @@ val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
 
 val CUSTOM_MODEL_FIELD_Q_NAMES = listOf(
     SQL_MODEL_FIELD_Q_NAME
+)
+
+val BASE_SETTINGS_Q_NAMES = listOf(
+    BASE_SETTINGS_V1_Q_NAME,
+    BASE_SETTINGS_V2_Q_NAME,
+    BASE_SETTINGS_V2_SHORT_Q_NAME
 )
 
 val DATA_CLASS_Q_NAMES = listOf(DATA_CLASS_Q_NAME, DATA_CLASS_SHORT_Q_NAME)
@@ -196,9 +205,27 @@ val CONFIG_TYPES = mapOf(
 
 const val CUSTOM_ROOT_FIELD = "__root__"
 
-const val MODEL_FIELD_PREFIX = "model_"
-
 const val MODEL_CONFIG_FIELD = "model_config"
+
+// Pydantic v2 BaseModel reserved attribute names
+val PYDANTIC_V2_MODEL_RESERVED_ATTRIBUTES = setOf(
+    "model_config",
+    "model_fields",
+    "model_computed_fields",
+    "model_extra",
+    "model_fields_set",
+    "model_construct",
+    "model_copy",
+    "model_dump",
+    "model_dump_json",
+    "model_json_schema",
+    "model_parametrized_name",
+    "model_post_init",
+    "model_rebuild",
+    "model_validate",
+    "model_validate_json",
+    "model_validate_strings",
+)
 
 fun PyTypedElement.getType(context: TypeEvalContext): PyType? = context.getType(this)
 
@@ -247,14 +274,14 @@ internal fun isSubClassOfPydanticRootModel(pyClass: PyClass, context: TypeEvalCo
 }
 
 internal fun isSubClassOfBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean {
-    return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
+    return BASE_SETTINGS_Q_NAMES.any { pyClass.isSubclass(it, context) }
 }
 
 internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return CUSTOM_BASE_MODEL_Q_NAMES.any { pyClass.isSubclass(it, context) }
 }
 
-internal val PyClass.isBaseSettings: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME || qualifiedName == V1_BASE_MODEL_Q_NAME
+internal val PyClass.isBaseSettings: Boolean get() = qualifiedName in BASE_SETTINGS_Q_NAMES || qualifiedName == V1_BASE_MODEL_Q_NAME
 
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean =
@@ -330,7 +357,7 @@ internal fun getClassVariables(pyClass: PyClass, context: TypeEvalContext, inclu
     return pyClass.classAttributes
             .asReversed()
             .asSequence()
-            .filter { includeClassVar || !PyTypingTypeProvider.isClassVar(it, context) }
+            .filter { includeClassVar || !(PyTypingTypeProvider.isClassVar(it, context) || PyTypingTypeProvider.isFinal(it, context)) }
 }
 
 private fun getAliasedFieldName(
@@ -381,11 +408,7 @@ val PyType.pyClassTypes: List<PyClassType>
 val PyType.isNullable: Boolean
     get() = when (this) {
         is PyUnionType -> this.members.any {
-            when (it) {
-                is PyNoneType -> true
-                is PyUnionType -> it.isNullable
-                else -> false
-            }
+            it.isNoneType || it is PyUnionType && it.isNullable
         }
         is PyNoneLiteralExpression -> true
         else -> false
@@ -446,10 +469,10 @@ fun isValidField(field: PyTargetExpression, context: TypeEvalContext, isV2: Bool
 
 //     TODO Support a variable.
     if (includeClassVar) return true
-    return !PyTypingTypeProvider.isClassVar(field, context)
+    return !(PyTypingTypeProvider.isClassVar(field, context) || PyTypingTypeProvider.isFinal(field, context))
 }
 
-fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this.startsWith(MODEL_FIELD_PREFIX))
+fun String.isValidFieldName(isV2: Boolean): Boolean = (!startsWith('_') || this == CUSTOM_ROOT_FIELD) && !(isV2 && this in PYDANTIC_V2_MODEL_RESERVED_ATTRIBUTES)
 
 fun getConfigValue(name: String, value: Any?, context: TypeEvalContext): Any? {
     if (value is PyReferenceExpression) {
@@ -533,13 +556,15 @@ fun getConfig(
                         config[name] = getConfigValue(name, element.value, context)
                     }
                 }
-            is PyCallExpression -> configDict.arguments.forEach { argument ->
-                    argument.name?.let {name ->
-                        configDict.getKeywordArgument(name)?.let { value ->
-                            config[name] = getConfigValue(name, value, context)
+            is PyCallExpression -> configDict.arguments
+                    .filterIsInstance<PyKeywordArgument>()
+                    .forEach { argument ->
+                        argument.name?.let { name ->
+                            argument.valueExpression?.let { value ->
+                                config[name] = getConfigValue(name, value, context)
+                            }
                         }
                     }
-                }
         }
     }
     pyClass.nestedClasses.firstOrNull { it.isConfigClass }?.let {
@@ -602,6 +627,35 @@ fun getFieldName(
     }
 }
 
+/**
+ * Returns all valid field names for a Pydantic field.
+ * When populate_by_name (v2) / allow_population_by_field_name (v1) / allow_population_by_alias (v0) is true,
+ * both the field name and alias are valid. Otherwise, only the alias (or field name if no alias) is valid.
+ */
+fun getFieldNames(
+    field: PyTargetExpression,
+    context: TypeEvalContext,
+    config: HashMap<String, Any?>,
+    pydanticVersion: KotlinVersion?,
+): List<String> {
+    val fieldName = field.name ?: return emptyList()
+    val aliasName = getAliasedFieldName(field, context, pydanticVersion)
+
+    val populateByName = when (pydanticVersion?.major) {
+        0 -> config["allow_population_by_alias"] == true
+        2 -> config["populate_by_name"] == true
+        else -> config["allow_population_by_field_name"] == true
+    }
+
+    return if (populateByName) {
+        // Both field name and alias are valid
+        listOfNotNull(fieldName, aliasName).distinct()
+    } else {
+        // Only alias (or field name if no alias) is valid
+        listOfNotNull(aliasName ?: fieldName)
+    }
+}
+
 
 fun getPydanticBaseConfig(project: Project, context: TypeEvalContext): PyClass? {
     return getPyClassFromQualifiedName(BASE_CONFIG_QUALIFIED_NAME, project, context)
@@ -649,10 +703,27 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
     return PyClassTypeImpl.createTypeByQName(psiElement, qualifiedName, false)
 }
 
-fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? =
-        pyCallExpression.callee?.reference?.resolve()
-        ?.let { it as? PyClass }
-        ?.takeIf { isPydanticModel(it, includeDataclass, context)}
+fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? {
+    val directClass = pyCallExpression.callee?.reference?.resolve() as? PyClass
+    if (directClass != null && isPydanticModel(directClass, includeDataclass, context)) {
+        return directClass
+    }
+    
+    val calleeType = pyCallExpression.callee?.let { context.getType(it) }
+    when (calleeType) {
+        is PydanticDynamicModelClassType -> {
+            return calleeType.pyClass
+        }
+        is PyClassType -> {
+            val pyClass = calleeType.pyClass
+            if (isPydanticModel(pyClass, includeDataclass, context)) {
+                return pyClass
+            }
+        }
+    }
+    
+    return null
+}
 
 fun getPydanticPyClassType(pyTypedElement: PyTypedElement, context: TypeEvalContext, includeDataclass: Boolean = false): PyClassType? =
     context.getType(pyTypedElement)?.pyClassTypes?.firstOrNull {
@@ -708,7 +779,7 @@ fun getPydanticUnFilledArguments(
 }
 
 val PyCallableParameter.required: Boolean
-    get() = !hasDefaultValue() || (defaultValue !is PyNoneLiteralExpression && defaultValueText == "...")
+    get() = !hasDefaultValue() || (defaultValue is PyEllipsisLiteralExpression)
 
 
 internal fun hasTargetPyType(
@@ -832,8 +903,13 @@ fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEval
 val KotlinVersion?.isV2: Boolean
     get() = this?.isAtLeast(2, 0) == true
 
-fun getPydanticVersion(project: Project, sdk: Sdk): String? =
-     forSdk(project, sdk).installedPackages.find { it.name == "pydantic" }?.version
+@Suppress("UnstableApiUsage")
+fun getPydanticVersion(project: Project, sdk: Sdk): String? {
+    val packageManager = forSdk(project, sdk)
+    // In IntelliJ 2025.2, installedPackages is protected, use listInstalledPackagesSnapshot() instead
+    val packages = packageManager.listInstalledPackagesSnapshot()
+    return packages.find { it.name == "pydantic" }?.version
+}
 
 internal fun isInInit(field: PyTargetExpression): Boolean {
     val assignedValue = field.findAssignedValue() as? PyCallExpression ?: return true

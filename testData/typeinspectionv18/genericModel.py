@@ -111,8 +111,7 @@ class Model(GenericModel, Generic[AT, BT]):
 Model(a='a', b='a')
 #> a='a' b='a'
 
-# ignore stub type errors
-IntT = <warning descr="Expected type 'IntT ≤: int', got 'TypeVar' instead">TypeVar('IntT', bound=int)</warning>
+IntT = TypeVar('IntT', bound=int)
 typevar_model = Model[int, IntT]
 typevar_model(a=1, b=1)
 

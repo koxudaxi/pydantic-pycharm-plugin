@@ -190,7 +190,7 @@ class PydanticInspection : PyInspection() {
                 }
             }?.getParameters(myTypeEvalContext)?.forEach {
                 val defaultFactory = defaultFactories[it.name] ?: return@forEach
-                val expectedType = it.getArgumentType(myTypeEvalContext) ?: return@forEach
+                val expectedType = it.getType(myTypeEvalContext) ?: return@forEach
                 val actualType = myTypeEvalContext.getReturnType(defaultFactory.second) ?: return@forEach
                 if (PyTypeChecker.match(expectedType, actualType, myTypeEvalContext)) return@forEach
                 registerProblem(
@@ -225,13 +225,14 @@ class PydanticInspection : PyInspection() {
             if (getPydanticModelInit(pyClass, myTypeEvalContext) != null) return
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["extra"] != EXTRA.FORBID) return
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
             pyClass.getAncestorClasses(myTypeEvalContext)
             val parameters = (getAncestorPydanticModels(pyClass, false, myTypeEvalContext) + pyClass)
                     .flatMap { pydanticModel ->
                         getClassVariables(pydanticModel, myTypeEvalContext, false)
                                 .filter { it.name != null }
                                 .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2, false) }
-                                .map { it.name }
+                                .flatMap { getFieldNames(it, myTypeEvalContext, config, pydanticVersion) }
                     }.toSet()
             pyCallExpression.arguments
                     .filterIsInstance<PyKeywordArgument>()
@@ -320,7 +321,7 @@ class PydanticInspection : PyInspection() {
         private fun inspectCustomRootField(field: PyTargetExpression) {
             val pyClass = getPydanticModelByAttribute(field.parent, false, myTypeEvalContext) ?: return
 
-            if (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext)) return
+            if (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext) || PyTypingTypeProvider.isFinal(field, myTypeEvalContext)) return
             val fieldName = field.text ?: return
             val isV2 = pydanticCacheService.isV2
             if (isV2 && fieldName == "__root__") {
@@ -435,12 +436,12 @@ class PydanticInspection : PyInspection() {
             if (pyClass.findProperty(name, true, myTypeEvalContext) != null) return
             if (pyClass.findMethodByName(name, true, myTypeEvalContext) != null) return
             val field = pyClass.findClassAttribute(name, true, myTypeEvalContext)
-            if (field is PyAnnotationOwner && PyTypingTypeProvider.isClassVar(field, myTypeEvalContext)) return
+            if (field is PyAnnotationOwner && (PyTypingTypeProvider.isClassVar(field, myTypeEvalContext) || PyTypingTypeProvider.isFinal(field, myTypeEvalContext))) return
 
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
 
             // Check private field or model fields
-            if (name.startsWith("_") || pydanticVersion.isV2 && name.startsWith(MODEL_FIELD_PREFIX)) return
+            if (name.startsWith("_") || pydanticVersion.isV2 && name in PYDANTIC_V2_MODEL_RESERVED_ATTRIBUTES) return
 
             if (pyClassType.isDefinition) {
                 if(field == null && node.reference?.resolve() is PyTargetExpression) return

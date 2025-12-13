@@ -2,9 +2,11 @@ package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.FilePropertyPusher
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.PsiTestUtil.addSourceRoot
 import com.intellij.testFramework.PsiTestUtil.removeSourceRoot
@@ -26,8 +28,59 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
     protected var myFixture: CodeInsightTestFixture? = null
 
     private val testDataPath: String = "testData"
+
+    /**
+     * Common list of Python built-in names to exclude from completion tests.
+     * These are standard Python builtins that appear in completion results
+     * but are not relevant to Pydantic-specific testing.
+     */
+    companion object {
+        protected val ourPyLatestDescriptor = PyLightProjectDescriptor(LanguageLevel.getLatest())
+
+        /**
+         * Base excludes for all completion tests - Python dunder attributes and builtins
+         */
+        val BASE_COMPLETION_EXCLUDES = listOf(
+            // Dunder attributes
+            "__annotations__",
+            "__base__",
+            "__bases__",
+            "__basicsize__",
+            "__dict__",
+            "__dictoffset__",
+            "__flags__",
+            "__itemsize__",
+            "__mro__",
+            "__name__",
+            "__qualname__",
+            "__slots__",
+            "__text_signature__",
+            "__weakrefoffset__",
+            "__type_params__",
+            // Python builtins
+            "Ellipsis",
+            "EnvironmentError",
+            "IOError",
+            "NotImplemented",
+            "WindowsError",
+            // Python 2025.3+ interactive shell builtins
+            "copyright",
+            "credits",
+            "exit",
+            "help",
+            "license",
+            "quit",
+            // Typing module
+            "List",
+            "Type",
+            "Annotated",
+            // Dataclasses
+            "MISSING",
+        )
+    }
     private val mockPath: String = "mock"
     private val pydanticMockPath: String = "$mockPath/pydantic$version"
+    private val pydanticSettingsMockPath: String = "$mockPath/pydantic_settings$version"
     private val pythonStubPath: String = "$mockPath/stub"
 
     private var packageDir: VirtualFile? = null
@@ -72,6 +125,9 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
 
         myFixture!!.copyDirectoryToProject(pythonStubPath, "package")
         myFixture!!.copyDirectoryToProject(pydanticMockPath, "package/pydantic")
+        if (version == "v2") {
+            myFixture!!.copyDirectoryToProject(pydanticSettingsMockPath, "package/pydantic_settings")
+        }
 
         packageDir = myFixture!!.findFileInTempDir("package")
 
@@ -95,6 +151,10 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
         PydanticCacheService.setVersion(myFixture!!.project, parsedVersion)
         setLanguageLevel(defaultPythonLanguageLevel)
         InspectionProfileImpl.INIT_INSPECTIONS = true
+        
+        // Wait for indexing to complete after setting up the project
+        IndexingTestUtil.waitUntilIndexesAreReady(myFixture!!.project)
+        DumbService.getInstance(myFixture!!.project).waitForSmartMode()
     }
 
 
@@ -135,9 +195,4 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
     protected open fun getProjectDescriptor(): LightProjectDescriptor? {
         return ourPyLatestDescriptor
     }
-
-    companion object {
-        protected val ourPyLatestDescriptor = PyLightProjectDescriptor(LanguageLevel.getLatest());
-    }
 }
-

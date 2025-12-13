@@ -6,38 +6,12 @@ import com.jetbrains.python.psi.PyTargetExpression
 
 open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
 
-
-    private fun doFieldTest(fieldNames: List<Pair<String, String>>, additionalModules: List<String>? = null) {
-        configureByFile(additionalModules)
-        val excludes = listOf(
-            "__annotations__",
-            "__base__",
-            "__bases__",
-            "__basicsize__",
-            "__dict__",
-            "__dictoffset__",
-            "__flags__",
-            "__itemsize__",
-            "__mro__",
-            "__name__",
-            "__qualname__",
-            "__slots__",
-            "__text_signature__",
-            "__weakrefoffset__",
-            "Ellipsis",
-            "EnvironmentError",
-            "IOError",
-            "NotImplemented",
-            "List",
-            "Type",
-            "Annotated",
-            "MISSING",
-            "WindowsError",
+    companion object {
+        // Additional excludes specific to V2 tests (Pydantic V2 attributes and keywords)
+        private val V2_ADDITIONAL_EXCLUDES = listOf(
+            // Pydantic V2 model attributes
             "model_config = ",
             "model_fields = ",
-            "from",
-            "import",
-            "lambda",
             "model_config",
             "model_fields",
             "__class_vars__",
@@ -63,15 +37,21 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "__pydantic_core_schema__ = ",
             "__pydantic_generic_parameters__ = ",
             "__pydantic_parent_namespace__ = ",
+            // Python keywords and builtins
+            "from",
+            "import",
+            "lambda",
             "None",
             "not",
-            "ConfigDict",
             "async",
             "False",
-            "True",
-            "ABC=",
-            "CDE="
+            "True"
         )
+    }
+
+    private fun doFieldTest(fieldNames: List<Pair<String, String>>, additionalModules: List<String>? = null) {
+        configureByFile(additionalModules)
+        val excludes = BASE_COMPLETION_EXCLUDES + V2_ADDITIONAL_EXCLUDES
         val actual = myFixture!!.completeBasic().filter {
             it!!.psiElement is PyTargetExpression || it.psiElement == null
         }.filterNot {
@@ -108,7 +88,9 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
     fun testKeywordArgumentPopulateByName() {
         doFieldTest(
             listOf(
+                Pair("ABC=", "str A"),
                 Pair("abc=", "str A"),
+                Pair("CDE=", "str A"),
                 Pair("cde=", "str A")
             )
         )
@@ -130,6 +112,14 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
                         Pair("klm", "str=lambda: 456 A"),
                         Pair("nop", "str=lambda: 789 A"),
                 )
+        )
+    }
+
+    fun testBaseSettingPydanticSettings() {
+        doFieldTest(
+            listOf(
+                Pair("b", "str=... A")
+            )
         )
     }
 }

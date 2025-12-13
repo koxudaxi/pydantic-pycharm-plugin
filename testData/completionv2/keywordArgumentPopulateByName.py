@@ -3,7 +3,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 
 class A(BaseModel):
-    model_config = ConfigDict(
+    model_config: ConfigDict = ConfigDict(
         populate_by_name=True,
     )
     abc: str = Field(..., alias='ABC')
