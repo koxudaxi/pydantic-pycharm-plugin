@@ -122,4 +122,25 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             )
         )
     }
+
+    fun testV1CompatKeywordArgument() {
+        doFieldTest(
+            listOf(
+                Pair("abc=", "str A"),
+                Pair("cde=", "str A"),
+                Pair("efg=", "str A")
+            )
+        )
+    }
+
+    fun testV1CompatInstance() {
+        doFieldTest(
+            listOf(
+                Pair("abc", "str A"),
+                Pair("cde", "str='abc' A"),
+                Pair("efg", "str='abc' A"),
+                Pair("___slots__", "BaseModel")
+            )
+        )
+    }
 }
