@@ -10,6 +10,14 @@ open class PydanticTypeInspectionV2Test : PydanticInspectionBase("v2") {
     @Suppress("UNCHECKED_CAST")
     override val inspectionClass: KClass<PyInspection> = PyTypeCheckerInspection::class as KClass<PyInspection>
 
+    fun testPopulateByNameAlias() {
+        doTest()
+    }
+
+    fun testPopulateByNameAliasEdge() {
+        doTest()
+    }
+
     fun testBaseSettingPydanticSettings() {
         doTest()
     }
