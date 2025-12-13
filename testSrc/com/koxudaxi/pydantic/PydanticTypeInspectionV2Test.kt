@@ -17,7 +17,7 @@ open class PydanticTypeInspectionV2Test : PydanticInspectionBase("v2") {
     fun testPopulateByNameAliasEdge() {
         doTest()
     }
-}
+
     fun testBaseSettingPydanticSettings() {
         doTest()
     }

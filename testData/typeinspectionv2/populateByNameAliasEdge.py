@@ -6,4 +6,4 @@ class Model(BaseModel):
     field_name: str = Field(..., alias="ALIAS_NAME")
 
 
-c = Model(<warning descr="null">**{"ALIAS_NAME": "test"})</warning>
+c = Model(**{"ALIAS_NAME": "test"})
