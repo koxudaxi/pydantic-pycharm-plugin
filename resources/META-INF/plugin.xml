@@ -23,6 +23,8 @@
                         serviceImplementation="com.koxudaxi.pydantic.PydanticConfigService"/>
         <projectService
                 serviceImplementation="com.koxudaxi.pydantic.PydanticCacheService"/>
+        <projectService
+                serviceImplementation="com.koxudaxi.pydantic.PydanticSdkChangeWatcher"/>
 
         <projectConfigurable groupId="tools" instance="com.koxudaxi.pydantic.PydanticConfigurable"/>
         <postStartupActivity implementation="com.koxudaxi.pydantic.PydanticInitializer" order="last"/>
