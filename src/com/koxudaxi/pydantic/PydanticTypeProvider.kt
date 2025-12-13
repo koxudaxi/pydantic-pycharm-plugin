@@ -383,11 +383,14 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             if (arguments.isEmpty()) return@doPreventingRecursion null
             // If the project is dumb, we can't resolve the function
             if (DumbService.isDumb(pyCallExpression.project)) return@doPreventingRecursion null
-            val pyFunction = pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context))
-                .asSequence()
-                .filterIsInstance<PyFunction>()
-                .map { it.takeIf { pyFunction -> pyFunction.isPydanticCreateModel } }.firstOrNull()
-                ?: return@doPreventingRecursion null
+            val pyFunction = try {
+                pyCallExpression.multiResolveCalleeFunction(PyResolveContext.defaultContext(context))
+                    .asSequence()
+                    .filterIsInstance<PyFunction>()
+                    .map { it.takeIf { pyFunction -> pyFunction.isPydanticCreateModel } }.firstOrNull()
+            } catch (_: AssertionError) {
+                null
+            } ?: return@doPreventingRecursion null
             getPydanticDynamicModelTypeForFunction(pyFunction, arguments, context)
         }
     }
