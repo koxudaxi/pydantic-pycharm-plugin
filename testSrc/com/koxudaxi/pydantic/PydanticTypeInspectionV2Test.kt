@@ -18,3 +18,8 @@ open class PydanticTypeInspectionV2Test : PydanticInspectionBase("v2") {
         doTest()
     }
 }
+    fun testBaseSettingPydanticSettings() {
+        doTest()
+    }
+}
+

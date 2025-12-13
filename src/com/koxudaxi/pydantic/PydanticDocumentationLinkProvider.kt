@@ -15,7 +15,7 @@ class PydanticDocumentationLinkProvider : PythonDocumentationLinkProvider {
         ROOT_VALIDATOR_Q_NAME to "https://docs.pydantic.dev/dev-1/usage/validators/#root-validators",
         ROOT_VALIDATOR_SHORT_Q_NAME to "https://docs.pydantic.dev/dev-1/usage/validators/#root-validators",
         DATA_CLASS_Q_NAME to "https://docs.pydantic.dev/dev-1/usage/dataclasses/",
-        BASE_SETTINGS_Q_NAME to "https://docs.pydantic.dev/dev-1/usage/dataclasses/",
+        BASE_SETTINGS_V1_Q_NAME to "https://docs.pydantic.dev/dev-1/usage/settings/",
         BASE_CONFIG_Q_NAME to "https://docs.pydantic.dev/dev-1/usage/model_config/"
     )
     private val v2Urls = mapOf(
@@ -25,7 +25,8 @@ class PydanticDocumentationLinkProvider : PythonDocumentationLinkProvider {
         MODEL_VALIDATOR_Q_NAME to "https://docs.pydantic.dev/dev-v2/usage/validators/#model-validators",
         MODEL_VALIDATOR_SHORT_Q_NAME to "https://docs.pydantic.dev/dev-v2/usage/validators/#model-validators",
         DATA_CLASS_Q_NAME to "https://docs.pydantic.dev/dev-v2/usage/dataclasses/",
-        BASE_SETTINGS_Q_NAME to "https://docs.pydantic.dev/dev-v2/api/pydantic_settings/#pydantic_settings.BaseSettings",
+        BASE_SETTINGS_V2_Q_NAME to "https://docs.pydantic.dev/dev-v2/api/pydantic_settings/#pydantic_settings.BaseSettings",
+        BASE_SETTINGS_V2_SHORT_Q_NAME to "https://docs.pydantic.dev/dev-v2/api/pydantic_settings/#pydantic_settings.BaseSettings",
         BASE_CONFIG_Q_NAME to "https://docs.pydantic.dev/dev-v2/api/config/#pydantic.config.BaseConfig",
         CONFIG_DICT_Q_NAME to "https://docs.pydantic.dev/dev-v2/api/config/#pydantic.config.ConfigDict",
         CONFIG_DICT_SHORT_Q_NAME to "https://docs.pydantic.dev/dev-v2/api/config/#pydantic.config.ConfigDict",
@@ -33,7 +34,7 @@ class PydanticDocumentationLinkProvider : PythonDocumentationLinkProvider {
 
     override fun getExternalDocumentationUrl(element: PsiElement?, originalElement: PsiElement?): String? {
         val qualifiedName = (element as? PyQualifiedNameOwner)?.qualifiedName ?: return null
-        if (!qualifiedName.startsWith("pydantic.")) return null
+        if (!qualifiedName.startsWith("pydantic.") && !qualifiedName.startsWith("pydantic_settings.")) return null
 
         val version = PydanticCacheService.getInstance(element.project)
         return when {

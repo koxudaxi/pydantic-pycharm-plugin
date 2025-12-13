@@ -80,6 +80,7 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
     }
     private val mockPath: String = "mock"
     private val pydanticMockPath: String = "$mockPath/pydantic$version"
+    private val pydanticSettingsMockPath: String = "$mockPath/pydantic_settings$version"
     private val pythonStubPath: String = "$mockPath/stub"
 
     private var packageDir: VirtualFile? = null
@@ -124,6 +125,9 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
 
         myFixture!!.copyDirectoryToProject(pythonStubPath, "package")
         myFixture!!.copyDirectoryToProject(pydanticMockPath, "package/pydantic")
+        if (version == "v2") {
+            myFixture!!.copyDirectoryToProject(pydanticSettingsMockPath, "package/pydantic_settings")
+        }
 
         packageDir = myFixture!!.findFileInTempDir("package")
 
@@ -192,4 +196,3 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
         return ourPyLatestDescriptor
     }
 }
-

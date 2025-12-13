@@ -46,7 +46,10 @@ const val FIELD_Q_NAME = "pydantic.fields.Field"
 const val DATACLASS_FIELD_Q_NAME = "dataclasses.field"
 const val SQL_MODEL_FIELD_Q_NAME = "sqlmodel.main.Field"
 const val DEPRECATED_SCHEMA_Q_NAME = "pydantic.fields.Schema"
-const val BASE_SETTINGS_Q_NAME = "pydantic.env_settings.BaseSettings"
+const val BASE_SETTINGS_V1_Q_NAME = "pydantic.env_settings.BaseSettings"
+const val BASE_SETTINGS_V2_Q_NAME = "pydantic_settings.main.BaseSettings"
+// Some stubs/packages expose BaseSettings directly from the package.
+const val BASE_SETTINGS_V2_SHORT_Q_NAME = "pydantic_settings.BaseSettings"
 const val VERSION_Q_NAME = "pydantic.version.VERSION"
 const val BASE_CONFIG_Q_NAME = "pydantic.main.BaseConfig"
 const val CONFIG_DICT_Q_NAME = "pydantic.config.ConfigDict"
@@ -77,6 +80,12 @@ val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
 
 val CUSTOM_MODEL_FIELD_Q_NAMES = listOf(
     SQL_MODEL_FIELD_Q_NAME
+)
+
+val BASE_SETTINGS_Q_NAMES = listOf(
+    BASE_SETTINGS_V1_Q_NAME,
+    BASE_SETTINGS_V2_Q_NAME,
+    BASE_SETTINGS_V2_SHORT_Q_NAME
 )
 
 val DATA_CLASS_Q_NAMES = listOf(DATA_CLASS_Q_NAME, DATA_CLASS_SHORT_Q_NAME)
@@ -257,14 +266,14 @@ internal fun isSubClassOfPydanticRootModel(pyClass: PyClass, context: TypeEvalCo
 }
 
 internal fun isSubClassOfBaseSetting(pyClass: PyClass, context: TypeEvalContext): Boolean {
-    return pyClass.isSubclass(BASE_SETTINGS_Q_NAME, context)
+    return BASE_SETTINGS_Q_NAMES.any { pyClass.isSubclass(it, context) }
 }
 
 internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return CUSTOM_BASE_MODEL_Q_NAMES.any { pyClass.isSubclass(it, context) }
 }
 
-internal val PyClass.isBaseSettings: Boolean get() = qualifiedName == BASE_SETTINGS_Q_NAME
+internal val PyClass.isBaseSettings: Boolean get() = qualifiedName in BASE_SETTINGS_Q_NAMES
 
 
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean =
