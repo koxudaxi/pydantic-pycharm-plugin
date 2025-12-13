@@ -596,6 +596,13 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val typed = !init || getInstance(pyClass.project).currentInitTyped
         val collected = linkedMapOf<String, PyCallableParameter>()
 
+        // Extract provided argument names from the call expression
+        // This is used to select the matching parameter name when populate_by_name=True
+        val providedArgNames = pyCallExpression.arguments
+            .filterIsInstance<PyKeywordArgument>()
+            .mapNotNull { it.keyword }
+            .toSet()
+
         if (isSubClassOfBaseSetting(pyClass, context)) {
             getBaseSetting(pyClass, context)?.let { baseSetting ->
                 getBaseSettingInitParameters(baseSetting, context, typed)
@@ -624,6 +631,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                         config,
                         genericTypeMap,
                         typed,
+                        false,
+                        providedArgNames,
                     )
                 }
                 .filter { parameter ->
@@ -644,7 +653,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     /**
      * Returns a single callable parameter for a field (for backward compatibility).
-     * Uses the first name from getFieldNames().
+     * Uses the first name from getFieldNames(), or matches providedArgNames if specified.
      */
     internal fun dynamicModelFieldToParameter(
         field: PyTargetExpression,
@@ -656,15 +665,18 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         genericTypeMap: Map<PyTypeVarType, PyType>?,
         typed: Boolean = true,
         isDataclass: Boolean = false,
+        providedArgNames: Set<String> = emptySet(),
     ): PyCallableParameter? {
         return dynamicModelFieldToParameters(
-            field, ellipsis, context, pyClass, pydanticVersion, config, genericTypeMap, typed, isDataclass
+            field, ellipsis, context, pyClass, pydanticVersion, config, genericTypeMap, typed, isDataclass, providedArgNames
         ).firstOrNull()
     }
 
     /**
-     * Returns all callable parameters for a field.
-     * When populate_by_name is true and an alias exists, returns parameters for both field name and alias.
+     * Returns a single callable parameter for a field.
+     * When populate_by_name is true and an alias exists, selects the parameter name based on providedArgNames:
+     * - If a name from getFieldNames() matches a provided argument name, use that name
+     * - Otherwise, fall back to the first name (field name)
      */
     internal fun dynamicModelFieldToParameters(
         field: PyTargetExpression,
@@ -676,6 +688,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         genericTypeMap: Map<PyTypeVarType, PyType>?,
         typed: Boolean = true,
         isDataclass: Boolean = false,
+        providedArgNames: Set<String> = emptySet(),
     ): List<PyCallableParameter> {
         if (!isValidField(field, context, pydanticVersion.isV2, false)) return emptyList()
         if (!hasAnnotationValue(field) && !field.hasAssignedValue()) return emptyList() // skip fields that are invalid syntax
@@ -704,9 +717,16 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         val resolvedDefaultValue = if (defaultValue == null && typeForParameter?.isNullable == true) ellipsis else defaultValue
 
-        return getFieldNames(field, context, config, pydanticVersion).map { name ->
-            PyCallableParameterImpl.nonPsi(name, typeForParameter, resolvedDefaultValue)
-        }
+        // Get all valid field names (field name + alias when populate_by_name=True)
+        val allFieldNames = getFieldNames(field, context, config, pydanticVersion)
+
+        // Select the parameter name: use provided arg name if it matches, otherwise use first name
+        val parameterName = allFieldNames.find { it in providedArgNames } ?: allFieldNames.firstOrNull()
+            ?: return emptyList()
+
+        return listOf(
+            PyCallableParameterImpl.nonPsi(parameterName, typeForParameter, resolvedDefaultValue)
+        )
     }
 
     private fun argumentToParameter(

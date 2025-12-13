@@ -136,5 +136,9 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
     fun _disabled_testDynamicModel() {
         doTest()
     }
+
+    fun testAllowPopulationByFieldNameAlias() {
+        doTest()
+    }
 }
 
