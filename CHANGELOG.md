@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.23] - 2025-12-15
+
 - Fix: Enhance SQLModel class completion and implement SDK cache invalidation [[#1137](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1137)]
 - Draft: Making the plugin also apply to pydantic.v1.main.BaseModel [[#1016](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1016)]
 - Fix: Resolve false "Parameter unfilled" warning when using populate_by_name with aliases [[#1136](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1136)]
@@ -593,7 +595,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.22...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.23...HEAD
+[0.4.23]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.22...v0.4.23
 [0.4.22]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.21...v0.4.22
 [0.4.21]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.20...v0.4.21
 [0.4.20]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.19...v0.4.20
