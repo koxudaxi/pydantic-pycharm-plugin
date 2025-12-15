@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+- Fix: Enhance SQLModel class completion and implement SDK cache invalidation [[#1137](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1137)]
+- Draft: Making the plugin also apply to pydantic.v1.main.BaseModel [[#1016](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1016)]
+- Fix: Resolve false "Parameter unfilled" warning when using populate_by_name with aliases [[#1136](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1136)]
+- Fix: Update Pydantic settings integration for v2 compatibility [[#1135](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1135)]
+- Fix: Handle AssertionError in Pydantic type checker to prevent crashes [[#1134](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1134)]
+- Fix: Prevent stack overflow in Pydantic type provider due to recursion [[#1133](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1133)]
+
 ## [0.4.22] - 2025-12-12
 
 - Fix: Suppress dataclass inspection for Pydantic models [[#1128](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1128)]
