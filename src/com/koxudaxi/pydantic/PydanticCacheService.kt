@@ -2,7 +2,6 @@ package com.koxudaxi.pydantic
 
 import com.intellij.openapi.project.Project
 import com.jetbrains.python.psi.types.TypeEvalContext
-import com.jetbrains.python.sdk.pythonSdk
 
 class PydanticCacheService(val project: Project) {
     private var version: KotlinVersion? = null
@@ -28,7 +27,8 @@ class PydanticCacheService(val project: Project) {
                 .toSet()
     }
     private fun getVersion(): KotlinVersion? {
-        val sdk = project.pythonSdk ?: return null
+        // Project-level pythonSdk can be null even when modules have a configured interpreter.
+        val sdk = project.sdk ?: return null
         val versionString = getPydanticVersion(project, sdk) ?: return null
         return getOrPutVersionFromVersionCache(versionString)
     }

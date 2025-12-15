@@ -326,6 +326,9 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pyClass = pyClassType.pyClass
             val config = getConfig(pyClass, typeEvalContext, true)
             if (pyClassType.isDefinition) { // class
+                // SQLModel fields are frequently used on the class itself (e.g. Hero.id in query expressions),
+                // so don't strip them from class-level completion.
+                if (isSubClassOfCustomBaseModel(pyClass, typeEvalContext)) return
                 removeAllFieldElement(parameters, result, pyClass, typeEvalContext, excludeFields, config)
                 return
             }
