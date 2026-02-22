@@ -188,7 +188,7 @@ dependencies {
         bundledPlugins(
             bundledPlugins.get().map { it.trim() } + listOf(bundledPyCharmPlugin)
         )
-        testFramework(TestFrameworkType.Bundled)
+        testFramework(TestFrameworkType.Platform)
         pluginVerifier()
         zipSigner()
     }

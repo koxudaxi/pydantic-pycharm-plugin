@@ -15,7 +15,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.jetbrains.python.PyNames
-import com.jetbrains.python.codeInsight.completion.PyModuleNameCompletionContributor
 import com.jetbrains.python.fixtures.PyLightProjectDescriptor
 import com.jetbrains.python.namespacePackages.PyNamespacePackagesService
 import com.jetbrains.python.psi.LanguageLevel
@@ -169,7 +168,12 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
                         removeSourceRoot(module, dir)
                     }
                 }
-                PyModuleNameCompletionContributor.ENABLED = true
+                try {
+                    val clazz = Class.forName("com.jetbrains.python.codeInsight.completion.PyModuleNameCompletionContributor")
+                    clazz.getField("ENABLED").set(null, true)
+                } catch (_: ClassNotFoundException) {
+                    // Class removed in 2026.1+
+                }
                 setLanguageLevel(null)
                 fixture.tearDown()
                 myFixture = null

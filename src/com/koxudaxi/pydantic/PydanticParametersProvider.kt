@@ -56,27 +56,39 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
             (CUSTOM_BASE_MODEL_Q_NAMES + listOf(BASE_MODEL_Q_NAME, GENERIC_MODEL_Q_NAME, ROOT_MODEL_Q_NAME) + BASE_SETTINGS_Q_NAMES)
                 .toSet()
 
-        private val PYDANTIC_DATACLASS_BYPASS_PARAMETERS = PyDataclassParameters(
-            init = true,
-            repr = true,
-            eq = true,
-            order = false,
-            unsafeHash = false,
-            frozen = false,
-            matchArgs = true,
-            kwOnly = false,
-            initArgument = null,
-            reprArgument = null,
-            eqArgument = null,
-            orderArgument = null,
-            unsafeHashArgument = null,
-            frozenArgument = null,
-            matchArgsArgument = null,
-            kwOnlyArgument = null,
-            type = PydanticDataclassBypassType,
-            slots = false,
-            slotsArgument = null,
-            others = emptyMap(),
-        )
+        private val PYDANTIC_DATACLASS_BYPASS_PARAMETERS: PyDataclassParameters by lazy {
+            // Use reflection to handle constructor differences between 2025.3 and 2026.1:
+            // - 2025.3: 20 params, frozen: boolean, order: ...kwOnly, initArg...kwOnlyArg, type, slots, slotsArg, others
+            // - 2026.1: 21 params, frozen: Boolean?, order: ...kwOnly, slots, initArg...slotsArg, type, others, fieldSpecifiers
+            val constructors = PyDataclassParameters::class.java.constructors
+            val primaryCtor = constructors
+                .filter { it.parameterCount in 20..22 }
+                .minByOrNull { it.parameterCount }!!
+            when (primaryCtor.parameterCount) {
+                20 -> {
+                    // 2025.3: init, repr, eq, order, unsafeHash, frozen(boolean), matchArgs, kwOnly,
+                    //         initArg...kwOnlyArg, type, slots, slotsArg, others
+                    @Suppress("UNCHECKED_CAST")
+                    primaryCtor.newInstance(
+                        true, true, true, false, false, false, true, false,
+                        null, null, null, null, null, null, null, null,
+                        PydanticDataclassBypassType, false, null, emptyMap<String, Any>(),
+                    ) as PyDataclassParameters
+                }
+                else -> {
+                    // 2026.1+: init, repr, eq, order, unsafeHash, frozen(Boolean?), matchArgs, kwOnly, slots,
+                    //          initArg...slotsArg, type, others, fieldSpecifiers
+                    val ctor = constructors
+                        .filter { it.parameterCount in 21..22 }
+                        .maxByOrNull { it.parameterCount }!!
+                    @Suppress("UNCHECKED_CAST")
+                    ctor.newInstance(
+                        true, true, true, false, false, java.lang.Boolean.FALSE, true, false, false,
+                        null, null, null, null, null, null, null, null, null,
+                        PydanticDataclassBypassType, emptyMap<String, Any>(), emptyList<Any>(),
+                    ) as PyDataclassParameters
+                }
+            }
+        }
     }
 }
