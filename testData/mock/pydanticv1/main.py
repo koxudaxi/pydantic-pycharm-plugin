@@ -13,6 +13,15 @@ class BaseModel:
     def from_orm(cls, obj):
         pass
 
+    def dict(self, include=None, exclude=None, by_alias=False, skip_defaults=None, exclude_unset=False, exclude_defaults=False, exclude_none=False):
+        pass
+
+    def json(self, include=None, exclude=None, by_alias=False, skip_defaults=None, exclude_unset=False, exclude_defaults=False, exclude_none=False, encoder=None, models_as_dict=True, **dumps_kwargs):
+        pass
+
+    def copy(self, include=None, exclude=None, update=None, deep=False):
+        pass
+
 
 class Extra(str, Enum):
     allow = 'allow'

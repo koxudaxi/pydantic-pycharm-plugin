@@ -66,11 +66,75 @@ class PydanticInspection : PyInspection() {
 
 
             inspectFromOrm(node)
+            inspectIncludeExcludeUpdate(node)
 
             if (!node.isDefinitionCallExpression(myTypeEvalContext)) return
             inspectPydanticModelCallableExpression(node)
             inspectExtraForbid(node)
 
+        }
+
+        private fun inspectIncludeExcludeUpdate(pyCallExpression: PyCallExpression) {
+            val callee = pyCallExpression.callee as? PyReferenceExpression ?: return
+            val calleeName = callee.name ?: return
+            val validMethods = setOf("dict", "json", "copy", "model_dump", "model_dump_json", "model_copy")
+            if (calleeName !in validMethods) return
+
+            val qualifier = callee.qualifier ?: return
+            val pyClassType = myTypeEvalContext.getType(qualifier) as? PyClassType ?: return
+            val pyClass = pyClassType.pyClass
+            if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
+
+            val config = getConfig(pyClass, myTypeEvalContext, true)
+            val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
+
+            val fields = (getAncestorPydanticModels(pyClass, false, myTypeEvalContext) + pyClass)
+                .flatMap { pydanticModel ->
+                    getClassVariables(pydanticModel, myTypeEvalContext, false)
+                        .filter { it.name != null }
+                        .filter { isValidField(it, myTypeEvalContext, pydanticCacheService.isV2, false) }
+                }
+
+            val inputNames = fields.flatMap { getFieldNames(it, myTypeEvalContext, config, pydanticVersion) }.toSet()
+            val attributeNames = fields.mapNotNull { it.name }.toSet()
+
+            val argsToCheck = mutableListOf<String>()
+            if (calleeName == "copy" || calleeName == "model_copy") {
+                argsToCheck.add("update")
+            }
+            if (calleeName != "model_copy") {
+                argsToCheck.add("include")
+                argsToCheck.add("exclude")
+            }
+
+            argsToCheck.forEach { argName ->
+                val value = pyCallExpression.getKeywordArgument(argName) ?: return@forEach
+                val validNames = if (argName == "update") inputNames else attributeNames
+
+                val keysToCheck = mutableListOf<PyStringLiteralExpression>()
+
+                when (value) {
+                    is PySetLiteralExpression -> {
+                        value.elements.filterIsInstance<PyStringLiteralExpression>().forEach { keysToCheck.add(it) }
+                    }
+                    is PyDictLiteralExpression -> {
+                        value.elements.filterIsInstance<PyKeyValueExpression>().forEach { kv ->
+                            (kv.key as? PyStringLiteralExpression)?.let { keysToCheck.add(it) }
+                        }
+                    }
+                }
+
+                keysToCheck.forEach { keyExpression ->
+                    val fieldName = keyExpression.stringValue
+                    if (fieldName !in validNames) {
+                        registerProblem(
+                            keyExpression,
+                            "Field '$fieldName' not found in model '${pyClass.name}'",
+                            ProblemHighlightType.GENERIC_ERROR
+                        )
+                    }
+                }
+            }
         }
 
         override fun visitPyAssignmentStatement(node: PyAssignmentStatement) {
