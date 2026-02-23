@@ -75,7 +75,7 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
                         PydanticDataclassBypassType, false, null, emptyMap<String, Any>(),
                     ) as PyDataclassParameters
                 }
-                else -> {
+                21 -> {
                     // 2026.1+: init, repr, eq, order, unsafeHash, frozen(Boolean?), matchArgs, kwOnly, slots,
                     //          initArg...slotsArg, type, others, fieldSpecifiers
                     @Suppress("UNCHECKED_CAST")
@@ -85,6 +85,9 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
                         PydanticDataclassBypassType, emptyMap<String, Any>(), emptyList<Any>(),
                     ) as PyDataclassParameters
                 }
+                else -> throw IllegalStateException(
+                    "Unsupported PyDataclassParameters constructor arity: ${primaryCtor.parameterCount}"
+                )
             }
         }
     }
