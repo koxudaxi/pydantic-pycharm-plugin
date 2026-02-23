@@ -78,11 +78,8 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
                 else -> {
                     // 2026.1+: init, repr, eq, order, unsafeHash, frozen(Boolean?), matchArgs, kwOnly, slots,
                     //          initArg...slotsArg, type, others, fieldSpecifiers
-                    val ctor = constructors
-                        .filter { it.parameterCount in 21..22 }
-                        .maxByOrNull { it.parameterCount }!!
                     @Suppress("UNCHECKED_CAST")
-                    ctor.newInstance(
+                    primaryCtor.newInstance(
                         true, true, true, false, false, java.lang.Boolean.FALSE, true, false, false,
                         null, null, null, null, null, null, null, null, null,
                         PydanticDataclassBypassType, emptyMap<String, Any>(), emptyList<Any>(),

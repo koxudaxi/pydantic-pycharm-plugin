@@ -171,8 +171,8 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
                 try {
                     val clazz = Class.forName("com.jetbrains.python.codeInsight.completion.PyModuleNameCompletionContributor")
                     clazz.getField("ENABLED").set(null, true)
-                } catch (_: ClassNotFoundException) {
-                    // Class removed in 2026.1+
+                } catch (_: ReflectiveOperationException) {
+                    // Class or field removed/changed in 2026.1+
                 }
                 setLanguageLevel(null)
                 fixture.tearDown()
