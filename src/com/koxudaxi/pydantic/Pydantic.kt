@@ -21,9 +21,8 @@ import com.jetbrains.python.psi.impl.PyTargetExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.*
+import com.intellij.openapi.module.ModuleManager
 import com.jetbrains.python.sdk.PythonSdkUtil
-import com.jetbrains.python.sdk.pythonSdk
-import com.jetbrains.python.statistics.modules
 import java.util.regex.Pattern
 
 const val BASE_MODEL_Q_NAME = "pydantic.main.BaseModel"
@@ -447,7 +446,11 @@ val PsiElement.isCustomModelField: Boolean
 
 val PsiElement.isDataclassMissing: Boolean get() = validatePsiElementByFunction(this, ::isDataclassMissing)
 
-val Project.sdk: Sdk? get() = pythonSdk ?: modules.firstNotNullOfOrNull { PythonSdkUtil.findPythonSdk(it) }
+val Project.sdk: Sdk?
+    get() {
+        val modules = ModuleManager.getInstance(this).modules
+        return modules.firstNotNullOfOrNull { PythonSdkUtil.findPythonSdk(it) }
+    }
 
 
 fun getPsiElementByQualifiedName(
@@ -456,7 +459,8 @@ fun getPsiElementByQualifiedName(
     context: TypeEvalContext,
 ): PsiElement? {
     val pythonSdk = project.sdk ?: return null
-    val module = project.modules.firstOrNull { it.pythonSdk == pythonSdk } ?: project.modules.firstOrNull()
+    val modules = ModuleManager.getInstance(project).modules
+    val module = modules.firstOrNull { PythonSdkUtil.findPythonSdk(it) == pythonSdk } ?: modules.firstOrNull()
     ?: return null
     val contextAnchor = ModuleBasedContextAnchor(module)
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
@@ -670,8 +674,8 @@ fun getPydanticBaseModel(project: Project, context: TypeEvalContext): PyClass? {
 }
 
 fun getPsiElementFromQualifiedName(qualifiedName: QualifiedName, project: Project, context: TypeEvalContext): PsiElement? {
-    val module = project.modules.firstOrNull() ?: return null
-    val pythonSdk = module.pythonSdk
+    val module = ModuleManager.getInstance(project).modules.firstOrNull() ?: return null
+    val pythonSdk = PythonSdkUtil.findPythonSdk(module)
     val contextAnchor = ModuleBasedContextAnchor(module)
     return qualifiedName.resolveToElement(QNameResolveContext(contextAnchor, pythonSdk, context))
 }

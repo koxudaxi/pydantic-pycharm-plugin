@@ -1,12 +1,12 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.ProjectTopics
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
-import com.jetbrains.python.sdk.pythonSdk
-import com.jetbrains.python.statistics.modules
+import com.jetbrains.python.sdk.PythonSdkUtil
 
 class PydanticSdkChangeWatcher(private val project: Project) {
     private var sdkFingerprint: String? = computeSdkFingerprint()
@@ -24,8 +24,8 @@ class PydanticSdkChangeWatcher(private val project: Project) {
     }
 
     private fun computeSdkFingerprint(): String? {
-        val sdkFingerprints = project.modules
-            .mapNotNull { it.pythonSdk?.sdkFingerprint }
+        val sdkFingerprints = ModuleManager.getInstance(project).modules
+            .mapNotNull { PythonSdkUtil.findPythonSdk(it)?.sdkFingerprint }
             .sorted()
         val fingerprint = when {
             sdkFingerprints.isNotEmpty() -> sdkFingerprints.joinToString("|")

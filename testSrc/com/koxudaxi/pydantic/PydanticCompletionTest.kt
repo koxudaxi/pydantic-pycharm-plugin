@@ -463,7 +463,7 @@ open class PydanticCompletionTest : PydanticTestCase() {
     fun testFieldOptional() {
         doFieldTest(
             listOf(
-                Pair("abc", "Union[str, NoneType]=None A"),
+                Pair("abc", "Optional[str]=None A"),
                 Pair("cde", "str='abc' A"),
                 Pair("efg", "str='abc' A"),
                 Pair("___slots__", "BaseModel")
@@ -476,8 +476,8 @@ open class PydanticCompletionTest : PydanticTestCase() {
             listOf(
                 Pair("abc", "Union[str, int] A"),
                 Pair("cde", "Union[str, int] A"),
-                // PyCharm 2025.3 correctly resolves Union[str, int, None] as Union[str, int, NoneType]
-                Pair("efg", "Union[str, int, NoneType] A"),
+                // PyCharm 2026.1 displays NoneType as None and includes =None default
+                Pair("efg", "Union[str, int, None]=None A"),
                 Pair("___slots__", "BaseModel")
             )
         )
