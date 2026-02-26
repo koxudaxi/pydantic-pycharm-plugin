@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Support PyCharm 2026.1 EAP [[#1162](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1162)]
+- feat: Validate model field names in exclude, include and update arguments [[#1147](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1147)]
+- Update Qodana action to v2025.3 and fix linter config [[#1161](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1161)]
+
 ## [0.4.23] - 2025-12-15
 
 - Fix: Enhance SQLModel class completion and implement SDK cache invalidation [[#1137](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1137)]
