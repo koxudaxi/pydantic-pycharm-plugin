@@ -32,7 +32,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             return PyCollectionTypeImpl.createTypeByQName(
                 referenceExpression,
                 "sqlalchemy.orm.attributes.InstrumentedAttribute",
-                true,
+                false,
                 listOf(inner)
             )?.toInstance()
         }
