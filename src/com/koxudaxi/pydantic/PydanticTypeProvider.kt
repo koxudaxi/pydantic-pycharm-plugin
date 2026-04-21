@@ -26,15 +26,9 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         // When SQLModel fields are accessed on the class object, the type is an sqlalchemy InstrumentedAttribute[T]
         val qualifier = referenceExpression.qualifier ?: return null
         val qualifierType = getPydanticPyClassType(qualifier, context) ?: return null
-
-        val qualifierPyClass = qualifierType.pyClass
-
-        if (
-            qualifierType.isDefinition && isTableSqlModel(qualifierPyClass, context)
-        ) {
-
+        if (qualifierType.isDefinition && isTableSqlModel(qualifierType.pyClass, context)) {
             val attrName = referenceExpression.name ?: return null
-            val inner = getRefTypeFromFieldName(attrName, context, qualifierPyClass) ?: return null
+            val inner = getRefTypeFromFieldName(attrName, context, qualifierType.pyClass) ?: return null
             return PyCollectionTypeImpl.createTypeByQName(
                 referenceExpression,
                 "sqlalchemy.orm.attributes.InstrumentedAttribute",
