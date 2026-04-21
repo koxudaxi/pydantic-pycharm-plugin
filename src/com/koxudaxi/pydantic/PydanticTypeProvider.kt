@@ -23,6 +23,26 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         // Skip if project is still indexing to avoid incorrect results
         if (DumbService.isDumb(referenceExpression.project)) return null
 
+        // When SQLModel fields are accessed on the class object, the type is an sqlalchemy InstrumentedAttribute[T]
+        val qualifier = referenceExpression.qualifier ?: return null
+        val qualifierType = getPydanticPyClassType(qualifier, context) ?: return null
+
+        val qualifierPyClass = qualifierType.pyClass
+
+        if (
+            qualifierType.isDefinition && isSubClassOfCustomBaseModel(qualifierPyClass, context)
+        ) {
+
+            val attrName = referenceExpression.name ?: return null
+            val inner = getRefTypeFromFieldName(attrName, context, qualifierPyClass) ?: return null
+            return PyCollectionTypeImpl.createTypeByQName(
+                referenceExpression,
+                "sqlalchemy.orm.attributes.InstrumentedAttribute",
+                true,
+                listOf(inner)
+            )?.toInstance()
+        }
+
         return RecursionManager.doPreventingRecursion(referenceExpression, true) {
             val callExpression = PsiTreeUtil.getParentOfType(referenceExpression, PyCallExpression::class.java)
                 ?: return@doPreventingRecursion null
