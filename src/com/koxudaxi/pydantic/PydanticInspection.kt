@@ -510,7 +510,7 @@ class PydanticInspection : PyInspection() {
             if (pyClassType.isDefinition) {
                 // SQLModel fields are frequently used on the class itself (e.g. Hero.id in query expressions),
                 // so don't register an unresolved attribute reference problem for them
-                if (isSubClassOfCustomBaseModel(pyClass, myTypeEvalContext)) return
+                if (isTableSqlModel(pyClass, myTypeEvalContext)) return
                 if(field == null && node.reference?.resolve() is PyTargetExpression) return
             } else {
                 val config = getConfig(pyClass, myTypeEvalContext, true)

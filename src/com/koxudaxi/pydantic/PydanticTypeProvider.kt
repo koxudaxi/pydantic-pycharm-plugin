@@ -30,7 +30,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val qualifierPyClass = qualifierType.pyClass
 
         if (
-            qualifierType.isDefinition && isSubClassOfCustomBaseModel(qualifierPyClass, context)
+            qualifierType.isDefinition && isTableSqlModel(qualifierPyClass, context)
         ) {
 
             val attrName = referenceExpression.name ?: return null
