@@ -3,7 +3,7 @@ package com.koxudaxi.pydantic
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.jetbrains.python.psi.PyTargetExpression
 
-class PydanticSQLModelTest : PydanticTestCase() {
+class PydanticSQLModelTest : PydanticInspectionBase() {
 
     companion object {
         // Additional excludes specific to SQLModel
@@ -60,4 +60,7 @@ class PydanticSQLModelTest : PydanticTestCase() {
             )
         )
     }
-}
+
+    fun testInspection() {
+        doTest()
+    }
