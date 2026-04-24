@@ -37,17 +37,17 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
-//    fun testKeywordArgumentDot() {
-//        doFieldTest(
-//            listOf(Pair("___slots__", "BaseModel"))
-//        )
-//    }
+    fun testKeywordArgumentDot() {
+        doFieldTest(
+            listOf(Pair("___slots__", "BaseModel"))
+        )
+    }
 
-//    fun testKeywordArgumentDotName() {
-//        doFieldTest(
-//            emptyList()
-//        )
-//    }
+    fun testKeywordArgumentDotName() {
+        doFieldTest(
+            emptyList()
+        )
+    }
 
     fun testKeywordArgumentIgnore() {
         doFieldTest(
@@ -224,13 +224,13 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
-//    fun testParameterAnnotationType() {
-//        doFieldTest(
-//            listOf(
-//                Pair("___slots__", "BaseModel")
-//            )
-//        )
-//    }
+    fun testParameterAnnotationType() {
+        doFieldTest(
+            listOf(
+                Pair("___slots__", "BaseModel")
+            )
+        )
+    }
 
     fun testParameterAnnotationTypeKeywordArgument() {
         doFieldTest(
@@ -332,14 +332,14 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
-//    fun testClass() {
-//        doFieldTest(
-//            listOf(
-//                Pair("hij", "B"),
-//                Pair("___slots__", "BaseModel")
-//            )
-//        )
-//    }
+    fun testClass() {
+        doFieldTest(
+            listOf(
+                Pair("hij", "B"),
+                Pair("___slots__", "BaseModel")
+            )
+        )
+    }
 
     fun testConfig() {
         doFieldTest(
@@ -421,13 +421,13 @@ open class PydanticCompletionTest : PydanticTestCase() {
     }
 
 
-//    fun testClassFields() {
-//        doFieldTest(
-//            listOf(
-//                Pair("___slots__", "BaseModel")
-//            )
-//        )
-//    }
+    fun testClassFields() {
+        doFieldTest(
+            listOf(
+                Pair("___slots__", "BaseModel")
+            )
+        )
+    }
 
     fun testField() {
         doFieldTest(
@@ -540,21 +540,21 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
-//    fun testClassMethodCls() {
-//        doFieldTest(
-//            listOf(
-//                Pair("___slots__", "BaseModel")
-//            )
-//        )
-//    }
+    fun testClassMethodCls() {
+        doFieldTest(
+            listOf(
+                Pair("___slots__", "BaseModel")
+            )
+        )
+    }
 
-//    fun testClassValidatorCls() {
-//        doFieldTest(
-//            listOf(
-//                Pair("___slots__", "BaseModel")
-//            )
-//        )
-//    }
+    fun testClassValidatorCls() {
+        doFieldTest(
+            listOf(
+                Pair("___slots__", "BaseModel")
+            )
+        )
+    }
 
     fun testClassInitMethod() {
         doFieldTest(
