@@ -6,6 +6,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.PlatformIcons
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.PyTokenTypes
@@ -229,7 +230,8 @@ class PydanticCompletionContributor : CompletionContributor() {
 
             result.runRemainingContributors(parameters)
             { completionResult ->
-                when (AllIcons.Nodes.Field) {
+                // PlatformIcons is deprecated but PsiElement.getIcon returns a PlatformIcon...
+                when (PlatformIcons.FIELD_ICON) {
                     completionResult.lookupElement.psiElement?.getIcon(0) -> {
                         completionResult.lookupElement.lookupString
                             .takeIf { name -> !fieldElements.contains(name) && (!excludes.contains(name)) }
