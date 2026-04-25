@@ -107,6 +107,11 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
         myFixture!!.configureByFile(fileName)
     }
 
+    // PydanticCompletionProvider.removeAllFieldElement requires actual icons for elements to be loaded
+    override fun isIconRequired(): Boolean {
+        return true
+    }
+
     @Throws(Exception::class)
     override fun setUp() {
         super.setUp()
