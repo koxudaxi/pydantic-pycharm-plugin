@@ -8,7 +8,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.PyCustomType
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
-import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider.isBitwiseOrUnionAvailable
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
@@ -821,7 +820,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         fun parseAnnotation(pyExpression: PyExpression, context: TypeEvalContext): PyExpression? {
             val qualifiedName = getQualifiedName(pyExpression, context)
-                ?: takeIf { isBitwiseOrUnionAvailable(pyExpression) }?.let {
+                ?: takeIf { PyTypingTypeProvider.isBitwiseOrUnionAvailable(pyExpression) }?.let {
                     pyExpression.children.filterIsInstance<PyEllipsisLiteralExpression>().run { return ellipsis }
                 }
             when (qualifiedName) {
