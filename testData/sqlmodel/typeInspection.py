@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlmodel import Field, SQLModel
 
 
@@ -7,7 +9,7 @@ class NonTableModel(SQLModel):
 
 
 class TableModel(SQLModel, table=True):
-    id: int | None = Field(None, primary_key=True)
+    id: Optional[int] = Field(None, primary_key=True)
     name: str
 
 
@@ -15,9 +17,9 @@ non_table_instance = NonTableModel(id=1, name="non_table_instance")
 table_instance = TableModel(id=1, name="table_instance")
 
 
-def f(x: int | None) -> None:
+def f(x: Optional[int]) -> None:
     pass
 
-f(<warning descr="Expected type 'int | None', got 'InstrumentedAttribute[int | None]' instead">TableModel.id</warning>)
+f(<warning descr="Expected type 'Optional[int]', got 'InstrumentedAttribute[Optional[int]]' instead">TableModel.id</warning>)
 f(non_table_instance.id)
 f(table_instance.id)
