@@ -280,10 +280,9 @@ internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalCont
 
 internal fun isTableSqlModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
     // class Hero(SQLModel, table=True): ...
-    return pyClass.isSubclass(SQL_MODEL_Q_NAME, context)
-            && pyClass.superClassExpressions.any {
+    return pyClass.superClassExpressions.any {
         it is PyKeywordArgument && it.keyword == "table" && (it.value as? PyBoolLiteralExpression)?.value == true
-    }
+    } && pyClass.isSubclass(SQL_MODEL_Q_NAME, context)
 }
 
 internal val PyClass.isBaseSettings: Boolean get() = qualifiedName in BASE_SETTINGS_Q_NAMES
