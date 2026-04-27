@@ -8,7 +8,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.PyCustomType
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
-import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider.isBitwiseOrUnionAvailable
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
@@ -22,6 +21,21 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     override fun getReferenceExpressionType(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
         // Skip if project is still indexing to avoid incorrect results
         if (DumbService.isDumb(referenceExpression.project)) return null
+
+        // When SQLModel fields are accessed on the class object, the type is an sqlalchemy InstrumentedAttribute[T]
+        referenceExpression.qualifier?.let {
+            val qualifierType = getPydanticPyClassType(it, context) ?: return@let
+            if (qualifierType.isDefinition && isTableSqlModel(qualifierType.pyClass, context)) {
+                val attrName = referenceExpression.name ?: return@let
+                val inner = getRefTypeFromFieldName(attrName, context, qualifierType.pyClass) ?: return@let
+                return PyCollectionTypeImpl.createTypeByQName(
+                    referenceExpression,
+                    SQL_ALCHEMY_INSTRUMENTED_ATTRIBUTE_Q_NAME,
+                    false,
+                    listOf(inner)
+                )?.toInstance()
+            }
+        }
 
         return RecursionManager.doPreventingRecursion(referenceExpression, true) {
             val callExpression = PsiTreeUtil.getParentOfType(referenceExpression, PyCallExpression::class.java)
@@ -807,7 +821,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         fun parseAnnotation(pyExpression: PyExpression, context: TypeEvalContext): PyExpression? {
             val qualifiedName = getQualifiedName(pyExpression, context)
-                ?: takeIf { isBitwiseOrUnionAvailable(pyExpression) }?.let {
+                ?: takeIf { PyTypingTypeProvider.isBitwiseOrUnionAvailable(pyExpression) }?.let {
                     pyExpression.children.filterIsInstance<PyEllipsisLiteralExpression>().run { return ellipsis }
                 }
             when (qualifiedName) {

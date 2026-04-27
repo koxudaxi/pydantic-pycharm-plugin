@@ -73,6 +73,7 @@ const val TYPE_Q_NAME = "typing.Type"
 const val TUPLE_Q_NAME = "typing.Tuple"
 
 const val SQL_MODEL_Q_NAME = "sqlmodel.main.SQLModel"
+const val SQL_ALCHEMY_INSTRUMENTED_ATTRIBUTE_Q_NAME = "sqlalchemy.orm.attributes.InstrumentedAttribute"
 
 val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
     SQL_MODEL_Q_NAME
@@ -276,6 +277,13 @@ internal fun isSubClassOfBaseSetting(pyClass: PyClass, context: TypeEvalContext)
 
 internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
     return CUSTOM_BASE_MODEL_Q_NAMES.any { pyClass.isSubclass(it, context) }
+}
+
+internal fun isTableSqlModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
+    // class Hero(SQLModel, table=True): ...
+    return pyClass.superClassExpressions.any {
+        it is PyKeywordArgument && it.keyword == "table" && (it.value as? PyBoolLiteralExpression)?.value == true
+    } && pyClass.isSubclass(SQL_MODEL_Q_NAME, context)
 }
 
 internal val PyClass.isBaseSettings: Boolean get() = qualifiedName in BASE_SETTINGS_Q_NAMES

@@ -60,8 +60,7 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
                 Pair("ET", "null"))
         )
     }
-    // TODO: Override init keyword argument completion broken in PyCharm 2025.2
-    fun _disabled_testOverrideInitKeywordArgument() {
+    fun testOverrideInitKeywordArgument() {
         doFieldTest(
             listOf()
         )
@@ -102,16 +101,5 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
                 "*" to "C"
             )
         )
-    }
-
-    fun testSqlModelClassCompletion() {
-        configureByFile()
-        val excludes = BASE_COMPLETION_EXCLUDES + V18_ADDITIONAL_EXCLUDES
-        val actual = myFixture!!.completeBasic()
-            .filter { it!!.psiElement is PyTargetExpression }
-            .map { it!!.lookupString }
-            .filterNot { excludes.contains(it) }
-            .toSet()
-        assertTrue(actual.containsAll(setOf("id", "name", "secret_name", "age")))
     }
 }

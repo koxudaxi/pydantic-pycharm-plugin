@@ -2,4 +2,4 @@ class BaseModel:
     class Config:
         pass
 
-    ___slots__ = ()
+    __slots__ = ()
