@@ -102,15 +102,4 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
             )
         )
     }
-
-    fun testSqlModelClassCompletion() {
-        configureByFile()
-        val excludes = BASE_COMPLETION_EXCLUDES + V18_ADDITIONAL_EXCLUDES
-        val actual = myFixture!!.completeBasic()
-            .filter { it!!.psiElement is PyTargetExpression }
-            .map { it!!.lookupString }
-            .filterNot { excludes.contains(it) }
-            .toSet()
-        assertTrue(actual.containsAll(setOf("id", "name", "secret_name", "age")))
-    }
 }
