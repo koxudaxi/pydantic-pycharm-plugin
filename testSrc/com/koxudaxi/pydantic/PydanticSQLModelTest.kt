@@ -20,13 +20,10 @@ class PydanticSQLModelTest : PydanticInspectionBase() {
         configureByFile(additionalModules)
         val completions = myFixture!!.completeBasic() ?: emptyArray()
         val excludes = BASE_COMPLETION_EXCLUDES + SQLMODEL_ADDITIONAL_EXCLUDES
-        val actual = completions.filter {
-            it!!.psiElement is PyTargetExpression
-        }.filterNot {
-            excludes.contains(it!!.lookupString)
-        }.mapNotNull {
-            Pair(it!!.lookupString, LookupElementPresentation.renderElement(it).typeText ?: "null")
-        }
+        val actual = completions
+            .filter { it!!.psiElement is PyTargetExpression }
+            .filterNot { excludes.contains(it!!.lookupString) }
+            .map { Pair(it!!.lookupString, LookupElementPresentation.renderElement(it).typeText ?: "null") }
         assertEquals(fieldNames, actual)
     }
 
