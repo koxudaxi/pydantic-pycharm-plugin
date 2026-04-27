@@ -73,6 +73,7 @@ const val TYPE_Q_NAME = "typing.Type"
 const val TUPLE_Q_NAME = "typing.Tuple"
 
 const val SQL_MODEL_Q_NAME = "sqlmodel.main.SQLModel"
+const val SQL_ALCHEMY_INSTRUMENTED_ATTRIBUTE_Q_NAME = "sqlalchemy.orm.attributes.InstrumentedAttribute"
 
 val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
     SQL_MODEL_Q_NAME

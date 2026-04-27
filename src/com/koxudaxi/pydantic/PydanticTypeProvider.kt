@@ -30,7 +30,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                 val inner = getRefTypeFromFieldName(attrName, context, qualifierType.pyClass) ?: return@let
                 return PyCollectionTypeImpl.createTypeByQName(
                     referenceExpression,
-                    "sqlalchemy.orm.attributes.InstrumentedAttribute",
+                    SQL_ALCHEMY_INSTRUMENTED_ATTRIBUTE_Q_NAME,
                     false,
                     listOf(inner)
                 )?.toInstance()
