@@ -66,4 +66,3 @@ class PydanticSQLModelTest : PydanticInspectionBase() {
         doTypeInspectionTest()
     }
 }
-

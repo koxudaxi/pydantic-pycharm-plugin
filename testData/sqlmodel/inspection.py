@@ -19,5 +19,6 @@ table_instance = TableModel(id=1, name="table_instance")
 
 _ = NonTableModel.<warning descr="Unresolved attribute reference 'id' for class 'NonTableModel'">id</warning>
 _ = TableModel.id
+_ = TableModel.<warning descr="Unresolved attribute reference 'missing' for class 'TableModel'">missing</warning>
 _ = non_table_instance.id
 _ = table_instance.id
