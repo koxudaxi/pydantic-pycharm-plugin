@@ -132,4 +132,21 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
             )
         )
     }
+
+    fun testGenericBoundField() {
+        doFieldTest(
+            listOf(
+                Pair("a", "int A"),
+                Pair("b", "str B"),
+            )
+        )
+    }
+
+    fun testGenericUnsubscribedField() {
+        doFieldTest(
+            listOf(
+                Pair("a", "AT A"),
+            )
+        )
+    }
 }
