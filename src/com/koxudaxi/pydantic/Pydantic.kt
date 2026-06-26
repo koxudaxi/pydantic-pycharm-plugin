@@ -13,6 +13,7 @@ import com.jetbrains.python.extensions.ModuleBasedContextAnchor
 import com.jetbrains.python.extensions.QNameResolveContext
 import com.jetbrains.python.extensions.resolveToElement
 import com.jetbrains.python.PyNames
+import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.packaging.management.PythonPackageManager.Companion.forSdk
 import com.jetbrains.python.psi.*
@@ -896,8 +897,16 @@ fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction
  fun PyCallExpression.isDefinitionCallExpression(context: TypeEvalContext): Boolean =
      this.callee?.reference?.resolve()?.let { it as? PyClass }?.getType(context)?.isDefinition == true
 
-fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType? =
-    this.callee?.getType(context) as? PyCallableType
+fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType? {
+    val callableType = this.callee?.getType(context) as? PyCallableType
+    val pyClass = getPydanticPyClass(this, context, true) ?: return callableType
+    return when {
+        pyClass.isPydanticDataclass -> PyDataclassTypeProvider().getReferenceType(pyClass, context, this)
+            ?.get() as? PyCallableType ?: callableType
+
+        else -> PydanticTypeProvider().getPydanticTypeForClass(pyClass, context, true, this) ?: callableType
+    }
+}
 fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEvalContext): PyClass? =
     this.getReturnType(context)?.pyClassTypes?.firstOrNull()?.pyClass?.takeIf { isPydanticModel(it,includeDataclass, context) }
 

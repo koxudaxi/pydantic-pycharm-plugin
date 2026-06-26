@@ -11,4 +11,4 @@ class Model(BaseModel):
 a = Model(field_name="hello")
 b = Model(ALIAS_NAME="world")
 
-e = Model()
+e = Model(<warning descr="null">)</warning>

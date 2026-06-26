@@ -5,7 +5,7 @@ class A(BaseModel):
     a: str
 
 
-A(<warning descr="class 'A' accepts only keyword arguments">'a'</warning>)
+A(<warning descr="class 'A' accepts only keyword arguments">'a'</warning><warning descr="null">)</warning>
 
 @dataclass
 class B():
@@ -29,7 +29,7 @@ class D():
     b: str
 
 
-D('a')
+D('a'<warning descr="null">)</warning>
 
 
 class E(BaseModel):

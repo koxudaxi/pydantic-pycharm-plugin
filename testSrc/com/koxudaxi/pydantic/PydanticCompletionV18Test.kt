@@ -114,4 +114,22 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
             .toSet()
         assertTrue(actual.containsAll(setOf("id", "name", "secret_name", "age")))
     }
+
+    fun testGenericInheritedConcreteField() {
+        doFieldTest(
+            listOf(
+                Pair("a", "int A"),
+                Pair("b", "str B"),
+            )
+        )
+    }
+
+    fun testGenericSubscribedField() {
+        doFieldTest(
+            listOf(
+                Pair("a", "str A"),
+                Pair("b", "int B"),
+            )
+        )
+    }
 }
