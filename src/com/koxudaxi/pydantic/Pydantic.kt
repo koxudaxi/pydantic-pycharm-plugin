@@ -75,6 +75,9 @@ const val TUPLE_Q_NAME = "typing.Tuple"
 
 const val SQL_MODEL_Q_NAME = "sqlmodel.main.SQLModel"
 
+private val pyDataclassTypeProvider = PyDataclassTypeProvider()
+private val pydanticTypeProvider = PydanticTypeProvider()
+
 val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
     SQL_MODEL_Q_NAME
 )
@@ -901,10 +904,10 @@ fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType
     val callableType = this.callee?.getType(context) as? PyCallableType
     val pyClass = getPydanticPyClass(this, context, true) ?: return callableType
     return when {
-        pyClass.isPydanticDataclass -> PyDataclassTypeProvider().getReferenceType(pyClass, context, this)
+        pyClass.isPydanticDataclass -> pyDataclassTypeProvider.getReferenceType(pyClass, context, this)
             ?.get() as? PyCallableType ?: callableType
 
-        else -> PydanticTypeProvider().getPydanticTypeForClass(pyClass, context, true, this) ?: callableType
+        else -> pydanticTypeProvider.getPydanticTypeForClass(pyClass, context, true, this) ?: callableType
     }
 }
 fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEvalContext): PyClass? =
