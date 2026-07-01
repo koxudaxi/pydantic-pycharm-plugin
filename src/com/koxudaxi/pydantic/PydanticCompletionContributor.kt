@@ -328,7 +328,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             if (pyClassType.isDefinition) { // class
                 // SQLModel fields are frequently used on the class itself (e.g. Hero.id in query expressions),
                 // so don't strip them from class-level completion.
-                if (isSubClassOfCustomBaseModel(pyClass, typeEvalContext)) return
+                if (isTableSqlModel(pyClass, typeEvalContext)) return
                 removeAllFieldElement(parameters, result, pyClass, typeEvalContext, excludeFields, config)
                 return
             }

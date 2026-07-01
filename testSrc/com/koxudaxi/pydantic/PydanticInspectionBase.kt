@@ -9,14 +9,22 @@ abstract class PydanticInspectionBase(version: String = "v1") : PydanticTestCase
     @Suppress("UNCHECKED_CAST")
     protected open val inspectionClass: KClass<PyInspection> = PydanticInspection::class as KClass<PyInspection>
 
-    private fun configureInspection() {
-        myFixture!!.enableInspections(inspectionClass.java)
+    @Suppress("UNCHECKED_CAST")
+    protected open val typeInspectionClass: KClass<PyInspection> =
+        PydanticTypeCheckerInspection::class as KClass<PyInspection>
+
+    private fun configureInspection(inspection: KClass<PyInspection> = inspectionClass) {
+        myFixture!!.enableInspections(inspection.java)
         myFixture!!.checkHighlighting(true, false, true)
 
     }
 
-    protected fun doTest() {
+    protected fun doTest(inspection: KClass<PyInspection> = inspectionClass) {
         configureByFile()
-        configureInspection()
+        configureInspection(inspection)
+    }
+
+    protected fun doTypeInspectionTest() {
+        doTest(typeInspectionClass)
     }
 }

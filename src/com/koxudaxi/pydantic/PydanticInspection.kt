@@ -507,14 +507,21 @@ class PydanticInspection : PyInspection() {
             // Check private field or model fields
             if (name.startsWith("_") || pydanticVersion.isV2 && name in PYDANTIC_V2_MODEL_RESERVED_ATTRIBUTES) return
 
-            if (pyClassType.isDefinition) {
-                if(field == null && node.reference?.resolve() is PyTargetExpression) return
-            } else {
+            fun hasPydanticAttribute(): Boolean {
                 val config = getConfig(pyClass, myTypeEvalContext, true)
                 getAncestorPydanticModels(pyClass, true, myTypeEvalContext).forEach {
-                    if (hasAttribute(it, config, pydanticVersion.isV2, name)) return
+                    if (hasAttribute(it, config, pydanticVersion.isV2, name)) return true
                 }
-                if (hasAttribute(pyClass, config, pydanticVersion.isV2, name)) return
+                return hasAttribute(pyClass, config, pydanticVersion.isV2, name)
+            }
+
+            if (pyClassType.isDefinition) {
+                // SQLModel fields are frequently used on the class itself (e.g. Hero.id in query expressions),
+                // so don't register an unresolved attribute reference problem for them
+                if (isTableSqlModel(pyClass, myTypeEvalContext) && hasPydanticAttribute()) return
+                if (field == null && node.reference?.resolve() is PyTargetExpression) return
+            } else {
+                if (hasPydanticAttribute()) return
             }
             registerProblem(node.node.lastChildNode.psi, "Unresolved attribute reference '${name}' for class '${pyClass.name}' ")
         }

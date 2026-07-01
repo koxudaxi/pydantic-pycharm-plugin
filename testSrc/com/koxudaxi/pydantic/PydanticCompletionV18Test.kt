@@ -60,8 +60,7 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
                 Pair("ET", "null"))
         )
     }
-    // TODO: Override init keyword argument completion broken in PyCharm 2025.2
-    fun _disabled_testOverrideInitKeywordArgument() {
+    fun testOverrideInitKeywordArgument() {
         doFieldTest(
             listOf()
         )
