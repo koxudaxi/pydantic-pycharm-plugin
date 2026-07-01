@@ -102,4 +102,50 @@ open class PydanticCompletionV18Test : PydanticTestCase(version = "v18") {
             )
         )
     }
+
+    fun testSqlModelClassCompletion() {
+        configureByFile()
+        val excludes = BASE_COMPLETION_EXCLUDES + V18_ADDITIONAL_EXCLUDES
+        val actual = myFixture!!.completeBasic()
+            .filter { it!!.psiElement is PyTargetExpression }
+            .map { it!!.lookupString }
+            .filterNot { excludes.contains(it) }
+            .toSet()
+        assertTrue(actual.containsAll(setOf("id", "name", "secret_name", "age")))
+    }
+
+    fun testGenericInheritedConcreteField() {
+        doFieldTest(
+            listOf(
+                Pair("a", "int A"),
+                Pair("b", "str B"),
+            )
+        )
+    }
+
+    fun testGenericSubscribedField() {
+        doFieldTest(
+            listOf(
+                Pair("a", "str A"),
+                Pair("b", "int B"),
+            )
+        )
+    }
+
+    fun testGenericBoundField() {
+        doFieldTest(
+            listOf(
+                Pair("a", "int A"),
+                Pair("b", "str B"),
+            )
+        )
+    }
+
+    fun testGenericUnsubscribedField() {
+        doFieldTest(
+            listOf(
+                Pair("a", "AT A"),
+            )
+        )
+    }
 }

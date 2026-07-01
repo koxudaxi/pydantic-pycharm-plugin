@@ -28,4 +28,9 @@ open class PydanticTypeInspectionV18Test : PydanticInspectionBase("v18") {
     fun _disabled_testGenericModel() {
         doTest()
     }
+
+    // TODO: SQLModel type checking broken in PyCharm 2025.2
+    fun _disabled_testSqlModel() {
+        doTest()
+    }
 }

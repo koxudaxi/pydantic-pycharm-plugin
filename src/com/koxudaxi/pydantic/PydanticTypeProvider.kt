@@ -287,7 +287,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val constraints = argumentList.getKeywordArgument("constraints")?.valueExpression?.getType(context)
 //        val default = argumentList.getKeywordArgument("default")?.valueExpression
 //        // TODO: Support TypeVarTuple, ParamSpec, constraints
-        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null, PyTypeVarType.Variance.INVARIANT)
+        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null, PyTypeParameterType.Variance.INVARIANT)
     }
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyTypeVarType> {
@@ -547,12 +547,15 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         context: TypeEvalContext,
         pyCallExpression: PyCallExpression? = null,
         pySubscriptionExpression: PySubscriptionExpression? = null,
-    ): Map<PyTypeVarType, PyType>? {
+    ): Map<PyTypeParameterType, PyType?>? {
         if (!PyTypingTypeProvider.isGeneric(pyClass, context)) return null
         if (!(isSubClassOfPydanticGenericModel(pyClass, context) && !pyClass.isPydanticGenericModel)) return null
 
         // class Response(GenericModel, Generic[TypeA, TypeB]): pass
-        val pyClassGenericTypeMap = pyTypingTypeProvider.getGenericSubstitutions(pyClass, context)
+        val pyClassGenericTypeMap: Map<PyTypeParameterType, PyType?> =
+            pyTypingTypeProvider.getGenericSubstitutions(pyClass, context)
+                .mapNotNull { (key, value) -> (key as? PyTypeParameterType)?.let { it to value } }
+                .toMap()
 
         // Response[TypeA]
         val pySubscriptionExpression = pySubscriptionExpression
@@ -564,7 +567,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     ?.findAssignedValue() as? PySubscriptionExpression
 
                 else -> null
-            } ?: return pyClassGenericTypeMap.takeIf { it.isNotEmpty() } as Map<PyTypeVarType, PyType>?)
+            } ?: return pyClassGenericTypeMap.takeIf { it.isNotEmpty() })
 
         // Response[TypeA, TypeB]()
         val injectedTypes = ((pySubscriptionExpression.indexExpression as? PyTupleExpression) as? PySequenceExpression)
@@ -585,7 +588,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     }
                     .toMap()
             )
-        }.takeIf { it.isNotEmpty() } as Map<PyTypeVarType, PyType>?
+        }.takeIf { it.isNotEmpty() }
     }
 
     fun getPydanticTypeForClass(
@@ -676,7 +679,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
         config: HashMap<String, Any?>,
-        genericTypeMap: Map<PyTypeVarType, PyType>?,
+        genericTypeMap: Map<PyTypeParameterType, PyType?>?,
         typed: Boolean = true,
         isDataclass: Boolean = false,
         providedArgNames: Set<String> = emptySet(),
@@ -699,7 +702,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
         config: HashMap<String, Any?>,
-        genericTypeMap: Map<PyTypeVarType, PyType>?,
+        genericTypeMap: Map<PyTypeParameterType, PyType?>?,
         typed: Boolean = true,
         isDataclass: Boolean = false,
         providedArgNames: Set<String> = emptySet(),

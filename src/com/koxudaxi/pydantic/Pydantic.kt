@@ -13,6 +13,7 @@ import com.jetbrains.python.extensions.ModuleBasedContextAnchor
 import com.jetbrains.python.extensions.QNameResolveContext
 import com.jetbrains.python.extensions.resolveToElement
 import com.jetbrains.python.PyNames
+import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.packaging.management.PythonPackageManager.Companion.forSdk
 import com.jetbrains.python.psi.*
@@ -74,6 +75,9 @@ const val TUPLE_Q_NAME = "typing.Tuple"
 
 const val SQL_MODEL_Q_NAME = "sqlmodel.main.SQLModel"
 const val SQL_ALCHEMY_INSTRUMENTED_ATTRIBUTE_Q_NAME = "sqlalchemy.orm.attributes.InstrumentedAttribute"
+
+private val pyDataclassTypeProvider = PyDataclassTypeProvider()
+private val pydanticTypeProvider = PydanticTypeProvider()
 
 val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
     SQL_MODEL_Q_NAME
@@ -904,8 +908,16 @@ fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction
  fun PyCallExpression.isDefinitionCallExpression(context: TypeEvalContext): Boolean =
      this.callee?.reference?.resolve()?.let { it as? PyClass }?.getType(context)?.isDefinition == true
 
-fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType? =
-    this.callee?.getType(context) as? PyCallableType
+fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType? {
+    val callableType = this.callee?.getType(context) as? PyCallableType
+    val pyClass = getPydanticPyClass(this, context, true) ?: return callableType
+    return when {
+        pyClass.isPydanticDataclass -> pyDataclassTypeProvider.getReferenceType(pyClass, context, this)
+            ?.get() as? PyCallableType ?: callableType
+
+        else -> pydanticTypeProvider.getPydanticTypeForClass(pyClass, context, true, this) ?: callableType
+    }
+}
 fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEvalContext): PyClass? =
     this.getReturnType(context)?.pyClassTypes?.firstOrNull()?.pyClass?.takeIf { isPydanticModel(it,includeDataclass, context) }
 
