@@ -1,21 +1,23 @@
 package com.koxudaxi.pydantic
 
 
+import com.intellij.lang.annotation.AnnotationHolder
+import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
 import com.intellij.util.containers.nullize
 import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyStarArgument
 
 import com.jetbrains.python.psi.impl.PyPsiUtils
 import com.jetbrains.python.psi.types.TypeEvalContext
-import com.jetbrains.python.validation.PyAnnotator
 
 
-class PydanticAnnotator : PyAnnotator() {
-    override fun visitPyCallExpression(node: PyCallExpression) {
-        super.visitPyCallExpression(node)
-        annotatePydanticModelCallableExpression(node)
+class PydanticAnnotator : Annotator {
+    override fun annotate(element: PsiElement, holder: AnnotationHolder) {
+        val pyCallExpression = element as? PyCallExpression ?: return
+        annotatePydanticModelCallableExpression(pyCallExpression, holder)
     }
 
     private fun hasNoqaComment(
@@ -25,7 +27,7 @@ class PydanticAnnotator : PyAnnotator() {
         return comment.text.startsWith("# noqa")
     }
 
-    private fun annotatePydanticModelCallableExpression(pyCallExpression: PyCallExpression) {
+    private fun annotatePydanticModelCallableExpression(pyCallExpression: PyCallExpression, holder: AnnotationHolder) {
         val context = TypeEvalContext.codeAnalysis(pyCallExpression.project, pyCallExpression.containingFile)
         val pyClassType = pyCallExpression.getPyCallableType(context) ?: return
         val pyClass = pyClassType.getPydanticModel(true, context) ?: return

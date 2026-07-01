@@ -14,7 +14,7 @@ import com.jetbrains.python.documentation.PythonDocumentationProvider.getTypeHin
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.PyType
-import com.jetbrains.python.psi.types.PyTypeVarType
+import com.jetbrains.python.psi.types.PyTypeParameterType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import javax.swing.Icon
 
@@ -85,7 +85,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             pydanticVersion: KotlinVersion?,
             config: HashMap<String, Any?>,
             isDataclass: Boolean,
-            genericTypeMap: Map<PyTypeVarType, PyType>?,
+            genericTypeMap: Map<PyTypeParameterType, PyType?>?,
         ): String? {
 
             val parameter = typeProvider.dynamicModelFieldToParameter(pyTargetExpression,
@@ -119,7 +119,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             config: HashMap<String, Any?>,
             excludes: HashSet<String>?,
             isDataclass: Boolean,
-            genericTypeMap: Map<PyTypeVarType, PyType>?,
+            genericTypeMap: Map<PyTypeParameterType, PyType?>?,
             withEqual: Boolean
         ) {
             val pydanticVersion = PydanticCacheService.getVersion(pyClass.project)
@@ -154,7 +154,7 @@ class PydanticCompletionContributor : CompletionContributor() {
             pyClass: PyClass, typeEvalContext: TypeEvalContext,
             ellipsis: PyEllipsisLiteralExpression,
             config: HashMap<String, Any?>,
-            genericTypeMap: Map<PyTypeVarType, PyType>?,
+            genericTypeMap: Map<PyTypeParameterType, PyType?>?,
             excludes: HashSet<String>? = null,
             isDataclass: Boolean,
             trimEqual: Boolean
