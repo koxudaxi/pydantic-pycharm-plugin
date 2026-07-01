@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Better support for accessing class attributes on table SQLModel models [[#1173](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1173)]
+- Support PyCharm 2026.1.3 [[#1174](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1174)]
+
 ## [0.4.24] - 2026-02-26
 
 - Support PyCharm 2026.1 EAP [[#1162](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1162)]
