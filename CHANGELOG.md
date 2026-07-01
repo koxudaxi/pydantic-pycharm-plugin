@@ -2,8 +2,6 @@
 
 ## [Unreleased]
 
-## [0.4.25] - 2026-07-01
-
 - Better support for accessing class attributes on table SQLModel models [[#1173](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1173)]
 - Support PyCharm 2026.1.3 [[#1174](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1174)]
 
@@ -606,8 +604,7 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.25...HEAD
-[0.4.25]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.24...v0.4.25
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.24...HEAD
 [0.4.24]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.23...v0.4.24
 [0.4.23]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.22...v0.4.23
 [0.4.22]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.21...v0.4.22
