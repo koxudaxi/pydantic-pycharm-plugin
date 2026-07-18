@@ -349,9 +349,10 @@ internal val PyKeywordArgument.value: PyExpression?
             else -> value
         }
 
-internal fun PyFunction.hasModelValidatorModeAfter(): Boolean = decoratorList?.decorators
+internal fun PyFunction.hasModelValidatorModeAfter(): Boolean = (this as? PyDecoratable)?.decoratorList?.decorators
+    ?.filter { it.include(MODEL_VALIDATOR_QUALIFIED_NAMES) }
     ?.any { modelValidator ->
-        modelValidator.hasModeAfter && modelValidator.include(MODEL_VALIDATOR_QUALIFIED_NAMES)
+        modelValidator.hasModeAfter
     } ?: false
 internal val PyClass.isConfigClass: Boolean get() = name == "Config"
 
