@@ -327,9 +327,7 @@ private val PyDecorator.resolvedQualifiedNames
     }
 
 internal fun PyDecorator.include(refNames: List<QualifiedName>): Boolean =
-    resolvedQualifiedNames.any { decoratorQualifiedName ->
-        refNames.any { refName -> decoratorQualifiedName == refName }
-    }
+    resolvedQualifiedNames.any { it in refNames }
 
 private val PyDecorator.hasModeAfter: Boolean
     get() = argumentList?.getKeywordArgument("mode")
