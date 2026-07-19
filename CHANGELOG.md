@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Fix crash while typing Python functions [[#1180](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1180)]
+
 ## [0.4.25] - 2026-07-01
 
 - Better support for accessing class attributes on table SQLModel models [[#1173](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1173)]
