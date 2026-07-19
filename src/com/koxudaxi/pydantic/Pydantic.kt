@@ -320,11 +320,28 @@ internal fun isDataclassMissing(pyTargetExpression: PyTargetExpression): Boolean
 internal fun PyFunction.hasValidatorMethod(pydanticVersion: KotlinVersion?): Boolean =
     hasDecorator(this, if(pydanticVersion.isV2) V2_VALIDATOR_QUALIFIED_NAMES else VALIDATOR_QUALIFIED_NAMES)
 
-internal fun PyDecorator.include(refNames: List<QualifiedName>): Boolean = (callee as? PyReferenceExpression)?.let {
-        PyResolveUtil.resolveImportedElementQNameLocally(it).any { decoratorQualifiedName ->
-            refNames.any { refName -> decoratorQualifiedName == refName }
+private val PyDecorator.resolvedQualifiedNames
+    get(): List<QualifiedName> {
+        val reference = callee as? PyReferenceExpression ?: return emptyList()
+        return PyResolveUtil.resolveImportedElementQNameLocally(reference)
+    }
+
+internal fun PyDecorator.include(refNames: List<QualifiedName>): Boolean =
+    resolvedQualifiedNames.any { it in refNames }
+
+private val PyDecorator.hasModeAfter: Boolean
+    get() = argumentList?.getKeywordArgument("mode")
+        ?.let { it.value as? PyStringLiteralExpression }?.stringValue == "after"
+
+internal fun PyFunction.hasValidatorMethodForTypedHandler(): Boolean {
+    val decorators = decoratorList ?: return false
+    return decorators.decorators.any { decorator ->
+        decorator.resolvedQualifiedNames.any { qualifiedName ->
+            qualifiedName in V2_VALIDATOR_QUALIFIED_NAMES &&
+                (qualifiedName !in MODEL_VALIDATOR_QUALIFIED_NAMES || !decorator.hasModeAfter)
         }
-} ?: false
+    }
+}
 
 internal val PyKeywordArgument.value: PyExpression?
     get() = when (val value = valueExpression) {
@@ -335,8 +352,7 @@ internal val PyKeywordArgument.value: PyExpression?
 internal fun PyFunction.hasModelValidatorModeAfter(): Boolean = (this as? PyDecoratable)?.decoratorList?.decorators
     ?.filter { it.include(MODEL_VALIDATOR_QUALIFIED_NAMES) }
     ?.any { modelValidator ->
-        modelValidator.argumentList?.getKeywordArgument("mode")
-            ?.let { it.value as? PyStringLiteralExpression }?.stringValue == "after"
+        modelValidator.hasModeAfter
     } ?: false
 internal val PyClass.isConfigClass: Boolean get() = name == "Config"
 
