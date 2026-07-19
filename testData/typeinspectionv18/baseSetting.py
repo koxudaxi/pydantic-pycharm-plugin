@@ -15,4 +15,4 @@ AppSettings(
 
 AppSettings()
 
-AppSettings(<warning descr="Expected type 'str', got 'int' instead">a=1</warning>, <warning descr="Expected type 'str', got 'int' instead">b=2</warning>)
+AppSettings(<warning descr="Expected type 'str', got 'Literal[1]' instead">a=1</warning>, <warning descr="Expected type 'str', got 'Literal[2]' instead">b=2</warning>)
