@@ -24,12 +24,12 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name }}
 
-      # Setup Java 17 environment for the next steps
+      # Setup Java 25 environment for the next steps
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
-          distribution: zulu
-          java-version: 17
+          distribution: jetbrains
+          java-version: 25
 
       # Set environment variables
       - name: Export Properties
