@@ -2,6 +2,7 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 import org.gradle.language.jvm.tasks.ProcessResources
 
 fun properties(key: String) = providers.gradleProperty(key)
@@ -71,6 +72,7 @@ intellijPlatform {
         }
     }
     pluginVerification {
+        failureLevel = listOf(VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS)
         ides {
             recommended()
         }
