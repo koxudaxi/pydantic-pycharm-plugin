@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.26] - 2026-07-20
+
 - Support PyCharm 2026.2 [[#1181](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1181)]
 - Fix crash while typing Python functions [[#1180](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1180)]
 
@@ -609,7 +611,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.25...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.26...HEAD
+[0.4.26]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.25...v0.4.26
 [0.4.25]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.24...v0.4.25
 [0.4.24]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.23...v0.4.24
 [0.4.23]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.22...v0.4.23
