@@ -34,7 +34,7 @@ TableModel.extra = 1
 
 omitting_unrequired_parameter = TableModel(name="omitting_unrequired_parameter")
 missing_required_parameter = TableModel(id=1<warning descr="null">)</warning>
-incorrect_types_for_parameters = TableModel(<warning descr="Expected type 'Optional[int]', got 'str' instead">id="id"</warning>, <warning descr="Expected type 'str', got 'int' instead">name=1</warning>)
+incorrect_types_for_parameters = TableModel(<warning descr="Expected type 'Optional[int]', got 'Literal[\"id\"]' instead">id="id"</warning>, <warning descr="Expected type 'str', got 'Literal[1]' instead">name=1</warning>)
 
 def f(x: Optional[int]) -> None:
     pass

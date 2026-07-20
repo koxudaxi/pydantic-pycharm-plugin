@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Support PyCharm 2026.2 [[#1181](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1181)]
 - Fix crash while typing Python functions [[#1180](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1180)]
 
 ## [0.4.25] - 2026-07-01

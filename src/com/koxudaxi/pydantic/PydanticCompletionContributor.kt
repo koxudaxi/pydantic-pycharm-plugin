@@ -321,11 +321,15 @@ class PydanticCompletionContributor : CompletionContributor() {
             val pyTypedElement = parameters.position.parent?.firstChild as? PyTypedElement ?: return
 
 
-            val pyClassType = getPydanticPyClassType(pyTypedElement, typeEvalContext, true) ?: return
-
-            val pyClass = pyClassType.pyClass
+            val pyClassType = getPydanticPyClassType(pyTypedElement, typeEvalContext, true)
+            val pyClass = when (pyClassType) {
+                null -> (pyTypedElement as? PyCallExpression)?.let {
+                    getPydanticPyClass(it, typeEvalContext, true)
+                } ?: return
+                else -> pyClassType.pyClass
+            }
             val config = getConfig(pyClass, typeEvalContext, true)
-            if (pyClassType.isDefinition) { // class
+            if (pyClassType?.isDefinition == true) { // class
                 // SQLModel fields are frequently used on the class itself (e.g. Hero.id in query expressions),
                 // so don't strip them from class-level completion.
                 if (isTableSqlModel(pyClass, typeEvalContext)) return

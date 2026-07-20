@@ -6,10 +6,15 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
+import com.jetbrains.python.psi.PyAssignmentStatement
 import com.jetbrains.python.psi.PyBinaryExpression
+import com.jetbrains.python.psi.PyEllipsisLiteralExpression
 import com.jetbrains.python.psi.PyFile
+import com.jetbrains.python.psi.PyNoneLiteralExpression
 import com.jetbrains.python.psi.PySubscriptionExpression
+import com.jetbrains.python.psi.PyTargetExpression
 import com.jetbrains.python.psi.PyTypedElement
+import com.jetbrains.python.psi.PyUtil
 import com.jetbrains.python.psi.types.PyClassType
 import com.jetbrains.python.psi.types.TypeEvalContext
 
@@ -19,11 +24,28 @@ class PydanticTypeIgnoreInspectionSuppressor : InspectionSuppressor {
         if (element is PsiFile) return false
         if (element.containingFile !is PyFile) return false
         if (toolId !in inspectionsToSuppress) return false
+        if (ignorePydanticFieldSentinel(element)) return true
         if (ignorePydanticGenericModelClassGetitem(element)) return true
         return ignorePydanticGenericModel(element)
     }
 
     private val PsiElement.typeEvalContext get() = TypeEvalContext.codeAnalysis(project, containingFile)
+
+    private fun ignorePydanticFieldSentinel(element: PsiElement): Boolean {
+        if (element !is PyNoneLiteralExpression && element !is PyEllipsisLiteralExpression) return false
+        val assignment = element.parent as? PyAssignmentStatement ?: return false
+        val field = when (val target = assignment.leftHandSideExpression) {
+            is PyTargetExpression -> target
+            else -> return false
+        }
+        val pyClass = field.containingClass ?: return false
+        if (!PyUtil.isClassAttribute(field)) return false
+        val context = element.typeEvalContext
+        if (!isPydanticModel(pyClass, true, context)) return false
+        val isV2 = field.name in PYDANTIC_V2_MODEL_RESERVED_ATTRIBUTES &&
+            PydanticCacheService.getInstance(field.project).isV2
+        return isValidField(field, context, isV2, false)
+    }
 
     private fun PySubscriptionExpression.isPydanticGenericModelSubclass(context: TypeEvalContext): Boolean {
         val operandType = context.getType(operand) as? PyClassType

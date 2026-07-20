@@ -720,9 +720,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val typeForParameter = when {
             !typed -> null
             // get type from default value
-            !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> context.getType(
-                defaultValueFromField
-            )
+            !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> when (
+                val inferredType = context.getType(defaultValueFromField)
+            ) {
+                is PyLiteralType -> PyClassTypeImpl(inferredType.pyClass, false)
+                else -> inferredType
+            }
             // get type from annotation
             else -> getTypeForParameter(field, context)
         }?.let {

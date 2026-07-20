@@ -320,6 +320,14 @@ open class PydanticCompletionTest : PydanticTestCase() {
         )
     }
 
+    fun testSubscriptionNonReference() {
+        doFieldTest(emptyList())
+    }
+
+    fun testCalleeNull() {
+        doFieldTest(emptyList())
+    }
+
     fun testClass() {
         doFieldTest(
             listOf(
