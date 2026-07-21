@@ -42,7 +42,8 @@ class PydanticInspection : PyInspection() {
         private fun registerInspectionProblem(
             element: PsiElement?,
             message: @InspectionMessage String,
-            highlightType: ProblemHighlightType,
+            highlightType: ProblemHighlightType = ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+            fix: LocalQuickFix? = null,
         ) {
             val problemElement = when {
                 element == null -> return
@@ -54,7 +55,7 @@ class PydanticInspection : PyInspection() {
                 problemsHolder.manager.createProblemDescriptor(
                     problemElement,
                     message,
-                    null as LocalQuickFix?,
+                    fix,
                     highlightType,
                     problemsHolder.isOnTheFly,
                 )
@@ -76,10 +77,10 @@ class PydanticInspection : PyInspection() {
                         ProblemHighlightType.GENERIC_ERROR
                 )
             } else if (firstParam.asNamed?.let { it.isSelf && it.name != PyNames.CANONICAL_CLS } == true) {
-                registerProblem(
+                registerInspectionProblem(
                         PyUtil.sure(firstParam),
                         "Usually first parameter of such methods is named 'cls'",
-                        ProblemHighlightType.WEAK_WARNING, null,
+                        ProblemHighlightType.WEAK_WARNING,
                         RenameParameterQuickFix(PyNames.CANONICAL_CLS)
                 )
             }
@@ -302,7 +303,7 @@ class PydanticInspection : PyInspection() {
             pyCallExpression.arguments
                     .filterNot { it is PyKeywordArgument || (it as? PyStarArgument)?.isKeyword == true }
                     .forEach {
-                        registerProblem(
+                        registerInspectionProblem(
                                 it,
                                 "class '${pyClass.name}' accepts only keyword arguments"
                         )
@@ -548,7 +549,7 @@ class PydanticInspection : PyInspection() {
             } else {
                 if (hasPydanticAttribute()) return
             }
-            registerProblem(node.node.lastChildNode.psi, "Unresolved attribute reference '${name}' for class '${pyClass.name}' ")
+            registerInspectionProblem(node.node.lastChildNode.psi, "Unresolved attribute reference '${name}' for class '${pyClass.name}' ")
         }
         private fun hasAttribute(pyClass: PyClass, config: HashMap<String, Any?>, isV2: Boolean, name: String): Boolean =
             getPydanticField(pyClass, myTypeEvalContext, config, isV2, false, name).any()
