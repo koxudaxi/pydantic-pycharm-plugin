@@ -1,8 +1,11 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.LocalInspectionToolSession
+import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.codeInspection.util.InspectionMessage
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
@@ -36,6 +39,28 @@ class PydanticInspection : PyInspection() {
         private val pydanticConfigService = PydanticConfigService.getInstance(holder.project)
         private val pydanticCacheService = PydanticCacheService.getInstance(holder.project)
 
+        private fun registerInspectionProblem(
+            element: PsiElement?,
+            message: @InspectionMessage String,
+            highlightType: ProblemHighlightType,
+        ) {
+            val problemElement = when {
+                element == null -> return
+                element.textLength > 0 || element is PyFile -> element
+                else -> return
+            }
+            val problemsHolder = holder ?: return
+            problemsHolder.registerProblem(
+                problemsHolder.manager.createProblemDescriptor(
+                    problemElement,
+                    message,
+                    null as LocalQuickFix?,
+                    highlightType,
+                    problemsHolder.isOnTheFly,
+                )
+            )
+        }
+
         override fun visitPyFunction(node: PyFunction) {
             super.visitPyFunction(node)
 
@@ -46,7 +71,7 @@ class PydanticInspection : PyInspection() {
             val params = paramList.parameters
             val firstParam = params.firstOrNull()
             if (firstParam == null) {
-                registerProblem(
+                registerInspectionProblem(
                         paramList, "Method must have a first parameter, usually called 'cls'",
                         ProblemHighlightType.GENERIC_ERROR
                 )
@@ -127,7 +152,7 @@ class PydanticInspection : PyInspection() {
                 keysToCheck.forEach { keyExpression ->
                     val fieldName = keyExpression.stringValue
                     if (fieldName !in validNames) {
-                        registerProblem(
+                        registerInspectionProblem(
                             keyExpression,
                             "Field '$fieldName' not found in model '${pyClass.name}'",
                             ProblemHighlightType.GENERIC_ERROR
@@ -172,7 +197,7 @@ class PydanticInspection : PyInspection() {
             }
             val stringValue = pyStringLiteralExpression.stringValue
             if (stringValue == "*") return
-            registerProblem(
+            registerInspectionProblem(
                     pyStringLiteralExpression,
                     "Cannot find field '${stringValue}'",
                     ProblemHighlightType.GENERIC_ERROR
@@ -196,7 +221,7 @@ class PydanticInspection : PyInspection() {
             val qualifiedName = (pyFunction as? PyQualifiedNameOwner)?.qualifiedName ?: return
             if (!qualifiedName.startsWith("pydantic.")) return
             if (!isPydanticDeprecatedSince20(pyFunction)) return
-            registerProblem(
+            registerInspectionProblem(
                     node.nameElement?.psi ?: node,
                     "<html><body>" +
                             "Pydantic V2 Migration Guide: " +
@@ -257,7 +282,7 @@ class PydanticInspection : PyInspection() {
                 val expectedType = it.getType(myTypeEvalContext) ?: return@forEach
                 val actualType = myTypeEvalContext.getReturnType(defaultFactory.second) ?: return@forEach
                 if (PyTypeChecker.match(expectedType, actualType, myTypeEvalContext)) return@forEach
-                registerProblem(
+                registerInspectionProblem(
                         defaultFactory.first.parent,
                         String.format(
                                 "Expected type '%s', '%s' is set as return value of default_factory",
@@ -302,7 +327,7 @@ class PydanticInspection : PyInspection() {
                     .filterIsInstance<PyKeywordArgument>()
                     .filterNot { it.name in parameters }
                     .forEach {
-                        registerProblem(
+                        registerInspectionProblem(
                                 it,
                                 "'${it.name}' extra fields not permitted",
                                 ProblemHighlightType.GENERIC_ERROR
@@ -322,7 +347,7 @@ class PydanticInspection : PyInspection() {
 
             val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["orm_mode"] != true) {
-                registerProblem(
+                registerInspectionProblem(
                         pyCallExpression,
                         "You must have the config attribute orm_mode=True to use from_orm",
                         ProblemHighlightType.GENERIC_ERROR
@@ -335,7 +360,7 @@ class PydanticInspection : PyInspection() {
             if (pydanticVersion?.isAtLeast(1, 8) != true) return
             if (!isPydanticModel(pyClass, false, myTypeEvalContext)) return
             validateConfig(pyClass, myTypeEvalContext)?.forEach {
-                registerProblem(
+                registerInspectionProblem(
                         it,
                         "Specifying config in two places is ambiguous, use either Config attribute or class kwargs",
                         ProblemHighlightType.GENERIC_ERROR
@@ -353,7 +378,7 @@ class PydanticInspection : PyInspection() {
             val config = getConfig(pyClass, myTypeEvalContext, true)
             val version = PydanticCacheService.getVersion(pyClass.project)
             if (config["allow_mutation"] == false || (version?.isAtLeast(1, 8) == true && config["frozen"] == true)) {
-                registerProblem(
+                registerInspectionProblem(
                         node,
                         "Property \"${attributeName}\" defined in \"${pyClass.name}\" is read-only",
                         ProblemHighlightType.GENERIC_ERROR
@@ -365,7 +390,7 @@ class PydanticInspection : PyInspection() {
             if (getPydanticModelByAttribute(node, true, myTypeEvalContext) == null) return
             if (node.annotation != null) return
             if ((node.leftHandSideExpression as? PyTargetExpressionImpl)?.text?.isValidFieldName(pydanticCacheService.isV2) != true) return
-            registerProblem(
+            registerInspectionProblem(
                     node,
                     "Untyped fields disallowed", ProblemHighlightType.WARNING
             )
@@ -389,11 +414,11 @@ class PydanticInspection : PyInspection() {
             val fieldName = field.text ?: return
             val isV2 = pydanticCacheService.isV2
             if (isV2 && fieldName == "__root__") {
-                registerProblem(
+                registerInspectionProblem(
                         pyClass.nameNode?.psi,
                         "__root__ models are no longer supported in v2; a migration guide will be added in the near future", ProblemHighlightType.GENERIC_ERROR
                 )
-                registerProblem(field, "To define root models, use `pydantic.RootModel` rather than a field called '__root__'", ProblemHighlightType.WARNING)
+                registerInspectionProblem(field, "To define root models, use `pydantic.RootModel` rather than a field called '__root__'", ProblemHighlightType.WARNING)
                 return
             }
             if (fieldName.startsWith('_')) return
@@ -410,12 +435,12 @@ class PydanticInspection : PyInspection() {
                     "__root__ cannot be mixed with other fields"
                 }
             }
-            registerProblem(field, message, ProblemHighlightType.WARNING)
+            registerInspectionProblem(field, message, ProblemHighlightType.WARNING)
         }
 
         private fun validateDefaultAndDefaultFactory(default: PyExpression?, defaultFactory: PyExpression?): Boolean {
             if (default == null || defaultFactory == null) return true
-            registerProblem(
+            registerInspectionProblem(
                     defaultFactory.parent,
                     "cannot specify both default and default_factory",
                     ProblemHighlightType.WARNING
@@ -435,7 +460,7 @@ class PydanticInspection : PyInspection() {
             val annotatedField = getFieldFromAnnotated(annotationValue, myTypeEvalContext) ?: return
             val default = getDefaultFromField(annotatedField, myTypeEvalContext) ?: return
             if (!pydanticCacheService.isV2) {
-                registerProblem(
+                registerInspectionProblem(
                         default.parent,
                         "`Field` default cannot be set in `Annotated` for '$fieldName'",
                         ProblemHighlightType.WARNING
@@ -444,7 +469,7 @@ class PydanticInspection : PyInspection() {
             }
 
             val defaultFactory = getDefaultFactoryFromField(annotatedField) ?: return
-            registerProblem(
+            registerInspectionProblem(
                     defaultFactory.parent,
                     "cannot specify both default and default_factory",
                     ProblemHighlightType.WARNING
@@ -470,7 +495,7 @@ class PydanticInspection : PyInspection() {
             val qualifiedName = getQualifiedName(annotationValue, myTypeEvalContext)
             if (qualifiedName != ANNOTATED_Q_NAME) return
             if (assignedValueField != null) {
-                registerProblem(
+                registerInspectionProblem(
                         assignedValueField,
                         "cannot specify `Annotated` and value `Field`s together for '$fieldName'",
                         ProblemHighlightType.WARNING
@@ -482,7 +507,7 @@ class PydanticInspection : PyInspection() {
             val defaultFactory = getDefaultFactoryFromField(annotatedField)
             if (!validateDefaultAndDefaultFactory(assignedValue, defaultFactory)) return
             if (default != null) {
-                registerProblem(
+                registerInspectionProblem(
                         assignedValue,
                         "`Field` default cannot be set in `Annotated` for '$fieldName'",
                         ProblemHighlightType.WARNING

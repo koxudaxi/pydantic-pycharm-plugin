@@ -71,7 +71,10 @@ intellijPlatform {
         }
     }
     pluginVerification {
-        failureLevel = listOf(VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS)
+        failureLevel = listOf(
+            VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+            VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES,
+        )
         ides {
             recommended()
         }
