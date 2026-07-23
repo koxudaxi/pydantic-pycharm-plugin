@@ -32,4 +32,8 @@ open class PydanticInspectionV18Test : PydanticInspectionBase(version = "v18") {
     fun testValidatorField() {
         doTest()
     }
+
+    fun testPydanticDataclassCallable() {
+        doTest()
+    }
 }

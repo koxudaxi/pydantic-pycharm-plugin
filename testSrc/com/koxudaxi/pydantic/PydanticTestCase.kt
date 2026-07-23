@@ -58,6 +58,7 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
             "__type_params__",
             // Python builtins
             "Ellipsis",
+            "ellipsis",
             "EnvironmentError",
             "IOError",
             "NotImplemented",
@@ -105,6 +106,11 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
 
     private fun configureByFileName(fileName: String) {
         myFixture!!.configureByFile(fileName)
+    }
+
+    // PydanticCompletionProvider.removeAllFieldElement requires actual icons for elements to be loaded
+    override fun isIconRequired(): Boolean {
+        return true
     }
 
     @Throws(Exception::class)

@@ -30,6 +30,7 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "__pydantic_serializer__",
             "__pydantic_validator__",
             "__signature__",
+            "__match_args__",
             "__doc__",
             "__module__",
             "__pydantic_generic_typevars_map__ = ",
@@ -45,7 +46,9 @@ open class PydanticCompletionV2Test : PydanticTestCase(version = "v2") {
             "not",
             "async",
             "False",
-            "True"
+            "True",
+            "Enum",
+            "NamedTuple",
         )
     }
 

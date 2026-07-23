@@ -13,6 +13,7 @@ import com.jetbrains.python.extensions.ModuleBasedContextAnchor
 import com.jetbrains.python.extensions.QNameResolveContext
 import com.jetbrains.python.extensions.resolveToElement
 import com.jetbrains.python.PyNames
+import com.jetbrains.python.codeInsight.stdlib.PyDataclassTypeProvider
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.packaging.management.PythonPackageManager.Companion.forSdk
 import com.jetbrains.python.psi.*
@@ -73,6 +74,10 @@ const val TYPE_Q_NAME = "typing.Type"
 const val TUPLE_Q_NAME = "typing.Tuple"
 
 const val SQL_MODEL_Q_NAME = "sqlmodel.main.SQLModel"
+const val SQL_ALCHEMY_INSTRUMENTED_ATTRIBUTE_Q_NAME = "sqlalchemy.orm.attributes.InstrumentedAttribute"
+
+private val pyDataclassTypeProvider = PyDataclassTypeProvider()
+private val pydanticTypeProvider = PydanticTypeProvider()
 
 val CUSTOM_BASE_MODEL_Q_NAMES = listOf(
     SQL_MODEL_Q_NAME
@@ -278,6 +283,13 @@ internal fun isSubClassOfCustomBaseModel(pyClass: PyClass, context: TypeEvalCont
     return CUSTOM_BASE_MODEL_Q_NAMES.any { pyClass.isSubclass(it, context) }
 }
 
+internal fun isTableSqlModel(pyClass: PyClass, context: TypeEvalContext): Boolean {
+    // class Hero(SQLModel, table=True): ...
+    return pyClass.superClassExpressions.any {
+        it is PyKeywordArgument && it.keyword == "table" && (it.value as? PyBoolLiteralExpression)?.value == true
+    } && pyClass.isSubclass(SQL_MODEL_Q_NAME, context)
+}
+
 internal val PyClass.isBaseSettings: Boolean get() = qualifiedName in BASE_SETTINGS_Q_NAMES
 
 
@@ -308,11 +320,28 @@ internal fun isDataclassMissing(pyTargetExpression: PyTargetExpression): Boolean
 internal fun PyFunction.hasValidatorMethod(pydanticVersion: KotlinVersion?): Boolean =
     hasDecorator(this, if(pydanticVersion.isV2) V2_VALIDATOR_QUALIFIED_NAMES else VALIDATOR_QUALIFIED_NAMES)
 
-internal fun PyDecorator.include(refNames: List<QualifiedName>): Boolean = (callee as? PyReferenceExpression)?.let {
-        PyResolveUtil.resolveImportedElementQNameLocally(it).any { decoratorQualifiedName ->
-            refNames.any { refName -> decoratorQualifiedName == refName }
+private val PyDecorator.resolvedQualifiedNames
+    get(): List<QualifiedName> {
+        val reference = callee as? PyReferenceExpression ?: return emptyList()
+        return PyResolveUtil.resolveImportedElementQNameLocally(reference)
+    }
+
+internal fun PyDecorator.include(refNames: List<QualifiedName>): Boolean =
+    resolvedQualifiedNames.any { it in refNames }
+
+private val PyDecorator.hasModeAfter: Boolean
+    get() = argumentList?.getKeywordArgument("mode")
+        ?.let { it.value as? PyStringLiteralExpression }?.stringValue == "after"
+
+internal fun PyFunction.hasValidatorMethodForTypedHandler(): Boolean {
+    val decorators = decoratorList ?: return false
+    return decorators.decorators.any { decorator ->
+        decorator.resolvedQualifiedNames.any { qualifiedName ->
+            qualifiedName in V2_VALIDATOR_QUALIFIED_NAMES &&
+                (qualifiedName !in MODEL_VALIDATOR_QUALIFIED_NAMES || !decorator.hasModeAfter)
         }
-} ?: false
+    }
+}
 
 internal val PyKeywordArgument.value: PyExpression?
     get() = when (val value = valueExpression) {
@@ -323,8 +352,7 @@ internal val PyKeywordArgument.value: PyExpression?
 internal fun PyFunction.hasModelValidatorModeAfter(): Boolean = (this as? PyDecoratable)?.decoratorList?.decorators
     ?.filter { it.include(MODEL_VALIDATOR_QUALIFIED_NAMES) }
     ?.any { modelValidator ->
-        modelValidator.argumentList?.getKeywordArgument("mode")
-            ?.let { it.value as? PyStringLiteralExpression }?.stringValue == "after"
+        modelValidator.hasModeAfter
     } ?: false
 internal val PyClass.isConfigClass: Boolean get() = name == "Config"
 
@@ -706,18 +734,23 @@ fun createPyClassTypeImpl(qualifiedName: String, project: Project, context: Type
 }
 
 fun getPydanticPyClass(pyCallExpression: PyCallExpression, context: TypeEvalContext, includeDataclass: Boolean = false): PyClass? {
-    val directClass = pyCallExpression.callee?.reference?.resolve() as? PyClass
-    if (directClass != null && isPydanticModel(directClass, includeDataclass, context)) {
-        return directClass
+    val callee = pyCallExpression.callee ?: return null
+    val resolvedClass = when (callee) {
+        is PySubscriptionExpression -> callee.rootOperand.reference?.resolve() as? PyClass
+        else -> callee.reference?.resolve() as? PyClass
+    }
+    if (resolvedClass != null && isPydanticModel(resolvedClass, includeDataclass, context)) {
+        return resolvedClass
     }
     
-    val calleeType = pyCallExpression.callee?.let { context.getType(it) }
+    val calleeType = context.getType(callee)
     when (calleeType) {
         is PydanticDynamicModelClassType -> {
             return calleeType.pyClass
         }
         is PyClassType -> {
             val pyClass = calleeType.pyClass
+            if (pyClass === resolvedClass) return null
             if (isPydanticModel(pyClass, includeDataclass, context)) {
                 return pyClass
             }
@@ -896,8 +929,16 @@ fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction
  fun PyCallExpression.isDefinitionCallExpression(context: TypeEvalContext): Boolean =
      this.callee?.reference?.resolve()?.let { it as? PyClass }?.getType(context)?.isDefinition == true
 
-fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType? =
-    this.callee?.getType(context) as? PyCallableType
+fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType? {
+    val callableType = this.callee?.getType(context) as? PyCallableType
+    val pyClass = getPydanticPyClass(this, context, true) ?: return callableType
+    return when {
+        pyClass.isPydanticDataclass -> pyDataclassTypeProvider.getReferenceType(pyClass, context, this)
+            ?.get() as? PyCallableType ?: callableType
+
+        else -> pydanticTypeProvider.getPydanticTypeForClass(pyClass, context, true, this) ?: callableType
+    }
+}
 fun PyCallableType.getPydanticModel(includeDataclass: Boolean, context: TypeEvalContext): PyClass? =
     this.getReturnType(context)?.pyClassTypes?.firstOrNull()?.pyClass?.takeIf { isPydanticModel(it,includeDataclass, context) }
 

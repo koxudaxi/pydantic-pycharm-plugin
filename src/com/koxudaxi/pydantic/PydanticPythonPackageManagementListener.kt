@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@JvmDefaultWithoutCompatibility
 class PydanticPythonPackageManagementListener : PythonPackageManagementListener {
     private val scope = CoroutineScope(Dispatchers.Default)
 

@@ -1,4 +1,5 @@
 from typing import *
+from pydantic import BaseModel
 
 def Field(
         default: Any = Undefined,
