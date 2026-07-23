@@ -6,4 +6,8 @@ class Model(BaseModel):
     field_name: str = Field(..., alias="ALIAS_NAME")
 
 
+class ReservedModel(BaseModel):
+    model_config: int = <warning descr="Expected type 'int', got 'None' instead">None</warning>
+
+
 c = Model(**{"ALIAS_NAME": "test"})

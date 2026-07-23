@@ -1,0 +1,2 @@
+@
+def decorated<caret>

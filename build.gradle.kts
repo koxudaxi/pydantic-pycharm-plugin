@@ -2,6 +2,7 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 import org.gradle.language.jvm.tasks.ProcessResources
 
 fun properties(key: String) = providers.gradleProperty(key)
@@ -27,14 +28,13 @@ repositories {
     }
 }
 
-// Set the JVM language level used to build the project. Java 21 for 2025.2+.
+// Set the JVM language level used to build the project. Java 25 for 2026.2+.
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
         @Suppress("UnstableApiUsage")
         vendor = JvmVendorSpec.JETBRAINS
     }
-    jvmToolchain(21)
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
@@ -71,6 +71,10 @@ intellijPlatform {
         }
     }
     pluginVerification {
+        failureLevel = listOf(
+            VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+            VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES,
+        )
         ides {
             recommended()
         }
@@ -97,10 +101,8 @@ intellijPlatform {
 }
 // Configure Gradle Qodana Plugin - read more: https://github.com/JetBrains/gradle-qodana-plugin
 qodana {
-    cachePath = provider { file(".qodana").canonicalPath }
-    reportPath = provider { file("build/reports/inspections").canonicalPath }
-    saveReport = true
-    showReport = environment("QODANA_SHOW_REPORT").map { it.toBoolean() }.getOrElse(false)
+    cachePath.set(file(".qodana").canonicalPath)
+    resultsPath.set(file("build/reports/inspections").canonicalPath)
 }
 
 // Configure Gradle Kover Plugin - read more: https://github.com/Kotlin/kotlinx-kover#configuration
@@ -170,7 +172,9 @@ tasks {
     }
 }
 dependencies {
-    compileOnly("org.apache.tuweni:tuweni-toml:2.3.1")
+    compileOnly("org.apache.tuweni:tuweni-toml:2.3.1") {
+        exclude(group = "org.jetbrains.kotlin")
+    }
     compileOnly(group = "org.ini4j", name = "ini4j", version = "0.5.4")
     testImplementation(kotlin("test"))
     testImplementation(libs.junit)
@@ -188,7 +192,7 @@ dependencies {
         bundledPlugins(
             bundledPlugins.get().map { it.trim() } + listOf(bundledPyCharmPlugin)
         )
-        testFramework(TestFrameworkType.Bundled)
+        testFramework(TestFrameworkType.Platform)
         pluginVerifier()
         zipSigner()
     }

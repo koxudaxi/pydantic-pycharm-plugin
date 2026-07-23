@@ -36,6 +36,8 @@ hs_err_pid*
 /build/
 /jps-plugin/build/
 .gradle
+.intellijPlatform/
+.kotlin/
 /out/
 /pydantic-pycahrm-plugin/out/
 /venv/

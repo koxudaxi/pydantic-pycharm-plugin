@@ -46,8 +46,7 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
-    // TODO: Union operator type warnings not generated in PyCharm 2025.2
-    fun _disabled_testFieldUnionOperatorInvalid() {
+    fun testFieldUnionOperatorInvalid() {
         setLanguageLevel(LanguageLevel.PYTHON310)
         doTest()
     }
@@ -141,4 +140,3 @@ open class PydanticTypeInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 }
-

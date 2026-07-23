@@ -8,7 +8,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.PyCustomType
 import com.jetbrains.python.PyNames
 import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
-import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider.isBitwiseOrUnionAvailable
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
@@ -22,6 +21,21 @@ class PydanticTypeProvider : PyTypeProviderBase() {
     override fun getReferenceExpressionType(referenceExpression: PyReferenceExpression, context: TypeEvalContext): PyType? {
         // Skip if project is still indexing to avoid incorrect results
         if (DumbService.isDumb(referenceExpression.project)) return null
+
+        // When SQLModel fields are accessed on the class object, the type is an sqlalchemy InstrumentedAttribute[T]
+        referenceExpression.qualifier?.let {
+            val qualifierType = getPydanticPyClassType(it, context) ?: return@let
+            if (qualifierType.isDefinition && isTableSqlModel(qualifierType.pyClass, context)) {
+                val attrName = referenceExpression.name ?: return@let
+                val inner = getRefTypeFromFieldName(attrName, context, qualifierType.pyClass) ?: return@let
+                return PyCollectionTypeImpl.createTypeByQName(
+                    referenceExpression,
+                    SQL_ALCHEMY_INSTRUMENTED_ATTRIBUTE_Q_NAME,
+                    false,
+                    listOf(inner)
+                )?.toInstance()
+            }
+        }
 
         return RecursionManager.doPreventingRecursion(referenceExpression, true) {
             val callExpression = PsiTreeUtil.getParentOfType(referenceExpression, PyCallExpression::class.java)
@@ -273,7 +287,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val constraints = argumentList.getKeywordArgument("constraints")?.valueExpression?.getType(context)
 //        val default = argumentList.getKeywordArgument("default")?.valueExpression
 //        // TODO: Support TypeVarTuple, ParamSpec, constraints
-        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null, PyTypeVarType.Variance.INVARIANT)
+        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null, PyTypeParameterType.Variance.INVARIANT)
     }
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyTypeVarType> {
@@ -533,12 +547,15 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         context: TypeEvalContext,
         pyCallExpression: PyCallExpression? = null,
         pySubscriptionExpression: PySubscriptionExpression? = null,
-    ): Map<PyTypeVarType, PyType>? {
+    ): Map<PyTypeParameterType, PyType?>? {
         if (!PyTypingTypeProvider.isGeneric(pyClass, context)) return null
         if (!(isSubClassOfPydanticGenericModel(pyClass, context) && !pyClass.isPydanticGenericModel)) return null
 
         // class Response(GenericModel, Generic[TypeA, TypeB]): pass
-        val pyClassGenericTypeMap = pyTypingTypeProvider.getGenericSubstitutions(pyClass, context)
+        val pyClassGenericTypeMap: Map<PyTypeParameterType, PyType?> =
+            pyTypingTypeProvider.getGenericSubstitutions(pyClass, context)
+                .mapNotNull { (key, value) -> (key as? PyTypeParameterType)?.let { it to value } }
+                .toMap()
 
         // Response[TypeA]
         val pySubscriptionExpression = pySubscriptionExpression
@@ -550,7 +567,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     ?.findAssignedValue() as? PySubscriptionExpression
 
                 else -> null
-            } ?: return pyClassGenericTypeMap.takeIf { it.isNotEmpty() } as Map<PyTypeVarType, PyType>?)
+            } ?: return pyClassGenericTypeMap.takeIf { it.isNotEmpty() })
 
         // Response[TypeA, TypeB]()
         val injectedTypes = ((pySubscriptionExpression.indexExpression as? PyTupleExpression) as? PySequenceExpression)
@@ -571,7 +588,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
                     }
                     .toMap()
             )
-        }.takeIf { it.isNotEmpty() } as Map<PyTypeVarType, PyType>?
+        }.takeIf { it.isNotEmpty() }
     }
 
     fun getPydanticTypeForClass(
@@ -662,7 +679,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
         config: HashMap<String, Any?>,
-        genericTypeMap: Map<PyTypeVarType, PyType>?,
+        genericTypeMap: Map<PyTypeParameterType, PyType?>?,
         typed: Boolean = true,
         isDataclass: Boolean = false,
         providedArgNames: Set<String> = emptySet(),
@@ -685,7 +702,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         pyClass: PyClass,
         pydanticVersion: KotlinVersion?,
         config: HashMap<String, Any?>,
-        genericTypeMap: Map<PyTypeVarType, PyType>?,
+        genericTypeMap: Map<PyTypeParameterType, PyType?>?,
         typed: Boolean = true,
         isDataclass: Boolean = false,
         providedArgNames: Set<String> = emptySet(),
@@ -703,9 +720,12 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val typeForParameter = when {
             !typed -> null
             // get type from default value
-            !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> context.getType(
-                defaultValueFromField
-            )
+            !hasAnnotationValue(field) && defaultValueFromField is PyTypedElement -> when (
+                val inferredType = context.getType(defaultValueFromField)
+            ) {
+                is PyLiteralType -> PyClassTypeImpl(inferredType.pyClass, false)
+                else -> inferredType
+            }
             // get type from annotation
             else -> getTypeForParameter(field, context)
         }?.let {
@@ -807,7 +827,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         fun parseAnnotation(pyExpression: PyExpression, context: TypeEvalContext): PyExpression? {
             val qualifiedName = getQualifiedName(pyExpression, context)
-                ?: takeIf { isBitwiseOrUnionAvailable(pyExpression) }?.let {
+                ?: takeIf { PyTypingTypeProvider.isBitwiseOrUnionAvailable(pyExpression) }?.let {
                     pyExpression.children.filterIsInstance<PyEllipsisLiteralExpression>().run { return ellipsis }
                 }
             when (qualifiedName) {

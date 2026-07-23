@@ -4,7 +4,7 @@ class BaseModel:
     class Config:
         pass
 
-    ___slots__ = ()
+    __slots__ = ()
 
     @classmethod
     def from_orm(cls, obj):

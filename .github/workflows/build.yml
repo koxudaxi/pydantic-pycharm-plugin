@@ -48,12 +48,12 @@ jobs:
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v3.3.1
 
-      # Setup Java 17 environment for the next steps
+      # Setup Java 25 environment for the next steps
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
-          distribution: zulu
-          java-version: 17
+          distribution: jetbrains
+          java-version: 25
 
       - name: Cache
         uses: actions/cache@v5
@@ -68,7 +68,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-home-cache-cleanup: true
-          gradle-version: 8.6
 
       # Set environment variables
       - name: Export Properties
@@ -82,13 +81,14 @@ jobs:
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
-          echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
-          
+          echo "pluginVerifierHomeDir=$HOME/.pluginVerifier" >> $GITHUB_OUTPUT
+
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          ./gradlew printProductsReleases # prepare list of IDEs for Plugin Verifier
+          mkdir -p build
+          ./gradlew printProductsReleases --console=plain -q > build/printProductsReleases.txt
 
       # Run tests
       - name: Run Tests
@@ -120,7 +120,7 @@ jobs:
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks
-        run: ./gradlew verifyPlugin -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+        run: ./gradlew verifyPlugin -Dplugin.verifier.home.dir=${{ steps.properties.outputs.pluginVerifierHomeDir }}
 
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result
@@ -132,9 +132,10 @@ jobs:
 
       # Run Qodana inspections
       - name: Qodana - Code Inspection
-        uses: JetBrains/qodana-action@v2023.3.2
+        uses: JetBrains/qodana-action@v2026.1
         with:
           args: --source-directory,src,testSrc
+          pr-mode: false
 
       # Prepare plugin archive content for creating artifact
       - name: Prepare Plugin Artifact

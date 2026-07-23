@@ -23,7 +23,7 @@ jobs:
             runIde: |
               export DISPLAY=:99.0
               Xvfb -ac :99 -screen 0 1920x1080x16 &
-              gradle runIdeForUiTests &
+              ./gradlew runIdeForUiTests &
           - os: windows-latest
             runIde: start gradlew.bat runIdeForUiTests
           - os: macos-latest
@@ -35,12 +35,12 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v4
 
-      # Setup Java 17 environment for the next steps
+      # Setup Java 25 environment for the next steps
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
-          distribution: zulu
-          java-version: 17
+          distribution: jetbrains
+          java-version: 25
 
       # Run IDEA prepared for UI testing
       - name: Run IDE

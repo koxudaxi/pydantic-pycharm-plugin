@@ -33,7 +33,7 @@ open class PydanticCompletionV0Test : PydanticTestCase(version = "v0") {
                 Pair("f_id", "str A"),
                 Pair("g_id", "str=get_alias() A"),
                 Pair("hij", "Any A"),
-                Pair("___slots__", "BaseModel"),
+                Pair("__slots__", "BaseModel"),
                 Pair("__annotations__", "object"),
                 Pair("__dict__", "object")
             )
