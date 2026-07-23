@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Fix internal API usage [[#1183](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1183)]
+
 ## [0.4.26] - 2026-07-20
 
 - Support PyCharm 2026.2 [[#1181](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1181)]
