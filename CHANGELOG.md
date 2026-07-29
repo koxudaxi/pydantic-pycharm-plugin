@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Fix frozen private attribute inspection [[#1198](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1198)]
+
 ## [0.4.27] - 2026-07-23
 
 - Fix internal API usage [[#1183](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1183)]

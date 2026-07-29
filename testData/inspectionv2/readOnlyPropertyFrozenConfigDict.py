@@ -59,3 +59,13 @@ class J(BaseModel):
     model_config = {'frozen': True}
 J.abc = '456'
 <error descr="Property \"abc\" defined in \"J\" is read-only">J().abc = '456'</error>
+
+
+class K(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    _private: int = 1
+
+    def update_private(self, value: int):
+        self._private = value
+
+K()._private = 2
