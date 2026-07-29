@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.28] - 2026-07-29
+
 - Fix frozen private attribute inspection [[#1198](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1198)]
 
 ## [0.4.27] - 2026-07-23
@@ -617,7 +619,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.27...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.28...HEAD
+[0.4.28]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.27...v0.4.28
 [0.4.27]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.26...v0.4.27
 [0.4.26]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.25...v0.4.26
 [0.4.25]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.24...v0.4.25
