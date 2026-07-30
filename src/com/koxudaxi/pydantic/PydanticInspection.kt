@@ -376,8 +376,9 @@ class PydanticInspection : PyInspection() {
             if (pyClassType.isDefinition) return
             val pyClass = pyClassType.pyClass
             val attributeName = (node.leftHandSideExpression as? PyTargetExpressionImpl)?.name ?: return
-            val config = getConfig(pyClass, myTypeEvalContext, true)
             val version = PydanticCacheService.getVersion(pyClass.project)
+            if (version.isV2 && attributeName.startsWith('_')) return
+            val config = getConfig(pyClass, myTypeEvalContext, true)
             if (config["allow_mutation"] == false || (version?.isAtLeast(1, 8) == true && config["frozen"] == true)) {
                 registerInspectionProblem(
                         node,
