@@ -17,6 +17,17 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
         doTest()
     }
 
+    fun testInstrumentedAttributeType() {
+        val configService = PydanticConfigService.getInstance(myFixture!!.project)
+        val previousParsableTypeMap = configService.parsableTypeMap
+        try {
+            configService.parsableTypeMap = mapOf("builtins.str" to listOf("int"))
+            doTest()
+        } finally {
+            configService.parsableTypeMap = previousParsableTypeMap
+        }
+    }
+
     fun testParsableTypeCollection() = runTestRunnable {
         suspend {
             val pydanticConfigService = PydanticConfigService.getInstance(myFixture!!.project)
