@@ -7,6 +7,11 @@ import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import com.jetbrains.python.psi.PyCallExpression
 
 class PydanticAnnotatorTest : PydanticTestCase() {
+    fun testMissingRequiredArguments() {
+        configureByFile()
+        myFixture!!.checkHighlighting(true, false, true)
+    }
+
     fun testInvalidDocStringFormat() {
         setDocStringFormat("EPYTEXT")
         try {
