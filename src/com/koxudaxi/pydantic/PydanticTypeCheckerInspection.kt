@@ -81,7 +81,7 @@ class PydanticTypeCheckerInspection : PyTypeCheckerInspection() {
 
             val newType = when (typeForParameter) {
                 is PyCollectionType ->
-                    typeForParameter.elementTypes.mapNotNull {
+                    typeForParameter.getTypeArgumentsCompat().mapNotNull {
                         it?.let { getTypeFromTypeMap(getTypeMap, it, cache) }
                     }.takeIf {
                         it.isNotEmpty()
