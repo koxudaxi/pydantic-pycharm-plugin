@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.29] - 2026-08-12
+
 - Fix crash with legacy docstring settings [[#1201](https://github.com/koxudaxi/pydantic-pycharm-plugin/issues/1201)]
 
 ## [0.4.28] - 2026-07-29
@@ -621,7 +623,8 @@
 - Support ellipsis(...) in fields [[#34](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//34)]
 - Support Schema in fields [[#31](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull//31)]
 
-[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.28...HEAD
+[Unreleased]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.29...HEAD
+[0.4.29]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.28...v0.4.29
 [0.4.28]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.27...v0.4.28
 [0.4.27]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.26...v0.4.27
 [0.4.26]: https://github.com/koxudaxi/pydantic-pycharm-plugin/compare/v0.4.25...v0.4.26
