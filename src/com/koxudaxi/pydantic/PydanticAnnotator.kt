@@ -29,11 +29,11 @@ class PydanticAnnotator : Annotator {
 
     private fun annotatePydanticModelCallableExpression(pyCallExpression: PyCallExpression, holder: AnnotationHolder) {
         val context = TypeEvalContext.codeAnalysis(pyCallExpression.project, pyCallExpression.containingFile)
+        if (!pyCallExpression.isDefinitionCallExpression(context)) return
         val pyClassType = pyCallExpression.getPyCallableType(context) ?: return
         val pyClass = pyClassType.getPydanticModel(true, context) ?: return
         if (!isPydanticModel(pyClass, true, context)) return
         if (getPydanticModelInit(pyClass, context) != null) return
-        if (!pyCallExpression.isDefinitionCallExpression(context)) return
 
         val unFilledArguments =
             getPydanticUnFilledArguments(pyClassType, pyCallExpression, context, pyClass.isPydanticDataclass).nullize()

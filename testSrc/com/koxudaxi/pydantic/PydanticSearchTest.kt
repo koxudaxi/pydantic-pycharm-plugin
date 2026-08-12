@@ -31,6 +31,10 @@ open class PydanticSearchTest : PydanticTestCase() {
         assertMatch(1)
     }
 
+    fun testTypedModelFactoryKeywordArgument() {
+        assertMatch(1)
+    }
+
     fun testChildField() {
         assertMatch(3)
     }
