@@ -14,6 +14,22 @@ import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.types.*
 import com.koxudaxi.pydantic.PydanticConfigService.Companion.getInstance
 import one.util.streamex.StreamEx
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType
+
+private val pyCollectionTypeArgumentsGetter: MethodHandle = run {
+    val methodType = MethodType.methodType(List::class.java)
+    try {
+        MethodHandles.publicLookup().findVirtual(PyCollectionType::class.java, "getTypeArguments", methodType)
+    } catch (_: NoSuchMethodException) {
+        MethodHandles.publicLookup().findVirtual(PyCollectionType::class.java, "getElementTypes", methodType)
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun PyCollectionType.getTypeArgumentsCompat(): List<PyType?> =
+    pyCollectionTypeArgumentsGetter.invokeExact(this) as List<PyType?>
 
 class PydanticTypeProvider : PyTypeProviderBase() {
     private val pyTypingTypeProvider = PyTypingTypeProvider()
@@ -292,7 +308,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyTypeVarType> {
         @Suppress("UnstableApiUsage") val pyCollectionType = pyTypingTypeProvider.getGenericType(pyClass, context) as? PyCollectionType
-        val genericTypes = pyCollectionType?.elementTypes?.filterIsInstance<PyTypeVarType>() ?: emptyList()
+        val genericTypes = pyCollectionType?.getTypeArgumentsCompat()?.filterIsInstance<PyTypeVarType>() ?: emptyList()
         return (genericTypes +
                 pyClass.superClassExpressions
                     .mapNotNull {
