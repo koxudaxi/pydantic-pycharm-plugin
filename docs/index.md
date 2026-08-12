@@ -15,12 +15,6 @@ I got interviewed about this plugin for [JetBrains' PyCharm Blog](https://blog.j
 <table>
   <tr>
     <td valign="top" align="center">
-      <a href="https://github.com/astral-sh">
-        <img src="https://avatars.githubusercontent.com/u/115962839?s=200&v=4" alt="Astral Logo" style="width: 100px;">
-        <p>Astral</p>
-      </a>
-    </td>
-    <td valign="top" align="center">
       <a href="https://github.com/openai">
         <img src="https://avatars.githubusercontent.com/u/14957082?s=200&v=4" alt="OpenAI Logo" style="width: 100px;">
         <p>OpenAI</p>
