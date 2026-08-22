@@ -33,7 +33,7 @@ jobs:
 
       # Check out current repository
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Setup Java 25 environment for the next steps
       - name: Setup Java
