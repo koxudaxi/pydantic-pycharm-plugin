@@ -14,7 +14,6 @@ import com.jetbrains.python.codeInsight.typing.PyTypeShed
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.sdk.PythonSdkAdditionalData
 import com.jetbrains.python.sdk.PythonSdkType.MOCK_PY_MARKER_KEY
-import com.jetbrains.python.sdk.PythonSdkUtil
 import com.jetbrains.python.sdk.flavors.PyFlavorAndData
 import com.jetbrains.python.sdk.flavors.PyFlavorData
 import com.jetbrains.python.sdk.flavors.VirtualEnvSdkFlavor
@@ -26,7 +25,11 @@ import java.util.function.Consumer
 /**
  * @author yole
  */
+@OptIn(PyInternalExecApi::class)
 object PythonMockSdk {
+    // A fixture-owned directory; the IDE no longer exposes PythonSdkUtil.SKELETON_DIR_NAME.
+    const val SKELETON_DIR_NAME = "skeletons"
+
     fun create(name: String): Sdk {
         return create(name, LanguageLevel.getLatest())
     }
@@ -100,15 +103,16 @@ object PythonMockSdk {
         ContainerUtil.addIfNotNull(result, localFS.refreshAndFindFileByIoFile(File(mockSdkPath, "Lib")))
         ContainerUtil.addIfNotNull(
                 result,
-                localFS.refreshAndFindFileByIoFile(File(mockSdkPath, PythonSdkUtil.SKELETON_DIR_NAME))
+                localFS.refreshAndFindFileByIoFile(File(mockSdkPath, SKELETON_DIR_NAME))
         )
         // PyUserSkeletonsUtil is removed in IntelliJ 2025.2
         // ContainerUtil.addIfNotNull(result, PyUserSkeletonsUtil.getUserSkeletonsDirectory())
         
-        // Skip TypeShed loading in tests to prevent hanging
-        if (System.getProperty("idea.test.execution.policy") != "LEGACY") {
-            result.addAll(PyTypeShed.findAllRootsForLanguageLevel(level))
-        }
+        // Targeted tests can keep stdlib types without indexing every third-party stub.
+        val roots = PyTypeShed.findAllRootsForLanguageLevel(level)
+        result.addAll(if (System.getProperty("pydantic.test.typeshed.stdlibOnly", "false").toBoolean()) {
+            roots.filter { it.path.endsWith("/stdlib") }
+        } else roots)
 
         return result
     }

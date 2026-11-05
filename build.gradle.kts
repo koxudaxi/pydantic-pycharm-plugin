@@ -142,6 +142,9 @@ tasks {
     }
     // Workaround for IntelliJ Platform 2025.3 lib/modules issue
     test {
+        providers.gradleProperty("testTypeShedStdlibOnly").orNull?.let {
+            systemProperty("pydantic.test.typeshed.stdlibOnly", it)
+        }
         doFirst {
             // Find the Python plugin helpers directory dynamically
             val pythonPluginDir = project.configurations
@@ -188,7 +191,12 @@ dependencies {
             else -> "PythonCore"
         }
         // Use pycharm() for PyCharm 2025.3+ (unified distribution)
-        pycharm(version)
+        val localPlatformPath = providers.gradleProperty("localPlatformPath")
+        if (localPlatformPath.isPresent) {
+            local(localPlatformPath.get())
+        } else {
+            pycharm(version)
+        }
         bundledPlugins(
             bundledPlugins.get().map { it.trim() } + listOf(bundledPyCharmPlugin)
         )

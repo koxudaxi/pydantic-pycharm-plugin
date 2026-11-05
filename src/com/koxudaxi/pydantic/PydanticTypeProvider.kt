@@ -303,7 +303,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         val constraints = argumentList.getKeywordArgument("constraints")?.valueExpression?.getType(context)
 //        val default = argumentList.getKeywordArgument("default")?.valueExpression
 //        // TODO: Support TypeVarTuple, ParamSpec, constraints
-        return PyTypeVarTypeImpl(name, emptyList<PyType>(), if (bound is PyClassLikeType) bound.toInstance() else bound, null, PyTypeParameterType.Variance.INVARIANT)
+        return PyTypeVarTypeImpl(name, emptyList<PyType>(), (if (bound is PyClassLikeType) bound.toInstance() else bound).withUnknownFallback(), null, PyTypeParameterType.Variance.INVARIANT)
     }
 
     private fun collectGenericTypes(pyClass: PyClass, context: TypeEvalContext): List<PyTypeVarType> {
@@ -357,9 +357,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     override fun prepareCalleeTypeForCall(
         type: PyType?,
-        call: PyCallExpression,
+        call: PyExpression,
         context: TypeEvalContext,
-    ): Ref<PyCallableType?>? {
+    ): Ref<PyType?>? {
+        val callExpression = call as? PyCallExpression ?: return null
         val pyClass = (type as? PyClassType)?.pyClass ?: return null
         if (!isSubClassOfPydanticGenericModel(pyClass, context) || pyClass.isPydanticGenericModel) return null
 
@@ -367,8 +368,8 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             pyClass,
             context,
             getInstance(pyClass.project).currentInitTyped,
-            call
-        )?.let { Ref.create(it) }
+            callExpression
+        )?.let { Ref.create<PyType?>(it) }
     }
 
     private fun createConListPyType(pyCallSiteExpression: PyCallSiteExpression, context: TypeEvalContext): PyType? {
@@ -761,7 +762,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
             ?: return emptyList()
 
         return listOf(
-            PyCallableParameterImpl.nonPsi(parameterName, typeForParameter, resolvedDefaultValue)
+            PyCallableParameterImpl.nonPsi(parameterName, typeForParameter.withUnknownFallback(), resolvedDefaultValue)
         )
     }
 
@@ -779,7 +780,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         return PyCallableParameterImpl.nonPsi(
             name,
-            typeForParameter,
+            typeForParameter.withUnknownFallback(),
             parameter.defaultValue
         )
     }
@@ -813,7 +814,7 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
         return PyCallableParameterImpl.nonPsi(
             field.name,
-            typeForParameter,
+            typeForParameter.withUnknownFallback(),
             defaultValue
         )
     }
