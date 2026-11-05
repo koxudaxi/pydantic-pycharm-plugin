@@ -146,30 +146,32 @@ tasks {
             systemProperty("pydantic.test.typeshed.stdlibOnly", it)
         }
         doFirst {
-            // Find the Python plugin helpers directory dynamically
-            val pythonPluginDir = project.configurations
+            // Local platforms may resolve to transformed archives rather than directory artifacts.
+            val localHelpersPath = providers.gradleProperty("localPlatformPath").orNull?.let { path ->
+                listOf(file(path), file(path).resolve("Contents"))
+                    .flatMap { home ->
+                        listOf("python-ce", "python").map { plugin ->
+                            home.resolve("plugins/$plugin/helpers")
+                        }
+                    }
+                    .firstOrNull { it.isDirectory }
+            }
+            val helpersPath = localHelpersPath ?: project.configurations
                 .named("intellijPlatformDependency")
                 .get()
                 .resolvedConfiguration
                 .resolvedArtifacts
-                .flatMap { artifact ->
-                    val file = artifact.file
-                    if (file.isDirectory) {
-                        file.walkTopDown()
-                            .filter { it.name == "python-ce" && it.isDirectory }
-                            .toList()
-                    } else {
-                        emptyList()
-                    }
-                }
-                .firstOrNull()
+                .asSequence()
+                .map { it.file }
+                .filter { it.isDirectory }
+                .flatMap { it.walkTopDown() }
+                .filter { it.name == "python-ce" && it.isDirectory }
+                .map { it.resolve("helpers") }
+                .firstOrNull { it.isDirectory }
 
-            pythonPluginDir?.let {
-                val helpersPath = it.resolve("helpers")
-                if (helpersPath.exists()) {
-                    systemProperty("idea.python.helpers.path", helpersPath.absolutePath)
-                    logger.lifecycle("Set idea.python.helpers.path to: ${helpersPath.absolutePath}")
-                }
+            helpersPath?.let {
+                systemProperty("idea.python.helpers.path", it.absolutePath)
+                logger.lifecycle("Set idea.python.helpers.path to: ${it.absolutePath}")
             }
         }
     }

@@ -357,10 +357,10 @@ class PydanticTypeProvider : PyTypeProviderBase() {
 
     override fun prepareCalleeTypeForCall(
         type: PyType?,
-        call: PyExpression,
+        callee: PyExpression,
         context: TypeEvalContext,
     ): Ref<PyType?>? {
-        val callExpression = call as? PyCallExpression ?: return null
+        val callExpression = PyCallExpressionNavigator.getPyCallExpressionByCallee(callee) ?: return null
         val pyClass = (type as? PyClassType)?.pyClass ?: return null
         if (!isSubClassOfPydanticGenericModel(pyClass, context) || pyClass.isPydanticGenericModel) return null
 
