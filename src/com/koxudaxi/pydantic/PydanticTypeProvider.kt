@@ -56,36 +56,19 @@ class PydanticTypeProvider : PyTypeProviderBase() {
         return RecursionManager.doPreventingRecursion(referenceExpression, true) {
             val callExpression = PsiTreeUtil.getParentOfType(referenceExpression, PyCallExpression::class.java)
                 ?: return@doPreventingRecursion null
-            val callee = callExpression.callee ?: return@doPreventingRecursion null
-
-            val (pyClass, subscriptionExpression) = when {
-                callee is PyReferenceExpression && callee == referenceExpression -> {
-                    val resolved = getResolvedPsiElements(referenceExpression, context)
-                        .asSequence()
-                        .filterIsInstance<PyClass>()
-                        .firstOrNull()
-                        ?: return@doPreventingRecursion null
-                    resolved to null
-                }
-
-                callee is PySubscriptionExpression && PsiTreeUtil.isAncestor(callee, referenceExpression, false) -> {
-                    val resolved = getResolvedPsiElements(referenceExpression, context)
-                        .asSequence()
-                        .filterIsInstance<PyClass>()
-                        .firstOrNull()
-                        ?: return@doPreventingRecursion null
-                    resolved to callee
-                }
-
-                else -> return@doPreventingRecursion null
-            }
+            // Preserve A as a class in A[T] so the SDK can evaluate the subscription first.
+            if (callExpression.callee != referenceExpression) return@doPreventingRecursion null
+            val pyClass = getResolvedPsiElements(referenceExpression, context)
+                .asSequence()
+                .filterIsInstance<PyClass>()
+                .firstOrNull()
+                ?: return@doPreventingRecursion null
 
             getPydanticTypeForClass(
                 pyClass,
                 context,
                 getInstance(referenceExpression.project).currentInitTyped,
                 callExpression,
-                subscriptionExpression,
             )
         }
     }
