@@ -20,7 +20,7 @@ class PydanticDataclassTypeProvider : PyTypeProviderBase() {
     override fun getCallableType(callable: PyCallable, context: TypeEvalContext): PyType? {
         if (callable is PyFunction && callable.isPydanticDataclass) {
             // Drop fake dataclass return type
-            return PyCallableTypeImpl(callable.getParameters(context), null)
+            return PyCallableTypeImpl(callable.getParameters(context), null.withUnknownFallback())
         }
         return super.getCallableType(callable, context)
     }
