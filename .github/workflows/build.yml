@@ -54,6 +54,8 @@ jobs:
         with:
           distribution: jetbrains
           java-version: 25
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache
         uses: actions/cache@v6
