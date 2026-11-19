@@ -618,21 +618,21 @@ And, you define parsable-type like a example.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">[tool.pydantic-pycharm-plugin.parsable-types]</span>
 
 <span class="c1"># str field may parse int and float</span>
-<span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;int&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;float&quot;</span><span class="p">]</span>
+<span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"int"</span><span class="p">,</span><span class="w"> </span><span class="s2">"float"</span><span class="p">]</span>
 
 <span class="c1"># datetime.datetime field may parse int</span>
-<span class="s2">&quot;datetime.datetime&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;int&quot;</span><span class="w"> </span><span class="p">]</span>
+<span class="s2">"datetime.datetime"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">"int"</span><span class="w"> </span><span class="p">]</span>
 
 <span class="c1"># your_module.your_type field may parse str</span>
-<span class="s2">&quot;your_module.your_type&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;str&quot;</span><span class="w"> </span><span class="p">]</span>
+<span class="s2">"your_module.your_type"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">"str"</span><span class="w"> </span><span class="p">]</span>
 
 <span class="k">[tool.pydantic-pycharm-plugin]</span>
-<span class="c1"># You can set higlith level (default is &quot;warning&quot;)</span>
-<span class="c1"># You can select it from &quot;warning&quot;,  &quot;weak_warning&quot;, &quot;disable&quot; </span>
-<span class="n">parsable-type-highlight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;warning&quot;</span><span class="w"> </span>
+<span class="c1"># You can set higlith level (default is "warning")</span>
+<span class="c1"># You can select it from "warning",  "weak_warning", "disable" </span>
+<span class="n">parsable-type-highlight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"warning"</span><span class="w"> </span>
 
 <span class="c1">## If you set acceptable-type-highlight then, you have to set it at same depth.</span>
-<span class="n">acceptable-type-highlight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;disable&quot;</span><span class="w"> </span>
+<span class="n">acceptable-type-highlight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"disable"</span><span class="w"> </span>
 </code></pre></div>
 
 <h2 id="acceptable-type">Acceptable Type<a class="headerlink" href="#acceptable-type" title="Permanent link">🔗</a></h2>
@@ -650,18 +650,18 @@ And, you define acceptable-type like a example.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">[tool.pydantic-pycharm-plugin.acceptable-types]</span>
 
 <span class="c1"># str field accepts to parse int and float</span>
-<span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;int&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;float&quot;</span><span class="p">]</span>
+<span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"int"</span><span class="p">,</span><span class="w"> </span><span class="s2">"float"</span><span class="p">]</span>
 
 <span class="c1"># datetime.datetime field may parse int</span>
-<span class="s2">&quot;datetime.datetime&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;int&quot;</span><span class="w"> </span><span class="p">]</span>
+<span class="s2">"datetime.datetime"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">"int"</span><span class="w"> </span><span class="p">]</span>
 
 <span class="k">[tool.pydantic-pycharm-plugin]</span>
-<span class="c1"># You can set higlith level (default is &quot;weak_warning&quot;)</span>
-<span class="c1"># You can select it from &quot;warning&quot;,  &quot;weak_warning&quot;, &quot;disable&quot; </span>
-<span class="n">acceptable-type-highlight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;disable&quot;</span><span class="w"> </span>
+<span class="c1"># You can set higlith level (default is "weak_warning")</span>
+<span class="c1"># You can select it from "warning",  "weak_warning", "disable" </span>
+<span class="n">acceptable-type-highlight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"disable"</span><span class="w"> </span>
 
 <span class="c1"># If you set parsable-type-highlight then, you have to set it at same depth.</span>
-<span class="n">parsable-type-highlight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;warning&quot;</span><span class="w"> </span>
+<span class="n">parsable-type-highlight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"warning"</span><span class="w"> </span>
 </code></pre></div>
 
 
