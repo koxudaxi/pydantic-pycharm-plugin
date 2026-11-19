@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.codeInsight.PyDataclassParameters
 import com.jetbrains.python.codeInsight.PyDataclassParametersProvider
+import com.jetbrains.python.codeInsight.stdlib.PyStdlibDataclassType
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.types.PyCallableParameter
@@ -12,13 +13,13 @@ import com.jetbrains.python.psi.types.TypeEvalContext
 
 class PydanticParametersProvider : PyDataclassParametersProvider {
 
-    override fun getType(): PyDataclassParameters.Type = PydanticType
+    override fun getType(): PyDataclassParameters.Type = PyStdlibDataclassType
 
     override fun getDecoratorAndTypeAndParameters(project: Project): Triple<QualifiedName, PyDataclassParameters.Type, List<PyCallableParameter>> {
         val generator = PyElementGenerator.getInstance(project)
         val parameters = mutableListOf(PyCallableParameterImpl.psi(generator.createSingleStarParameter()))
-        parameters.addAll(DATACLASS_ARGUMENTS.map { name -> PyCallableParameterImpl.nonPsi(name, null) })
-        return Triple(DATACLASS_QUALIFIED_NAME, PydanticType, parameters)
+        parameters.addAll(DATACLASS_ARGUMENTS.map { name -> PyCallableParameterImpl.nonPsi(name, null.withUnknownFallback()) })
+        return Triple(DATACLASS_QUALIFIED_NAME, PyStdlibDataclassType, parameters)
     }
 
     override fun getDataclassParameters(cls: PyClass, context: TypeEvalContext?): PyDataclassParameters? {
@@ -38,14 +39,8 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
         return false
     }
 
-    private object PydanticType : PyDataclassParameters.Type {
-        override val name: String = "pydantic"
-        override val asPredefinedType: PyDataclassParameters.PredefinedType = PyDataclassParameters.PredefinedType.STD
-    }
-
     private object PydanticDataclassBypassType : PyDataclassParameters.Type {
         override val name: String = "pydantic-base-model"
-        override val asPredefinedType: PyDataclassParameters.PredefinedType? = null
     }
 
     private companion object {
@@ -78,12 +73,6 @@ class PydanticParametersProvider : PyDataclassParametersProvider {
             type = PydanticDataclassBypassType,
             others = emptyMap(),
             fieldSpecifiers = emptyList(),
-            populateByName = null,
-            validateByName = null,
-            validateByAlias = null,
-            populateByNameArgument = null,
-            validateByAliasArgument = null,
-            validateByNameArgument = null,
         )
     }
 }

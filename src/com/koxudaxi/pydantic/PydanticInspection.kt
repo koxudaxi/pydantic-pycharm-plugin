@@ -265,10 +265,10 @@ class PydanticInspection : PyInspection() {
             PyCallExpressionImpl(pyClass.node).let { callSite ->
                 when {
                     pyClass.isPydanticDataclass ->
-                        pyDataclassTypeProvider.getReferenceType(
-                                pyClass,
-                                myTypeEvalContext,
-                                callSite
+                        pyDataclassTypeProvider.prepareCalleeTypeForCall(
+                                myTypeEvalContext.getType(pyClass),
+                                callSite,
+                                myTypeEvalContext
                         )?.get() as? PyCallableType
 
                     else -> pydanticTypeProvider.getPydanticTypeForClass(

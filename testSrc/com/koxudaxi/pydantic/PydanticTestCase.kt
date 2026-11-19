@@ -141,7 +141,7 @@ abstract class PydanticTestCase(val version: String = "v1") : UsefulTestCase() {
 
         runWriteAction {
             val sdk = PythonSdkUtil.findPythonSdk(myFixture!!.module)!!
-            myFixture!!.tempDirFixture.findOrCreateDir(PythonSdkUtil.SKELETON_DIR_NAME)
+            myFixture!!.tempDirFixture.findOrCreateDir(com.jetbrains.python.PythonMockSdk.SKELETON_DIR_NAME)
                 .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }
             val libDir = myFixture!!.tempDirFixture.findOrCreateDir("Lib")
                 .also { sdk.sdkModificator.addRoot(it, OrderRootType.CLASSES) }

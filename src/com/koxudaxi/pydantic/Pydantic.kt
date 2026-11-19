@@ -930,11 +930,13 @@ fun getPydanticModelInit(pyClass: PyClass, context: TypeEvalContext): PyFunction
      this.callee?.reference?.resolve()?.let { it as? PyClass }?.getType(context)?.isDefinition == true
 
 fun PyCallExpression.getPyCallableType(context: TypeEvalContext): PyCallableType? {
-    val callableType = this.callee?.getType(context) as? PyCallableType
+    val callee = this.callee ?: return null
+    val callableType = callee.getType(context) as? PyCallableType
     val pyClass = getPydanticPyClass(this, context, true) ?: return callableType
     return when {
-        pyClass.isPydanticDataclass -> pyDataclassTypeProvider.getReferenceType(pyClass, context, this)
-            ?.get() as? PyCallableType ?: callableType
+        pyClass.isPydanticDataclass -> pyDataclassTypeProvider.prepareCalleeTypeForCall(
+            context.getType(pyClass), callee, context
+        )?.get() as? PyCallableType ?: callableType
 
         else -> pydanticTypeProvider.getPydanticTypeForClass(pyClass, context, true, this) ?: callableType
     }

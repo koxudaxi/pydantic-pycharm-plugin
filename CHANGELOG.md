@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Support PyCharm 2026.3 (263.7307.206): adapt dataclass and type-provider APIs and explicit Unknown types. [[#1229](https://github.com/koxudaxi/pydantic-pycharm-plugin/pull/1229)]
 - Fix crash with legacy docstring settings [[#1201](https://github.com/koxudaxi/pydantic-pycharm-plugin/issues/1201)]
 
 ## [0.4.28] - 2026-07-29
