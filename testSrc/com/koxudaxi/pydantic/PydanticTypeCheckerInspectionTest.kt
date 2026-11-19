@@ -1,6 +1,7 @@
 package com.koxudaxi.pydantic
 
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.openapi.util.registry.Registry
 import com.jetbrains.python.inspections.PyInspection
 import kotlin.reflect.KClass
 
@@ -25,6 +26,22 @@ open class PydanticTypeCheckerInspectionTest : PydanticInspectionBase() {
             doTest()
         } finally {
             configService.parsableTypeMap = previousParsableTypeMap
+        }
+    }
+
+    fun testUnmappedConstructorArgumentTypes() {
+        val fixture = myFixture!!
+        Registry.get("python.type.any").setValue(true, fixture.testRootDisposable)
+        val configService = PydanticConfigService.getInstance(fixture.project)
+        val previousParsableTypeMap = configService.parsableTypeMap
+        val previousAcceptableTypeMap = configService.acceptableTypeMap
+        try {
+            configService.parsableTypeMap = emptyMap()
+            configService.acceptableTypeMap = mapOf("builtins.str" to listOf("int"))
+            doTest()
+        } finally {
+            configService.parsableTypeMap = previousParsableTypeMap
+            configService.acceptableTypeMap = previousAcceptableTypeMap
         }
     }
 
